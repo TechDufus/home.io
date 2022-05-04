@@ -1,0 +1,28 @@
+---
+- name: Setup localhost environment
+  block:
+    - name: Update Apt Packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+        # autoremove: yes
+        # autoclean: yes
+
+    - name: Install Apt Dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: true
+      loop:
+        - python
+        - python3
+        - python3-pip
+        - software-properties-common
+
+    - name: Install Pip Dependencies
+      pip:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-py
+  delegate_to: localhost

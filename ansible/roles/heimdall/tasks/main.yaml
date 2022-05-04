@@ -1,0 +1,6 @@
+---
+- name: "Configure SSH / User"
+  import_tasks: user.yaml
+
+- name: "Configure Docker"
+  import_tasks: docker.yaml

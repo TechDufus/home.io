@@ -1,0 +1,11 @@
+---
+heimdall_username: 'techdufus'
+docker_gpg_file: /tmp/docker.gpg
+docker_gpg_keyring: /etc/apt/trusted.gpg.d/docker.gpg
+heimdall_docker_home: /opt/heimdall
+
+heimdall_docker_port_80: 80
+heimdall_docker_port_443: 443
+heimdall_host_port_80: 80
+heimdall_host_port_443: 443
+

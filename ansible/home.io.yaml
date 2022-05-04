@@ -1,0 +1,7 @@
+---
+- hosts: all
+  become: yes
+
+  roles:
+    - { role: heimdall, tags: heimdall }
+

@@ -1,0 +1,21 @@
+---
+- name: "Test SSH connection"
+  ping:  # <-- no args needed
+  ignore_unreachable: true
+  ignore_errors: true
+  changed_when: false
+  register: ssh_test
+
+- name: "Fall back to root user?"
+  when: ssh_test.unreachable is defined
+  connection: local
+  set_fact:
+    ansible_ssh_user: root
+
+- name: "Ensure that the user exists"
+  user:
+    name: "{{ ansible_ssh_user }}"
+    comment: "Ansible automatically created this user"
+    state: present
+    shell: /bin/bash
+    group: sudo
