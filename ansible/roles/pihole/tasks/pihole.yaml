@@ -1,0 +1,25 @@
+---
+- name: Install Automated Pi-hole
+  block:
+    - name: Ensure pihole Directory Exists
+      file:
+        path: /etc/pihole
+        state: directory
+        mode: 0755
+
+    - name: Deploy Pi-hole setup configuration file
+      copy:
+        src: "files/{{ inventory_hostname }}_setupVars.conf"
+        dest: /etc/pihole/setupVars.conf
+        force: yes
+
+    - name: Download Pi-hole Install Script
+      get_url:
+        url: https://install.pi-hole.net
+        dest: "{{ pihole_install_script }}"
+
+    - name: Run Pi-hole Install Script
+      shell: |
+        cat {{ pihole_install_script }} | bash /dev/stdin --unattended
+        
+  become: yes

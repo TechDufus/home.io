@@ -1,0 +1,6 @@
+---
+
+# - import_tasks: secrets.yaml
+
+- import_tasks: pihole.yaml
+
