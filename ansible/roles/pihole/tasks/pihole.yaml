@@ -21,5 +21,4 @@
     - name: Run Pi-hole Install Script
       shell: |
         cat {{ pihole_install_script }} | bash /dev/stdin --unattended
-        
   become: yes

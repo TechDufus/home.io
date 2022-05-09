@@ -1,0 +1,66 @@
+---
+- name: Configure Passwordless Sudo
+  block:
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Allow 'wheel' group to have passwordless sudo
+      copy:
+        content: '%wheel ALL=(ALL:ALL) NOPASSWD: ALL'
+        dest: /etc/sudoers.d/wheel_nopasswd
+        mode: 0440
+      
+    - name: Add sudoers users to wheel group
+      user:
+        name="{{ ansible_user }}"
+        groups=wheel
+        append=yes
+        state=present
+        createhome=yes
+  become: yes
+
+- name: "[PRIMARY]: Configure Gravity-Sync Primary"
+  block: 
+    - name: "[PRIMARY]: Run initial Primary Configuration Check"
+      shell: |
+        export GS_INSTALL=primary
+        curl -sSL https://gravity.vmstan.com | bash
+  become: yes
+  when: pihole_primary == true
+
+- name: "[SECONDARY]: Configure Gravity-Sync Secondary(s)"
+  block:
+    - name: "[SECONDARY]: Ensure gravity-sync directory exists"
+      file:
+        path: /etc/gravity-sync
+        state: directory
+
+    - name: "[SECONDARY]: Deploy gravity-sync.conf"
+      copy:
+        src: gravity-sync.conf
+        dest: /etc/gravity-sync/gravity-sync.conf
+
+    - name: "[SECONDARY]: Run initial Secondary Configuration Check"
+      shell: |
+        export GS_INSTALL=secondary
+        curl -sSL https://gravity.vmstan.com | sudo bash
+
+    - name: "[SECONDARY]: Run gravity-sync pull"
+      shell: gravity-sync pull
+      args:
+        executable: /bin/bash
+
+    - name: "[SECONDARY]: Configure gravity-sync schedule"
+      shell: gravity-sync auto
+      args:
+        executable: /bin/bash
+  become: yes
+  when: pihole_primary != true
+
+- name: Update Gravity
+  shell: pihole updateGravity
+  args:
+    executable: /bin/bash
+  become: yes

@@ -1,6 +1,3 @@
 ---
-
-# - import_tasks: secrets.yaml
-
 - import_tasks: pihole.yaml
-
+- import_tasks: gravity-sync.yaml
