@@ -1,11 +1,11 @@
 resource "proxmox_vm_qemu" "demo-1" {
   name        = "demo-1"
   desc        = "Demo VM"
-  vmid        = "401"
+  vmid        = "100"
   target_node = "proxmox"
 
   agent = 1
-
+  
   cores   = 1
   sockets = 1
   cpu     = "host"
