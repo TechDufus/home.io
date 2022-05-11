@@ -25,9 +25,9 @@ variable "proxmox_pass" {
 }
 
 provider "proxmox" {
-  pm_api_url  = var.proxmox_api_url
-  pm_user     = var.proxmox_user
-  pm_password = var.proxmox_pass
+  pm_api_url      = var.proxmox_api_url
+  pm_user         = var.pm_user
+  pm_password     = var.pm_password
   pm_tls_insecure = true
   # Uncomment the below for debugging.
   # pm_log_enable = true

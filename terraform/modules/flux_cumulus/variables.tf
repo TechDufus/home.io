@@ -3,6 +3,11 @@ variable "hostname" {
   type        = string
 }
 
+variable "nameserver" {
+  description = "Nameserver of the Flux node."
+  type        = string
+}
+
 variable "ip_address" {
   description = "IPv4 address of the Flux node."
   type        = string
