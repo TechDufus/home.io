@@ -1,13 +1,13 @@
 # Local .terraform directories
-**/.terraform/*
+**/.terraform/**
 
 # .tfstate files
-*.tfstate
-*.tfstate.*
+**.tfstate
+**.tfstate.*
 
 # Crash log files
 crash.log
 crash.*.log
 
 # local creds file
-terraform/credentials*.tfvars
+terraform/**/credentials**.tfvars
