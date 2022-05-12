@@ -9,8 +9,8 @@
 # ████████████████████████████████████████████████████████████████████████████████████████████
 
 module "flux_cumulus" {
-  source = "./modules/flux_cumulus"
-  count  = var.flux_cumulus_count
+  source      = "./modules/flux_cumulus"
+  count       = var.flux_cumulus_count
   hostname    = "pm-flux-cumulus-${count.index}"
   vmid        = "11${count.index}"
   nameserver  = var.nameserver
@@ -21,8 +21,8 @@ module "flux_cumulus" {
   storage     = var.storage
 }
 module "flux_nimbus" {
-  source = "./modules/flux_nimbus"
-  count  = var.flux_nimbus_count
+  source      = "./modules/flux_nimbus"
+  count       = var.flux_nimbus_count
   hostname    = "pm-flux-nimbus-${count.index}"
   vmid        = "12${count.index}"
   nameserver  = var.nameserver
@@ -33,8 +33,8 @@ module "flux_nimbus" {
   storage     = var.storage
 }
 module "flux_stratus" {
-  source = "./modules/flux_stratus"
-  count  = var.flux_stratus_count
+  source      = "./modules/flux_stratus"
+  count       = var.flux_stratus_count
   hostname    = "pm-flux-stratus-${count.index}"
   vmid        = "13${count.index}"
   nameserver  = var.nameserver
