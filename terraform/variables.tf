@@ -116,7 +116,20 @@ variable "flux_stratus_ip_address_prefix" {
   type = string
 }
 
+variable "proxmox_api_url" {
+  type    = string
+  default = "https://proxmox.home.io:8006/api2/json"
+}
 
+variable "pm_user" {
+  type      = string
+  sensitive = true
+}
+
+variable "pm_password" {
+  type      = string
+  sensitive = true
+}
 
 locals {
   # tflint-ignore: terraform_unused_declarations
