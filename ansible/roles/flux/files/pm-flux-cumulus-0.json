@@ -1,0 +1,20 @@
+{
+    "import_settings": "",
+    "prvkey": "5JiGSJ6JPF7M7HrGoT4ChYbH8Ja4ZnmNLom7Dmc2PfzHgrYMNSF",
+    "outpoint": "88f46bf543266600c200ec33eb1b60483da09a1343b8bcba5e7b3d23aabe313c",
+    "index": "0",
+    "zelid": "1Hbz9ssfj7rFqHo1FsZLmX5ykUv9qmr2bY",
+    "kda_address": "kadena:k:6177883d369db90fc760e15a9dc62a712fac8b89fa5b0240b08963f74e54b962?chainid=0",
+    "firewall_disable": "1",
+    "bootstrap_url": "0",
+    "bootstrap_zip_del": "1",
+    "swapon": "1",
+    "use_old_chain": "",
+    "node_label": "pm-flux-cumulus-0",
+    "discord": "https://discord.com/api/webhooks/952197490193625188/ec71No3dE75Sh-8oNxwizd6YIJzJDrVjsCR-ZIWEE-gVl-Lq46HnJdcOmeDcLGCGBGyp",
+    "ping": "430511869090856971",
+    "telegram_alert": "0",
+    "telegram_bot_token": "0",
+    "telegram_chat_id": "0",
+    "eps_limit": "90"
+  }
