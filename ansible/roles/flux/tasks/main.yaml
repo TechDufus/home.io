@@ -1,0 +1,7 @@
+---
+# copy over config file
+- name: Deploy configuration file to flux node
+  copy:
+    src: "{{ ansible_hostname }}.json"
+    dest: "/home/{{ ansible_user }}/install_conf.json"
+# run option 2 of multitool

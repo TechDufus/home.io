@@ -131,6 +131,7 @@ variable "pm_password" {
   sensitive = true
 }
 
+# May need to rework this if nodes are provided as objects, not a simple int.
 locals {
   # tflint-ignore: terraform_unused_declarations
   validate_total_node_count = ((var.flux_cumulus_count + var.flux_nimbus_count + var.flux_stratus_count) > 8) ? tobool("The maximum amount of hosted flux nodes is currently '8' and cannot be exceeded.") : true
