@@ -25,13 +25,11 @@ Terraform is used to provision the VMs needed for everything running on my home 
 
 I've structured this such that, each `base` VM needed is contained in it's own terraform module so I can create any X amount of that same base config as I want. (See [vars.auto.tfvars](https://github.com/matthewjdegarmo/home.io/blob/main/terraform/vars.auto.tfvars) for an example.)
 
-More to come:
+## More to come:
 
 - PFSense or OPNSense
 - Networking Solution (With DHCP) - Currently handled by gateway.
 - Internal CI/CD (Jenkins?)
-
-## Other future fluff
 
 I'm also planning to deploy some of my other servers / services via `k8s` in the future. To be decided.
 
