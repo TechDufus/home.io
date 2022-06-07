@@ -72,7 +72,7 @@ sections:
       hostname: http://pi.hole
       useProxy: true
       hideInfo: false
-      hideChart: true
+      hideChart: false
       hideStatus: false
 - name: Flux Nodes
   icon: hl-runonflux-mark-blue
