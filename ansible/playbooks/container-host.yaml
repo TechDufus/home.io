@@ -8,7 +8,6 @@
   roles:
     - { role: common, tags: common }
     - { role: docker, tags: docker }
-    # - { role: heimdall, tags: heimdall }
     - { role: dashy, tags: dashy }
     - { role: home-assistant, tags: home-assistant }
     - { role: portainer, tags: portainer }
