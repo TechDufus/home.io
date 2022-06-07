@@ -1,0 +1,8 @@
+---
+
+- import_tasks: apt.yaml
+- import_tasks: terraform.yaml
+- import_tasks: templates.yaml
+- import_tasks: firewall.yaml
+
+

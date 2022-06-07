@@ -1,0 +1,59 @@
+---
+- name: "[SECONDARY]: Deploy Secondary ssh private key"
+  copy:
+    src: "files/pihole-ssh-private.key"
+    dest: /home/{{ ansible_user }}/.ssh/id_rsa
+    mode: 0644
+    force: yes
+
+- name: "[SECONDARY]: Ensure known_hosts file exists"
+  file:
+    path: /home/{{ ansible_user }}/.ssh/known_hosts
+    state: touch
+
+- name: "[SECONDARY]: Ensure ssh config file exists"
+  file:
+    path: /home/{{ ansible_user }}/.ssh/config
+    state: touch
+
+- name: "[SECONDARY]: Disable StrictHostKeyChecking"
+  ansible.builtin.blockinfile:
+    dest: /home/{{ ansible_user }}/.ssh/config
+    content: |
+      Host *
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+
+- name: "[SECONDARY]: Reset ssh thumbprints for primary: {{ primary_ip }}"
+  shell: |
+    ssh-keygen -R "{{ primary_ip }}"
+    ssh-keyscan {{ primary_ip }} >> /home/{{ ansible_user }}/.ssh/known_hosts 2> /dev/null
+
+- name: "[SECONDARY]: Ensure gravity-sync directory exists"
+  file:
+    path: /etc/gravity-sync
+    state: directory
+  become: yes
+
+- name: "[SECONDARY]: Deploy gravity-sync.conf"
+  copy:
+    src: gravity-sync.conf
+    decrypt: yes
+    dest: /etc/gravity-sync/gravity-sync.conf
+  become: yes
+
+- name: "[SECONDARY]: Run initial Secondary Configuration Check"
+  shell: |
+    export GS_INSTALL=secondary
+    curl -sSL https://gravity.vmstan.com | sudo bash
+
+- name: "[SECONDARY]: Perform Gravity-Sync"
+  block:
+    - name: "[SECONDARY]: Run gravity-sync pull"
+      shell: gravity-sync pull 2> /dev/null
+      register: gravity_pull
+      failed_when: gravity_pull.rc == 2
+
+    - name: "[SECONDARY]: Configure gravity-sync schedule"
+      shell: gravity-sync auto
+  become: no

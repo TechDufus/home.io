@@ -1,0 +1,13 @@
+10.0.0.6 secondary.pi.hole
+10.0.0.8 assistant.home.io
+10.0.0.7 heimdall.home.io
+10.0.0.3 proxmox.home.io
+10.0.0.7 portainer.home.io
+10.0.0.7 container-host.home.io
+10.0.0.7 dashy.home.io
+10.0.0.7 home.io
+10.0.0.10 cumulus0.home.io
+10.0.0.11 cumulus1.home.io
+10.0.0.12 cumulus2.home.io
+10.0.0.13 cumulus3.home.io
+10.0.0.14 cumulus4.home.io10.0.0.5 pi.hole

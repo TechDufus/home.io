@@ -1,0 +1,28 @@
+---
+- name: Checking for Terraform Provisioning Role
+  shell: pveum role list | grep -c "{{ terraform_role }}"
+  register: terraform_role_check
+  failed_when: "terraform_role_check.rc == 2"
+  check_mode: no
+  changed_when: false
+
+- name: Create Terraform Provisioning Role
+  shell: pveum role add {{ terraform_role }} -privs {{ terraform_privs }}
+  when: terraform_role_check.stdout == "0"
+
+- name: Checking for terraform user
+  shell: pveum user list | grep -c "{{ terraform_user }}"
+  register: terraform_user_check
+  failed_when: "terraform_user_check.rc == 2"
+  check_mode: no
+  changed_when: false
+
+- name: Create terraform user and adding to terraform role
+  shell: pveum user add {{ terraform_user }} -role {{ terraform_role }}
+  when: terraform_user_check.stdout == "0"
+
+- name: Set {{ terraform_user }} password
+  vars:
+    terraform_password: "{{ lookup('file', 'files/' + terraform_user + '.password') }}"
+  shell: pvesh set /access/password --userid "{{ terraform_user }}" --password "{{ terraform_password }}"
+  no_log: yes

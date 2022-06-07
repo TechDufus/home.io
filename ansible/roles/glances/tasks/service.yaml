@@ -1,0 +1,39 @@
+---
+- name: Register glances bin location
+  shell: which glances
+  register: glances_bin
+  changed_when: false
+
+- name: Create systemd service
+  block:
+    - name: Create glances.service file
+      file:
+        path: /etc/systemd/system/glances.service
+        state: touch
+    
+    - name: Create systemd service
+      copy:
+        content: |
+          [Unit]
+          Description = Glances in Web Server Mode
+          After = network.target
+
+          [Service]
+          ExecStart = {{ glances_bin.stdout }} -w --disable-webui
+          User = {{ ansible_user }}
+
+          [Install]
+          WantedBy = multi-user.target
+        dest: /etc/systemd/system/glances.service
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes
+        force: yes
+    
+- name: Restart glances.service Service
+  systemd:
+    name: glances.service
+    enabled: yes
+    state: restarted
+    daemon_reload: yes

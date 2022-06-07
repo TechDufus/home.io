@@ -1,0 +1,51 @@
+---
+
+- name: Check if user exists
+  shell: |
+    /usr/bin/getent group | awk -F":" '{print $1}' | grep -c "docker"
+  register: docker_group
+  failed_when: "docker_group.rc == 2"
+  check_mode: no
+  changed_when: false
+  
+- name: Install Flux Docker
+  shell: |
+    export usernew="{{ ansible_user }}"
+    echo "1" | bash -i <(curl -s https://raw.githubusercontent.com/matthewjdegarmo/fluxnode-multitool/master/multitoolbox.sh)
+  become: yes
+  become_user: root
+  args:
+    executable: /bin/bash
+  when: docker_group.stdout == "0"
+
+- name: Deploy Install configuration file to flux node
+  copy:
+    src: "{{ ansible_hostname }}_install.json"
+    dest: "/home/{{ ansible_user }}/install_conf.json"
+
+# - name: Ensure zelflux directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/zelflux"
+#     state: directory
+
+# - name: Ensure zelflux config directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/zelflux/config"
+#     state: directory
+
+# - name: Deploy uPnP configuration file to flux node
+#   copy:
+#     src: "{{ ansible_hostname }}_upnp.js"
+#     dest: "/home/{{ ansible_user }}/zelflux/config/userconfig.js"
+
+
+# - name: "Installing FluxNode - Go get some coffee. :)"
+#   shell: |
+#     echo "2" | bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+#   args:
+#     executable: /bin/bash
+#   # async: 28800 # 8 hours
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#Do I still need to run static-ip cron job here?
+#DO I need to configure port for uPnP here?

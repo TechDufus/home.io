@@ -1,0 +1,34 @@
+terraform_role: TerraformProv
+terraform_user: terraform-prov@pve
+terraform_privs: "VM.Allocate VM.Clone VM.Config.CDROM VM.Config.CPU VM.Config.Cloudinit VM.Config.Disk VM.Config.HWType VM.Config.Memory VM.Config.Network VM.Config.Options VM.Monitor VM.Audit VM.PowerMgmt Datastore.AllocateSpace Datastore.Audit"
+ciuser: techdufus
+
+## Ubuntu Server 22.04: Jammy ##
+template_vm_id_2204: 9000
+template_vm_name_2204: "ubuntu-server-22.04-template"
+template_url_2204: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+template_file_2204: jammy-server-cloudimg-amd64.img
+
+## Ubuntu Server 20.04: Focal ##
+template_vm_id_2004: 9001
+template_vm_name_2004: "ubuntu-server-20.04-template"
+template_url_2004: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+template_file_2004: focal-server-cloudimg-amd64.img
+
+## Zabbix Appliance 6.0.4 ##
+template_vm_id_zabbix: 9003
+template_vm_name_zabbix: "zabbix-appliance"
+template_url_zabbix: https://cdn.zabbix.com/zabbix/appliances/stable/6.0/6.0.4/zabbix-appliance-6.0.4-qcow2.tar.gz
+
+
+firewall_config_files:
+  - /etc/pve/nodes/proxmox/host.fw
+
+
+template_storage: local-lvm
+ip_config: ip=dhcp
+github_keys: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILFYw1CGIEWjWdxe3/8Xrk0MZsbB9Ns1Q3nEsOlJqQum||
+              ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d||
+              ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID8DCEdNPNzP/b1kQUksggS4gUYqZCsu5TDT3U1y6Xj0||
+              ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDprh2WV7r+HyxuUHNkwFH9XkQYc2/seDGe0huf85wsEDtkCRu9wQw7Oy0DVpwnBrjdmpp3wquQZAWg6dTJTX7ybkr5ZCndxojJKGaoEqFb/DXg6WtL6D/hJ00gdgsHK6SscP4z35wsMxl2NWyJopQ7o2t9K0mzZNrymzKD3fTsN7fCtzt7p/JxGW0k5ODAIvISNVs4rKufiwlRZviV70cgMf0QuY9KjlSPZSPFRSEItpqJfQ/SKgpJYd/kxOFYaoHpI9/Lw2Tkx5ZdkAEH0UrCdrI06DHZV+Fd9zPXmcjA/GOOm/kK5UNPWF5ad+2r0mN967+5riu6rF3/W92RVN8CiPeSKDjgtUQQaE0HHHS+RPn/Wk1cplFvWrHB3KjnArhE8cJOBsURm6GYUPnNPkG3t5ztXVGr8SM6j0ok682HvMq047gM+KJL8COV1TqMHWdZVURE8x9B9ivMYQj5cL0nf0Xf8c3pqJ0Y6kEWJQJefj+Hmm9V/Otgimdhb1DmDvk=||
+              ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIQ4DcTJmVaKfIiSMnGY4//2thrBIwdG9K89apGq6w5i"

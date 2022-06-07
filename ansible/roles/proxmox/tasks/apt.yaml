@@ -1,0 +1,20 @@
+---
+- name: Adding pve-no-subscription apt source
+  apt_repository:
+    repo: deb http://download.proxmox.com/debian bullseye pve-no-subscription
+    state: present
+    filename: /etc/apt/sources.list
+  
+- name: Removing enterprise apt repo
+  lineinfile:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+    line: deb https://enterprise.proxmox.com/debian/pve bullseye pve-enterprise
+    state: absent
+
+- name: Installing packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop:
+    - jq

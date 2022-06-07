@@ -1,0 +1,11 @@
+---
+- hosts: fluxnodes
+  vars:
+    roles_path: /etc/ansible/roles:../roles
+    inventory: ../hosts.ini
+  become: yes
+  # strategy: free
+
+  roles:
+    - { role: common, tags: common }
+    - { role: flux, tags: flux }

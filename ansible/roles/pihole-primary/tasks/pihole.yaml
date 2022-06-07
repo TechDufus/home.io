@@ -1,0 +1,122 @@
+---
+- name: Install Automated Pi-hole
+  block:
+    - name: Ensure pihole Directory Exists
+      file:
+        path: /etc/pihole
+        state: directory
+        mode: 0755
+
+    - name: Deploy Pi-hole setup configuration file
+      copy:
+        src: "files/{{ inventory_hostname }}_setupVars.conf"
+        dest: /etc/pihole/setupVars.conf
+        force: yes
+
+    - name: Deploy Pi-hole configuration files from backup.
+      copy:
+        src: "files/config/{{ item }}"
+        dest: /etc/pihole/{{ item }}
+        force: yes
+      loop:
+        - adlist.csv
+        - custom.list
+        - dns-servers.conf
+        - 04-pihole-static-dhcp.conf.gsb
+        - 05-pihole-custom-cname.conf
+
+    - name: Download Pi-hole Install Script
+      get_url:
+        url: https://install.pi-hole.net
+        dest: "{{ pihole_install_script }}"
+
+    - name: Run Pi-hole Install Script
+      shell: |
+        cat {{ pihole_install_script }} | bash /dev/stdin --unattended
+
+    - name: Set Admin UI Password
+      vars:
+        admin_ui_password: "{{ lookup('file', 'files/admin-ui.password') }}"
+      shell: pihole -a -p {{ admin_ui_password }}
+      no_log: yes
+
+    - name: Set Access-Control-Allow-Origin policy
+      lineinfile:
+        path: /etc/lighttpd/external.conf
+        line: setenv.add-response-header = ( "Access-Control-Allow-Origin" => "*" )
+        state: present
+
+    # - name: Install sqlite3
+    #   apt:
+    #     name: sqlite3
+    #     state: present
+    #     update_cache: yes
+
+    # - name: Clear Pi-hole gravity adlist database
+    #   shell: sqlite3 /etc/pihole/gravity.db 'DROP TABLE adlist'
+
+    # - name: Import Pi-hole gravity adlist database
+    #   shell: sqlite3 /etc/pihole/gravity.db -header -csv ".import /etc/pihole/adlist.csv adlist"
+  become: yes
+  become_user: root
+
+- name: Update Gravity database
+  shell: pihole updateGravity
+  become: yes
+  become_user: "{{ ansible_user }}"
+
+- name: Configure Passwordless Sudo
+  block:
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Allow 'wheel' group to have passwordless sudo
+      copy:
+        content: '%wheel ALL=(ALL:ALL) NOPASSWD: ALL'
+        dest: /etc/sudoers.d/wheel_nopasswd
+        mode: 0440
+      
+    - name: Add sudoers users to wheel group
+      user:
+        name="{{ ansible_user }}"
+        groups=wheel
+        append=yes
+        state=present
+        createhome=yes
+  become: yes
+
+- name: 'Reboot'
+  shell: sleep 2 && reboot
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: "Wait for Raspberry PI to come back"
+  local_action: wait_for host={{ ansible_host }} port=22 state=started delay=10
+  become: false
+
+- name: Install pihole cronjob (weekly ad update)
+  become: True
+  cron:
+    name: "Weekly ad update"
+    cron_file: "/etc/cron.d/pihole_gravity"
+    user: "{{ ansible_user }}"
+    weekday: 7
+    hour: 1
+    minute: 59
+    job: pihole updateGravity
+    state: present
+
+- name: install pihole cronjob (weekly pihole update)
+  become: True
+  cron:
+    name: "Weekly pihole update"
+    cron_file: "/etc/cron.d/pihole"
+    user: "{{ ansible_user }}"
+    weekday: 7
+    hour: 2
+    minute: 59
+    job: pihole updatePihole
+    state: present

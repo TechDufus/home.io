@@ -1,0 +1,23 @@
+---
+- name: Ensure firewall host file exists
+  file:
+    path: "{{ item }}"
+    state: touch
+    mode: 0640
+  loop: "{{ firewall_config_files }}"
+
+- name: Enable Configuring file for FW rules
+  ansible.builtin.lineinfile:
+    dest: "{{ item }}"
+    line: '[RULES]'
+    state: present
+    create: yes
+  loop: "{{ firewall_config_files }}"
+
+- name: Enable firewall rule for Glances
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    line: IN ACCEPT -source 10.0.0.0/24 -dest {{ ansible_host }} -p tcp -dport 61208 -log nolog
+    state: present
+  when: ansible_host is defined
+  loop: "{{ firewall_config_files }}"

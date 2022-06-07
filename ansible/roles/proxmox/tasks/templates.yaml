@@ -1,0 +1,108 @@
+---
+- name: Installing Template Prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - libguestfs-tools
+
+- name: Checking for current {{ template_vm_name_2204 }} template
+  shell: qm list | grep -c "{{ template_vm_id_2204 }} {{ template_vm_name_2204 }}"
+  register: template_check_2204
+  failed_when: "template_check_2204.rc == 2"
+  check_mode: no
+  changed_when: false
+
+- name: Creating template [Ubuntu 22.04] - {{ template_vm_name_2204 }}
+  block:
+    - name: Download base template file
+      get_url:
+        url: "{{ template_url_2204 }}"
+        dest: "./{{ template_file_2204 }}"
+        mode: 0600
+        owner: root
+        group: root
+        force: yes
+    - name: Install qemu-guest-agent in the template
+      shell: virt-customize -a {{ template_file_2204 }} --install qemu-guest-agent
+    - name: Create VM
+      shell: qm create {{ template_vm_id_2204 }} --name {{ template_vm_name_2204 }} --memory 2048 --net0 virtio,bridge=vmbr0 --ciuser {{ ciuser }}
+    - name: Set template serial0 and vga
+      shell: qm set {{ template_vm_id_2204 }} --serial0 socket --vga serial0
+    - name: Importing disk image to VM
+      shell: qm importdisk {{ template_vm_id_2204 }} {{ template_file_2204 }} {{ template_storage }} -format qcow2
+    - name: Setting hardware and attaching disk
+      shell: qm set {{ template_vm_id_2204 }} --scsihw virtio-scsi-pci --scsi0 {{ template_storage }}:vm-{{ template_vm_id_2204 }}-disk-0
+    - name: Setting Cloud-init storage
+      shell: qm set {{ template_vm_id_2204 }} --ide2 {{ template_storage }}:cloudinit
+    - name: Setting VM bootdisk
+      shell: qm set {{ template_vm_id_2204 }} --boot c --bootdisk scsi0
+    - name: Enabling VM Agent settings
+      shell: qm set {{ template_vm_id_2204 }} --agent enabled=1,fstrim_cloned_disks=1
+    - name: Starting VM
+      shell: qm start {{ template_vm_id_2204 }}
+    - name: Setting ipconfig0 configuration
+      shell: qm set {{ template_vm_id_2204 }} --ipconfig0 {{ ip_config }}
+    - name: Stopping VM
+      shell: qm stop {{ template_vm_id_2204 }}
+    - name: Waiting for vm to stop
+      shell: qm wait {{ template_vm_id_2204 }}
+  when: template_check_2204.stdout == "0"
+
+- name: Checking for {{ template_vm_name_2004 }} template
+  shell: qm list | grep -c "{{ template_vm_id_2004 }} {{ template_vm_name_2004 }}"
+  register: template_check_2004
+  failed_when: "template_check_2004.rc == 2"
+  check_mode: no
+  changed_when: false
+
+- name: Creating template [Ubuntu Server 20.04] - {{ template_vm_name_2004 }}
+  block:
+    - name: Download base template file
+      get_url:
+        url: "{{ template_url_2004 }}"
+        dest: "./{{ template_file_2004 }}"
+        mode: 0600
+        owner: root
+        group: root
+        force: yes
+    - name: Install qemu-guest-agent in the template
+      shell: virt-customize -a {{ template_file_2004 }} --install qemu-guest-agent
+    - name: Create VM
+      shell: qm create {{ template_vm_id_2004 }} --name {{ template_vm_name_2004 }} --memory 2048 --net0 virtio,bridge=vmbr0 --ciuser {{ ciuser }}
+    - name: Set template serial0 and vga
+      shell: qm set {{ template_vm_id_2004 }} --serial0 socket --vga serial0
+    - name: Importing disk image to VM
+      shell: qm importdisk {{ template_vm_id_2004 }} {{ template_file_2004 }} {{ template_storage }} -format qcow2
+    - name: Setting hardware and attaching disk
+      shell: qm set {{ template_vm_id_2004 }} --scsihw virtio-scsi-pci --scsi0 {{ template_storage }}:vm-{{ template_vm_id_2004 }}-disk-0
+    - name: Setting Cloud-init storage
+      shell: qm set {{ template_vm_id_2004 }} --ide2 {{ template_storage }}:cloudinit
+    - name: Setting VM bootdisk
+      shell: qm set {{ template_vm_id_2004 }} --boot c --bootdisk scsi0
+    - name: Enabling VM Agent settings
+      shell: qm set {{ template_vm_id_2004 }} --agent enabled=1,fstrim_cloned_disks=1
+    - name: Starting VM
+      shell: qm start {{ template_vm_id_2004 }}
+    - name: Setting ipconfig0 configuration
+      shell: qm set {{ template_vm_id_2004 }} --ipconfig0 {{ ip_config }}
+    - name: Stopping VM
+      shell: qm stop {{ template_vm_id_2004 }}
+    - name: Waiting for vm to stop
+      shell: qm wait {{ template_vm_id_2004 }}
+  when: template_check_2004.stdout == "0"
+
+# These tasks outside of the template creation ensures that future
+# cloud-init clones have the updated keys
+- name: Downloading GitHub SSH key(s)
+  get_url:
+    url: https://github.com/matthewjdegarmo.keys
+    dest: /root/github_keys.pub
+    force: yes
+- name: Setting Template SSH Public Keys for root
+  shell: qm set {{ item }} --sshkey "/root/github_keys.pub"
+  loop:
+    - "{{ template_vm_id_2204 }}"
+    - "{{ template_vm_id_2004 }}"
+

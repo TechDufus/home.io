@@ -1,0 +1,34 @@
+---
+- name: "Docker: Ensure dashy directory exists"
+  file:
+    path: "{{ dashy_docker_home }}"
+    state: directory
+    mode: 0755
+    force: true
+  become: yes
+
+- name: "Docker: Deploy dashy Configuration"
+  copy:
+    src: "conf.yml"
+    dest: "{{ dashy_docker_home }}"
+  become: yes
+
+- name: Start Dashy Docker Image
+  docker_container:
+    name: dashy
+    image: lissy93/dashy
+    state: started
+    env:
+      TINI_SUBREAPER: "1"
+    published_ports:
+      - "{{ dashy_host_port_80 }}:{{ dashy_docker_port_80 }}"
+    volumes:
+      - "{{ dashy_docker_home }}/conf.yml:/app/public/conf.yml"
+    restart_policy: "unless-stopped"
+    restart: yes
+    pull: yes
+    detach: true
+    pid_mode: host
+  become: yes
+
+

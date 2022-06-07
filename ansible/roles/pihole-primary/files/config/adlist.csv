@@ -1,0 +1,7 @@
+id,address,enabled,date_added,date_modified,comment,date_updated,number,invalid_domains,status
+1,https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts,1,1651168622,1651168622,"Migrated from /etc/pihole/adlists.list",1654538924,112429,0,2
+2,https://blocklistproject.github.io/Lists/alt-version/ads-nl.txt,1,1651200603,1651200603,"BlockListProject - Ads",1654538926,154562,0,2
+3,https://blocklistproject.github.io/Lists/alt-version/tracking-nl.txt,1,1651200642,1651200642,"BlockListProject - Tracking",1654538929,15051,0,2
+4,https://blocklistproject.github.io/Lists/alt-version/malware-nl.txt,1,1651200665,1651200665,"BlockListProject - Malware",1654538930,435314,0,2
+5,https://blocklistproject.github.io/Lists/alt-version/porn-nl.txt,1,1651201964,1651201964,"BlockListProject - Porn",1654538939,1908825,0,2
+6,https://blocklistproject.github.io/Lists/alt-version/redirect-nl.txt,1,1651202033,1654138212,"https://blocklistproject.github.io/Lists/alt-version/ads-nl.txtBlockListProject - Redirect",1654538939,108675,0,2
