@@ -73,7 +73,7 @@ sections:
       useProxy: true
       hideInfo: false
       hideChart: false
-      hideStatus: false
+      hideStatus: true
 - name: Flux Nodes
   icon: hl-runonflux-mark-blue
   displayData:
