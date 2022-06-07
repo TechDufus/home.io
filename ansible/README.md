@@ -19,6 +19,7 @@ ansible-playbook ./playbooks/container-host.yaml --tags dashy
 # Deploy all Secondary Pi-Hole servers
 ansible-playbook ./playbooks/pihole.yaml --tags secondary
 ```
+![image](https://user-images.githubusercontent.com/46715299/172456122-f2a08288-80e5-490a-934b-94c26f9e5623.png)
 
 ## Secrets
 
