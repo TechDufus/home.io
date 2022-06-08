@@ -50,6 +50,7 @@ Example of what happens when terraform regenerates a MAC address:
 When deploying a `NEW` VM, you do not need to specify the MAC Address (`macaddr` variable) in your variable map. BUT once the VM is deployed and a MAC exists for that VM, it's a good idea to add that MAC Address to your variable map so Terraform keeps this MAC address and doesn't regenerate it.
 
 Example `vars.auto.tfvars` definition of a new VM:
+
 `Initial Terraform Deployment`
 
 ```terraform
