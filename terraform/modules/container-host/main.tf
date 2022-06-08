@@ -27,6 +27,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     size        = var.hdd_size
     type        = var.hdd_type
     storage     = var.storage
+    backup      = var.disk_backup
     mbps_rd     = var.mbps_rd
     mbps_wr     = var.mbps_wr
     mbps_rd_max = var.mbps_rd_max
@@ -35,10 +36,11 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   }
 
   network {
-    model  = var.net_model
-    bridge = var.net_bridge
-    mtu    = var.mtu
-    rate   = var.rate
+    model   = var.net_model
+    bridge  = var.net_bridge
+    mtu     = var.mtu
+    rate    = var.rate
+    macaddr =  var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
     # tag    = var.vlan_tag
   }
 
@@ -46,7 +48,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   # ignoring network changes during the life of the VM.
   lifecycle {
     ignore_changes = [
-      network,
+      # network,
       sshkeys
     ]
   }

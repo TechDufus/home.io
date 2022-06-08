@@ -40,6 +40,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     bridge = var.net_bridge
     mtu    = var.mtu
     rate   = var.rate
+    macaddr =  var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
     # tag    = var.vlan_tag
   }
 
@@ -47,7 +48,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   # ignoring network changes during the life of the VM.
   lifecycle {
     ignore_changes = [
-      network,
+      # network,
       sshkeys
     ]
   }

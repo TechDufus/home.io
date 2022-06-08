@@ -78,7 +78,7 @@ variable "target_node" {
 variable "cpu_cores" {
   description = "Number of CPU cores of the node."
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "cpu_sockets" {
@@ -90,7 +90,7 @@ variable "cpu_sockets" {
 variable "memory" {
   description = "Memory of the node."
   type        = number
-  default     = 5120
+  default     = 6144
 }
 
 variable "hdd_size" {
@@ -174,4 +174,15 @@ variable "vm_template" {
   description = "Template to clone for the node."
   type        = string
   default     = "ubuntu-server-20.04-template"
+}
+
+variable "disk_backup" {
+  description = "Enable/Disable disk backup of the node."
+  type        = number
+  default     = 1
+}
+
+variable "macaddr" {
+  description = "MAC address of the node."
+  type        = string
 }

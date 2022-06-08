@@ -191,3 +191,8 @@ variable "ssh_user" {
   type        = string
   default     = "techdufus"
 }
+
+variable "macaddr" {
+  description = "MAC address of the node."
+  type        = string
+}

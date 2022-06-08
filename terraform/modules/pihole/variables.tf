@@ -175,3 +175,8 @@ variable "vm_template" {
   type        = string
   default     = "ubuntu-server-20.04-template"
 }
+
+variable "macaddr" {
+  description = "MAC address of the node."
+  type        = string
+}
