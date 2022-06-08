@@ -40,7 +40,7 @@ Well... I'd like to think that I have something to contribute to the community, 
 
 ## Quirks
 
-### Regenerating MAC Address
+### #1 Regenerating MAC Address
 When deploying a VM with Terraform, or when Terraform needs to make a change to a VM (nameserver, IP, or anything to make VM reboot, etc), ProxMox will auto-assign a new MAC address to the VM. The behavior of this breaks default SSH authentication without specifying StrictHostKeyChecking=no manually, which I'd like to avoid.
 
 Example of what happens when terraform regenerates a MAC address:
