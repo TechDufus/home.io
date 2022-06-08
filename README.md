@@ -48,3 +48,30 @@ Example of what happens when terraform regenerates a MAC address:
 ### Solution to #1
 When deploying a `NEW` VM, you do not need to specify the MAC Address (`macaddr` variable) in your variable map. BUT once the VM is deployed and a MAC exists for that VM, it's a good idea to add that MAC Address to your variable map so Terraform keeps this MAC address and doesn't regenerate it.
 
+Example `vars.auto.tfvars` definition of a new VM:
+`Initial Terraform Deployment`
+
+```terraform
+container-host = {
+  "container-host" = {
+    hostname     = "container-host"
+    vmid         = "107"
+    ip_address   = "10.0.0.7"
+  }
+}
+```
+
+`Post-Terraform Deployment`
+
+```terraform
+container-host = {
+  "container-host" = {
+    hostname     = "container-host"
+    vmid         = "107"
+    ip_address   = "10.0.0.7"
+    macaddr      = "06:74:60:C0:37:F6"
+  }
+}
+```
+
+**NOTE**: You do not actually need to re-run Terraform to update the MAC Address. You can just update the variable map with the new MAC Address. You can confirm your terraform config / state by running `terraform plan` to confirm your config matches your state.
