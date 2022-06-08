@@ -36,3 +36,14 @@ I'm also planning to deploy some of my other servers / services via `k8s` in the
 ## Why have this home lab configuration public?
 
 Well... I'd like to think that I have something to contribute to the community, and if my scripts are useful, I'd like to share them. Obviously this reveals a little bit of how I'm configuring my home lab and network, but I would like to still share as much as I can.
+
+
+## Quirks
+
+1. When deploying a VM with Terraform, or when Terraform needs to make a change to a VM (nameserver, IP, or anything to make VM reboot, etc), ProxMox will auto-assign a new MAC address to the VM. The behavior of this breaks default SSH authentication without specifying StrictHostKeyChecking=no manually, which I'd like to avoid.
+
+Example of what happens when terraform regenerates a MAC address:
+
+### Solution to #1
+When deploying a `NEW` VM, you do not need to specify the MAC Address (`macaddr` variable) in your variable map. BUT once the VM is deployed and a MAC exists for that VM, it's a good idea to add that MAC Address to your variable map so Terraform keeps this MAC address and doesn't regenerate it.
+
