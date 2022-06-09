@@ -36,6 +36,8 @@ sections:
       hostname: http://proxmox.home.io:61208
 - name: Services
   icon: hl-wetty
+  displayData:
+    rows: 2
   items:
   - title: ProxMox
     description: ProxMox VE node.
@@ -54,9 +56,6 @@ sections:
     description: Router / Gateway for my Home
     url: http://10.0.0.2/
     icon: hl-router
-- name: DNS
-  icon: hl-azuredns
-  items:
   - title: Pihole-Primary
     description: Primary Pi-Hole DNS server.
     url: http://pi.hole/admin
@@ -65,6 +64,10 @@ sections:
     description: Secondary Pi-Hole DNS server.
     url: http://secondary.pi.hole/admin
     icon: hl-pihole
+- name: Pi-Hole Primary Stats
+  icon: hl-pihole
+  displayData:
+    rows: 3
   widgets:
   - type: pi-hole-stats
     updateInterval: 10
@@ -73,7 +76,24 @@ sections:
       useProxy: true
       hideInfo: false
       hideChart: false
-      hideStatus: true
+      hideStatus: false
+- name: ProxMox Stat History
+  icon: hl-proxmox
+  layout: grid
+  displayData:
+    itemSize: small
+    sectionLayout: grid
+    cols: 2
+    rows: 3
+  widgets:
+  - type: gl-cpu-history
+    options:
+      hostname: http://proxmox.home.io:61208
+      limit: 400
+  - type: gl-mem-history
+    options:
+      hostname: http://proxmox.home.io:61208
+      limit: 400
 - name: Flux Nodes
   icon: hl-runonflux-mark-blue
   displayData:
@@ -108,19 +128,3 @@ sections:
       timeZone: America/Chicago
       format: en-US
       hideDate: false
-- name: ProxMox Stat History
-  icon: hl-proxmox
-  layout: grid
-  displayData:
-    itemSize: small
-    sectionLayout: grid
-    cols: 2
-  widgets:
-  - type: gl-cpu-history
-    options:
-      hostname: http://proxmox.home.io:61208
-      limit: 400
-  - type: gl-mem-history
-    options:
-      hostname: http://proxmox.home.io:61208
-      limit: 400
