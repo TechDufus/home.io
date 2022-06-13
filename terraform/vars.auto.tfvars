@@ -35,6 +35,12 @@ cumulus_nodes = {
     vmid         = "114"
     ip_address   = "10.0.0.14"
     macaddr      = "3A:3F:83:BB:DB:04"
+  },
+  "pm-flux-cumulus-5" = {
+    hostname     = "pm-flux-cumulus-5"
+    vmid         = "115"
+    ip_address   = "10.0.0.15"
+    macaddr      = "1A:44:53:BD:C0:72"
   }
 }
 

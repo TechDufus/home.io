@@ -99,6 +99,10 @@ sections:
     description: Flux Node
     url: http://10.0.0.14:16166
     icon: hl-runonflux
+  - title: cumulus5
+    description: Flux Node
+    url: http://10.0.0.15:16176
+    icon: hl-runonflux
 - name: Local Time
   displayData:
     collapsed: false
