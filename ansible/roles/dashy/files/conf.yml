@@ -123,6 +123,12 @@ sections:
     description: Flux Node
     url: http://10.0.0.15:16176
     icon: hl-runonflux
+- name: Helium Miners
+  icon: https://avatars.githubusercontent.com/u/6635330?s=280&v=4
+  items:
+    - title: Polite Hazel Goat
+      url: https://explorer.helium.com/hotspots/11tiHd3QtqvuQna4SMvMFJnJ7WMU9YJSTNLaxaYPzn8BrNzKnNH
+      icon: https://www.bobcatminer.com/img/img_logo.8fd28a80.png
 - name: Local Time
   displayData:
     collapsed: false
