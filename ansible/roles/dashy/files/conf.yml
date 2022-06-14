@@ -51,7 +51,7 @@ sections:
   - title: SensuGO
     description: Monitoring Back-End
     url: http://container-host.home.io:3000
-    icon: gl-sensu-green
+    icon: hl-sensu-green
   - title: Home Gateway
     description: Router / Gateway for my Home
     url: http://10.0.0.2/
