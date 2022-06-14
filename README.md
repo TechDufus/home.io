@@ -7,7 +7,8 @@ Collection of automation scripts to deploy and manage my internal home lab envir
 I'm currently using Ansible to deploy some of my servers, including the following:
 
 - Dashy
-![image](https://user-images.githubusercontent.com/46715299/172890973-b0e3f648-57e4-4d14-b9c7-c670683745fc.png)
+![image](https://user-images.githubusercontent.com/46715299/173632525-8db0d4f4-6bc7-452c-9aa1-e0d6109b5e50.png)
+
 
 - Portainer
 ![image](https://user-images.githubusercontent.com/46715299/172434420-46bbac21-37c7-4da6-85d3-4d447f524c8b.png)
