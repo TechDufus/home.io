@@ -92,3 +92,18 @@ module "container-host" {
   target_node     = var.target_node
   storage         = var.storage
 }
+
+# Myst Node
+module "myst-node" {
+  source          = "./modules/myst-node"
+  for_each        = var.myst-node
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  vm_template     = var.vm_template
+  macaddr         = try(each.value.macaddr, "0")
+  target_node     = var.target_node
+  storage         = var.storage
+}
