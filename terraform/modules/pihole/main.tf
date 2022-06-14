@@ -43,8 +43,8 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     # tag    = var.vlan_tag
   }
 
-  # Not sure exactly what this is for. something about 
-  # ignoring network changes during the life of the VM.
+  # Terraform will ignore these vm object values if / when they change.
+  # This might cause terraform to destroy and recreate the VM entirely for some small change.
   lifecycle {
     ignore_changes = [
       # network,
