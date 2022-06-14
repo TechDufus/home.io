@@ -123,12 +123,15 @@ sections:
     description: Flux Node
     url: http://10.0.0.15:16176
     icon: hl-runonflux
-- name: Helium Miners
-  icon: https://avatars.githubusercontent.com/u/6635330?s=280&v=4
+- name: Crypto Nodes
+  icon: https://img.icons8.com/external-kiranshastry-gradient-kiranshastry/344/external-cpu-cyber-security-kiranshastry-gradient-kiranshastry-10.png
   items:
     - title: Polite Hazel Goat
       url: https://explorer.helium.com/hotspots/11tiHd3QtqvuQna4SMvMFJnJ7WMU9YJSTNLaxaYPzn8BrNzKnNH
       icon: https://www.bobcatminer.com/img/img_logo.8fd28a80.png
+    - title: Myst Node
+      url: http://mystnode.home.io:4449
+      icon: https://s2.coinmarketcap.com/static/img/coins/64x64/1721.png
 - name: Local Time
   displayData:
     collapsed: false
