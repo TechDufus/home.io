@@ -1,0 +1,17 @@
+---
+- name: Add mysterium network apt repository
+  ansible.builtin.apt_repository:
+    repo: 'ppa:mysteriumnetwork/node'
+    state: present
+    filename: mysterium-node
+
+- name: Install myst
+  apt:
+    name: myst
+    state: present
+    update_cache: yes
+
+- name: Ensure started status of myst node service
+  systemctl:
+    name: mysterium-node.service
+    state: started
