@@ -28,6 +28,12 @@ variable "container-host" {
   default     = {}
 }
 
+variable "myst-node" {
+  description = "Provide base myst-node config"
+  type        = map(any)
+  default     = {}
+}
+
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
