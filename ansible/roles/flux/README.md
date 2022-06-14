@@ -8,10 +8,10 @@ Manually running / installing FluxOS myself allows me to see the progress of the
 
 ## Manual Steps POST-Role application.
 
-1. `echo "2" | multitoolbox
+1. `echo "2" | multitoolbox`
    1. This will run the install script.
-2. `echo "14" | multitoolbox
+2. `echo "14" | multitoolbox`
    1. This will enable and configure uPnP for the node.
-3. `echo "4" | multitoolbox
+3. `echo "4" | multitoolbox`
    1. This will configure watchdog to auto-update FluxOS, FluxDaemon, and FluxBench for the node.
 
