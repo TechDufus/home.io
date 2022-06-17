@@ -6,3 +6,9 @@
 - name: Upgrade APT packages
   apt:
     upgrade: 'yes' # <-- This expects a STRING for some reason...
+
+- name: add distribution-specific variables
+  include_vars: "{{ ansible_distribution }}.yaml"
+
+- import_tasks: unattended-upgrades.yaml
+  tags: unattended-upgrades

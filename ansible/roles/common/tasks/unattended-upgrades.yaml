@@ -1,0 +1,31 @@
+---
+- name: Install powermgmt-base
+  apt:
+    name:
+    state: present
+    cache_valid_time: "{{ unattended_cache_valid_time }}"
+    update_cache: yes
+  when: unattended_only_on_ac_power
+
+- name: Install unattended-upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+    cache_valid_time: "{{ unattended_cache_valid_time }}"
+    update_cache: yes
+
+- name: Create APT auto-upgrades configuration
+  template:
+    src: auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create unattended-upgrades configuration
+  template:
+    src: unattended-upgrades.j2
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: 0644
