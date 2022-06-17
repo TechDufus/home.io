@@ -14,6 +14,7 @@ I'm currently using Ansible to deploy some of my servers, including the followin
 ![image](https://user-images.githubusercontent.com/46715299/172434420-46bbac21-37c7-4da6-85d3-4d447f524c8b.png)
 
 - Home Assistant
+- Minecraft Server
 - Glances endpoints
 - Pi-hole(s)
   - Deploy both the primary and secondary pi-hole / DNS servers.
