@@ -129,9 +129,6 @@ sections:
     - title: Polite Hazel Goat
       url: https://explorer.helium.com/hotspots/11tiHd3QtqvuQna4SMvMFJnJ7WMU9YJSTNLaxaYPzn8BrNzKnNH
       icon: https://www.bobcatminer.com/img/img_logo.8fd28a80.png
-    - title: Myst Node
-      url: http://mystnode.home.io:4449
-      icon: https://s2.coinmarketcap.com/static/img/coins/64x64/1721.png
 - name: Local Time
   displayData:
     collapsed: false
