@@ -67,11 +67,3 @@ container-host = {
     macaddr      = "06:74:60:C0:37:F6"
   }
 }
-
-myst-node = {
-  "myst-node" = {
-    hostname     = "myst-node"
-    vmid         = "118"
-    ip_address   = "10.0.0.18"
-  }
-}
