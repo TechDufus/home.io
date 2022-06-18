@@ -132,31 +132,31 @@ variable "bootdisk" {
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 50
+  default     = 20
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 55
+  default     = 25
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 50
+  default     = 20
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 55
+  default     = 25
 }
 
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 10
+  default     = 4
 }
 
 variable "iothread" {

@@ -166,7 +166,7 @@ variable "mbps_wr_max" {
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 101
+  default     = 14
 }
 
 variable "iothread" {

@@ -142,13 +142,13 @@ variable "mbps_rd" {
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 190
+  default     = 185
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 185
 }
 
 variable "mbps_wr_max" {
@@ -161,7 +161,7 @@ variable "mbps_wr_max" {
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 26
+  default     = 4
 }
 
 variable "iothread" {

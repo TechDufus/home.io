@@ -132,25 +132,25 @@ variable "bootdisk" {
 variable "mbps_rd" {
   description = "Desired read rate of the node."
   type        = number
-  default     = 50
+  default     = 30
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the node."
   type        = number
-  default     = 55
+  default     = 35
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the node."
   type        = number
-  default     = 50
+  default     = 30
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the node."
   type        = number
-  default     = 55
+  default     = 35
 }
 
 variable "rate" {
