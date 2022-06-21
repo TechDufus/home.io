@@ -20,8 +20,14 @@
 
 - name: Deploy Install configuration file to flux node
   copy:
-    src: "{{ ansible_hostname }}_install.json"
+    src: "{{ ansible_hostname }}/install_conf.json"
     dest: "/home/{{ ansible_user }}/install_conf.json"
+
+- name: Deploy flux update aliases to flux node
+  template:
+    src: "update_flux.j2"
+    dest: /etc/profile.d/update_flux.sh
+  become: yes
 
 # - name: Ensure zelflux directory exists
 #   file:
@@ -35,17 +41,36 @@
 
 # - name: Deploy uPnP configuration file to flux node
 #   copy:
-#     src: "{{ ansible_hostname }}_upnp.js"
+#     src: "{{ ansible_hostname }}/upnp.js"
 #     dest: "/home/{{ ansible_user }}/zelflux/config/userconfig.js"
-
 
 # - name: "Installing FluxNode - Go get some coffee. :)"
 #   shell: |
-#     echo "2" | bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+#     echo "2" | bash -ilc <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
 #   args:
 #     executable: /bin/bash
 #   # async: 28800 # 8 hours
 #   become: yes
 #   become_user: "{{ ansible_user }}"
-#Do I still need to run static-ip cron job here?
-#DO I need to configure port for uPnP here?
+
+- name: Ensure watchdog directory exists
+  file:
+    path: "/home/{{ ansible_user }}/watchdog"
+    state: directory
+
+- name: Deploy watchdog configuration file to flux node
+  copy:
+    src: "{{ ansible_hostname }}/watchdog.js"
+    dest: "/home/{{ ansible_user }}/watchdog/config.js"
+
+- name: Reload Watchdog
+  shell: bash -ilc 'pm2 reload watchdog --watch'
+  become: yes
+  become_user: "{{ ansible_user }}"
+  
+
+# PR uPnP auto-import / auto-install feature
+# deploy uPnP config file
+# run multitoolbox option 14
+
+
