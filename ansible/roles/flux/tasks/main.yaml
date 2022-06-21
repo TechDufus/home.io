@@ -1,6 +1,6 @@
 ---
 
-- name: Check if user exists
+- name: Check if user exists in docker group
   shell: |
     /usr/bin/getent group | awk -F":" '{print $1}' | grep -c "docker"
   register: docker_group
@@ -67,10 +67,10 @@
   shell: bash -ilc 'pm2 reload watchdog --watch'
   become: yes
   become_user: "{{ ansible_user }}"
-  
 
 # PR uPnP auto-import / auto-install feature
 # deploy uPnP config file
 # run multitoolbox option 14
 
-
+- name: Run update-flux command
+  shell: bash -ilc 'update-flux'
