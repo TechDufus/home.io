@@ -1,4 +1,4 @@
 #!/bin/bash
 
 alias update='sudo apt-get update -y && sudo apt-get --with-new-pkgs upgrade -y && sudo apt autoremove -y'
-alias update-flux='cd /home/{{ ansible_user }}/zelflux && git checkout . && git checkout master && git reset && git pull & cd /home/{{ ansible_user }}'
+alias update-flux='pushd /home/{{ ansible_user }}/zelflux && git checkout . && git checkout master && git reset && git pull && popd'
