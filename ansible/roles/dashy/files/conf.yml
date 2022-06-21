@@ -6,6 +6,8 @@ pageInfo:
   navLinks:
   - title: GitHub
     path: https://github.com/matthewjdegarmo/
+  - title: Twitter
+    path: https://twitter.matthewjdegarmo.com/
   - title: Documentation
     path: https://dashy.to/docs
 
