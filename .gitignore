@@ -11,3 +11,6 @@ crash.*.log
 
 # local creds file
 terraform/creds.auto.tfvars
+
+# ./Terraform backup files
+**.tfstate.backup
