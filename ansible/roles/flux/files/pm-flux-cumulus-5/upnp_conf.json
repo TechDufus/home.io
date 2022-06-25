@@ -1,0 +1,5 @@
+{
+    "enable_upnp": "1",
+    "upnp_port": "16177",
+    "gateway_ip": "10.0.0.2"
+}

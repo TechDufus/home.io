@@ -53,6 +53,25 @@
 #   become: yes
 #   become_user: "{{ ansible_user }}"
 
+- name: Ensure .fluxbenchmark directory exists
+  file:
+    path: "/home/{{ ansible_user }}/.fluxbenchmark"
+    state: directory
+
+- name: Deploy fluxbench.conf file
+  copy:
+    src: "{{ ansible_hostname }}/fluxbench.conf"
+    dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+
+- name: Deploy upnp_conf.json file
+  copy:
+    src: "{{ ansible_hostname }}/upnp_conf.json"
+    dest: "/home/{{ ansible_user }}/upnp_conf.json"
+    force: yes
+# - name: Run multitoolbox to configure uPnP
+#   shell: |
+#     echo "14" | bash -ilc <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+
 - name: Ensure watchdog directory exists
   file:
     path: "/home/{{ ansible_user }}/watchdog"
