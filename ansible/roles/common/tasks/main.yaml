@@ -12,3 +12,25 @@
 
 - import_tasks: unattended-upgrades.yaml
   tags: unattended-upgrades
+
+- name: Check for pending reboot
+  shell: |
+    if [ -f /var/run/reboot-required ]; then
+      echo "1"
+    else
+      echo "0"
+    fi
+  register: reboot_required
+  changed_when: false
+
+- name: REBOOT REQUIRED - IF THIS IS YELLOW THIS NODE NEEDS TO REBOOT
+  shell: echo "This needs to reboot"
+  when: reboot_required.stdout|bool 
+
+
+- name: "*** --- ___REBOOTING SERVERS___ --- ***"
+  reboot:
+  throttle: 1
+  when: 
+    - reboot_required.stdout|bool
+    - inventory_hostname not in groups.fluxnodes
