@@ -1,0 +1,2 @@
+docker_gpg_file: /tmp/docker.gpg
+docker_gpg_keyring: /etc/apt/keyrings/docker.gpg

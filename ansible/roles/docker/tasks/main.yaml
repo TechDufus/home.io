@@ -1,23 +1,39 @@
 ---
 - name: "Install the latest version of the Docker Engine"
   block:
-    - name: "Docker: Download gpg key"
-      get_url:
+    # - name: "Docker: Download gpg key"
+    #   get_url:
+    #     url: https://download.docker.com/linux/ubuntu/gpg
+    #     dest: "{{ docker_gpg_file }}"
+
+    # - name: "Docker: Import gpg key"
+    #   shell: |
+    #     cat {{ docker_gpg_file }} | gpg --dearmor -o {{ docker_gpg_keyring }}
+    #   become: yes
+
+    - name: "Docker: Add gpg key to apt"
+      apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
-        dest: "{{ docker_gpg_file }}"
+        state: present
 
-    - name: "Docker: Import gpg key"
-      shell: |
-        cat {{ docker_gpg_file }} | gpg --dearmor | tee {{ docker_gpg_keyring }} > /dev/null
+    # - name: "Docker: Remove gpg key"
+    #   file:
+    #     state: absent
+    #     path: "{{ docker_gpg_file }}"
 
-    - name: "Docker: Remove gpg key"
+    - name: "Docker: Ensure apt keyrings directory exists"
       file:
-        state: absent
-        path: "{{ docker_gpg_file }}"
+        state: directory
+        path: "/etc/apt/keyrings"
+
+    - name: "Docker: Register system architecture"
+      shell: dpkg --print-architecture
+      register: system_architecture
+      changed_when: false
 
     - name: "Docker: Add Docker repository"
       apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        repo: "deb [arch={{ system_architecture.stdout }}] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
         state: present
 
     - name: "Docker: Install Docker Prerequisites"
