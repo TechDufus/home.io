@@ -32,7 +32,7 @@
 
     - name: Run Pi-hole Install Script
       shell: |
-        cat {{ pihole_install_script }} | bash /dev/stdin --unattended
+        cat {{ pihole_install_script }} | PIHOLE_SKIP_OS_CHECK=true bash /dev/stdin --unattended
 
     - name: Set Admin UI Password
       vars:
