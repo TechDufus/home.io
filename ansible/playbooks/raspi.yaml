@@ -1,0 +1,16 @@
+---
+- hosts: raspi
+  vars:
+    roles_path: /etc/ansible/roles:../roles
+    inventory: ../hosts.ini
+  become: yes
+
+  roles:
+    - { role: common,         tags: common }
+    - { role: docker,         tags: docker }
+    - { role: dashy,          tags: dashy }
+    # - { role: pivpn,          tags: pivpn }
+    - { role: pihole-primary, tags: pihole-primary }
+    # - { role: home-assistant, tags: home-assistant }
+    # - { role: portainer, tags: portainer }
+    # - { role: minecraft, tags: minecraft }
