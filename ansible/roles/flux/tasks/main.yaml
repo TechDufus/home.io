@@ -46,7 +46,7 @@
 
 # - name: "Installing FluxNode - Go get some coffee. :)"
 #   shell: |
-#     echo "2" | bash -ilc <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+#     echo "2" | bash -il <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
 #   args:
 #     executable: /bin/bash
 #   # async: 28800 # 8 hours
@@ -86,12 +86,23 @@
   shell: bash -ilc 'pm2 reload watchdog --watch'
   become: yes
   become_user: "{{ ansible_user }}"
+  register: watchdog_reload
+  failed_when: watchdog_reload.rc != 127
 
 # PR uPnP auto-import / auto-install feature
 # deploy uPnP config file
 # run multitoolbox option 14
 
+- name: Test for zelflux directory
+  shell: |
+    if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
+      echo "true"
+    fi
+  register: zelflux_dir
+  changed_when: false
+
 - name: Run update-flux command
   shell: bash -ilc 'update-flux'
   become: yes
   become_user: "{{ ansible_user }}"
+  when: zelflux_dir.stdout == "true"
