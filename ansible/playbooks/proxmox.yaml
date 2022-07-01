@@ -5,6 +5,5 @@
     inventory: ../hosts.ini
 
   roles:
-    - { role: common, tags: common }
     - { role: proxmox, tags: proxmox }
     - { role: glances, tags: glances }
