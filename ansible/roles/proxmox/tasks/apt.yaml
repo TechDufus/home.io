@@ -4,6 +4,7 @@
     repo: deb http://download.proxmox.com/debian bullseye pve-no-subscription
     state: present
     filename: /etc/apt/sources.list
+    update_cache: no
   
 - name: Removing enterprise apt repo
   lineinfile:
@@ -15,6 +16,5 @@
   apt:
     name: "{{ item }}"
     state: latest
-    update_cache: yes
   loop:
     - jq
