@@ -18,7 +18,7 @@ module "flux_cumulus" {
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = var.vm_template
   target_node     = var.target_node
-  storage         = var.storage
+  storage         = each.value.storage
 }
 module "flux_nimbus" {
   source          = "./modules/flux_nimbus"
@@ -31,7 +31,7 @@ module "flux_nimbus" {
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = var.vm_template
   target_node     = var.target_node
-  storage         = var.storage
+  storage         = each.value.storage
 }
 module "flux_stratus" {
   source          = "./modules/flux_stratus"
@@ -44,7 +44,7 @@ module "flux_stratus" {
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = var.vm_template
   target_node     = var.target_node
-  storage         = var.storage
+  storage         = each.value.storage
 }
 
 #             ▄▄                                  ▄▄          

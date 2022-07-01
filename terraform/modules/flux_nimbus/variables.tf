@@ -117,7 +117,7 @@ variable "hdd_type" {
 variable "storage" {
   description = "Storage of the Flux node."
   type        = string
-  default     = "VM-SSD"
+  default     = "VM-SSD-1"
 }
 
 variable "scsihw" {
@@ -147,7 +147,7 @@ variable "mbps_rd" {
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 190
+  default     = 180
 }
 
 variable "mbps_wr" {
@@ -159,7 +159,7 @@ variable "mbps_wr" {
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 190
+  default     = 185
 }
 
 # This is set to 1 int above the flux requirements.

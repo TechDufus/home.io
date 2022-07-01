@@ -118,7 +118,7 @@ variable "storage" {
 variable "scsihw" {
   description = "SCSI hardware of the Flux node."
   type        = string
-  default     = "virtio-scsi-pci"
+  default     = "virtio-scsi-single"
 }
 
 variable "bootdisk" {
@@ -133,28 +133,46 @@ variable "vm_template" {
   default     = "ubuntu-server-20.04-template"
 }
 
+variable "mbps" {
+  description = "Desired r/w rate of the Flux node."
+  type        = number
+  default     = 170
+}
+
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 170
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 185
+  default     = 170
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 185
+  default     = 180
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 190
+  default     = 180
+}
+
+variable "ssd" {
+  description = "SSD Emulation of the Flux node."
+  type        = number
+  default     = 1
+}
+
+variable "aio" {
+  description = "AIO Emulation of the Flux node."
+  type        = string
+  default     = "native"
 }
 
 # This is set to 1 int above the flux requirements.
