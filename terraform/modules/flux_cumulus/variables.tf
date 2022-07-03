@@ -118,7 +118,7 @@ variable "storage" {
 variable "scsihw" {
   description = "SCSI hardware of the Flux node."
   type        = string
-  default     = "virtio-scsi-single"
+  default     = "virtio-scsi-pci"
 }
 
 variable "bootdisk" {
@@ -142,25 +142,25 @@ variable "mbps" {
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 170
+  default     = 180
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 170
+  default     = 185
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 185
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 190
 }
 
 variable "ssd" {
@@ -179,7 +179,7 @@ variable "aio" {
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 4
+  default     = 10
 }
 
 variable "iothread" {
