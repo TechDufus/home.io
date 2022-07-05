@@ -16,21 +16,21 @@ cumulus_nodes = {
     hostname     = "pm-flux-cumulus-1"
     vmid         = "111"
     ip_address   = "192.168.1.11"
-    storage      = "VM-SSD-0"
+    storage      = "VM-SSD-1"
     macaddr      = "CA:EE:FE:09:0E:28"
   },
   "pm-flux-cumulus-2" = {
     hostname     = "pm-flux-cumulus-2"
     vmid         = "112"
     ip_address   = "192.168.1.12"
-    storage      = "VM-SSD-1"
+    storage      = "VM-SSD-2"
     macaddr      = "22:EF:8E:47:5B:D8"
   },
   "pm-flux-cumulus-3" = {
     hostname     = "pm-flux-cumulus-3"
     vmid         = "113"
     ip_address   = "192.168.1.13"
-    storage      = "VM-SSD-1"
+    storage      = "VM-SSD-0"
     macaddr      = "4E:43:52:63:9E:6D"
   },
   # "pm-flux-cumulus-4" = {

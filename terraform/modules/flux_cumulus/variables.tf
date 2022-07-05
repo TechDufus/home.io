@@ -176,10 +176,11 @@ variable "aio" {
 }
 
 # This is set to 1 int above the flux requirements.
+# 0 = unlimited / no limit
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 10
+  default     = 0
 }
 
 variable "iothread" {
