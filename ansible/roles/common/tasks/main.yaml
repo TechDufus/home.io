@@ -6,6 +6,13 @@
 - name: Upgrade APT packages
   apt:
     upgrade: 'yes' # <-- This expects a STRING for some reason...
+  
+- name: Install APT packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop: "{{ commonPackages }}"
 
 - name: Add distribution-specific variables
   include_vars: "{{ ansible_distribution }}.yaml"

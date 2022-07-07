@@ -28,6 +28,12 @@ variable "container-host" {
   default     = {}
 }
 
+variable "vpn-host" {
+  description = "Provide base vpn-host config"
+  type        = map(any)
+  default     = {}
+}
+
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
