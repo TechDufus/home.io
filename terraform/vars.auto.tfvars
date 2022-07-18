@@ -35,9 +35,9 @@ cumulus_nodes = {
   },
   # "pm-flux-cumulus-4" = {
   #   hostname     = "pm-flux-cumulus-4"
-  #   vmid         = "214"
+  #   vmid         = "114"
   #   ip_address   = "192.168.1.14"
-  #   storage      = "VM-SSD-0"
+  #   storage      = "VM-SSD-1"
   #   macaddr      = "3A:3F:83:BB:DB:04"
   # }
   #   "pm-flux-cumulus-5" = {

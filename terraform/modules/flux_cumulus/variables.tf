@@ -180,7 +180,7 @@ variable "aio" {
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 0
+  default     = 4
 }
 
 variable "iothread" {
