@@ -11,11 +11,12 @@
 - name: Install Flux Docker
   shell: |
     export usernew="{{ ansible_user }}"
-    echo "1" | bash -i <(curl -s https://raw.githubusercontent.com/matthewjdegarmo/fluxnode-multitool/master/multitoolbox.sh)
+    echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
   become: yes
   become_user: root
   args:
     executable: /bin/bash
+  verbose: true
   when: docker_group.stdout == "0"
 
 - name: Deploy Install configuration file to flux node
@@ -29,80 +30,60 @@
     dest: /etc/profile.d/update_flux.sh
   become: yes
 
-# - name: Ensure zelflux directory exists
-#   file:
-#     path: "/home/{{ ansible_user }}/zelflux"
-#     state: directory
-
-# - name: Ensure zelflux config directory exists
-#   file:
-#     path: "/home/{{ ansible_user }}/zelflux/config"
-#     state: directory
-
-# - name: Deploy uPnP configuration file to flux node
-#   copy:
-#     src: "{{ ansible_hostname }}/upnp.js"
-#     dest: "/home/{{ ansible_user }}/zelflux/config/userconfig.js"
-
 # - name: "Installing FluxNode - Go get some coffee. :)"
 #   shell: |
-#     echo "2" | bash -il <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+#     echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
 #   args:
 #     executable: /bin/bash
 #   # async: 28800 # 8 hours
 #   become: yes
 #   become_user: "{{ ansible_user }}"
 
-- name: Ensure .fluxbenchmark directory exists
-  file:
-    path: "/home/{{ ansible_user }}/.fluxbenchmark"
-    state: directory
+# - name: Ensure .fluxbenchmark directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/.fluxbenchmark"
+#     state: directory
 
-- name: Deploy fluxbench.conf file
-  copy:
-    src: "{{ ansible_hostname }}/fluxbench.conf"
-    dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+# - name: Deploy fluxbench.conf file
+#   copy:
+#     src: "{{ ansible_hostname }}/fluxbench.conf"
+#     dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
 
-- name: Deploy upnp_conf.json file
-  copy:
-    src: "{{ ansible_hostname }}/upnp_conf.json"
-    dest: "/home/{{ ansible_user }}/upnp_conf.json"
-    force: yes
 # - name: Run multitoolbox to configure uPnP
 #   shell: |
-#     echo "14" | bash -ilc <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+#     echo "14" | bash -ilc <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
 
-- name: Ensure watchdog directory exists
-  file:
-    path: "/home/{{ ansible_user }}/watchdog"
-    state: directory
+# - name: Ensure watchdog directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/watchdog"
+#     state: directory
 
-- name: Deploy watchdog configuration file to flux node
-  copy:
-    src: "{{ ansible_hostname }}/watchdog.js"
-    dest: "/home/{{ ansible_user }}/watchdog/config.js"
+# - name: Deploy watchdog configuration file to flux node
+#   copy:
+#     src: "{{ ansible_hostname }}/watchdog.js"
+#     dest: "/home/{{ ansible_user }}/watchdog/config.js"
 
-- name: Reload Watchdog
-  shell: bash -ilc 'pm2 reload watchdog --watch'
-  become: yes
-  become_user: "{{ ansible_user }}"
-  register: watchdog_reload
-  failed_when: watchdog_reload.rc != 127
+# - name: Reload Watchdog
+#   shell: bash -ilc 'pm2 reload watchdog --watch'
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#   register: watchdog_reload
+#   failed_when: watchdog_reload.rc != 127
 
-# PR uPnP auto-import / auto-install feature
-# deploy uPnP config file
-# run multitoolbox option 14
+# # PR uPnP auto-import / auto-install feature
+# # deploy uPnP config file
+# # run multitoolbox option 14
 
-- name: Test for zelflux directory
-  shell: |
-    if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
-      echo "true"
-    fi
-  register: zelflux_dir
-  changed_when: false
+# - name: Test for zelflux directory
+#   shell: |
+#     if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
+#       echo "true"
+#     fi
+#   register: zelflux_dir
+#   changed_when: false
 
-- name: Run update-flux command
-  shell: bash -ilc 'update-flux'
-  become: yes
-  become_user: "{{ ansible_user }}"
-  when: zelflux_dir.stdout == "true"
+# - name: Run update-flux command
+#   shell: bash -ilc 'update-flux'
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#   when: zelflux_dir.stdout == "true"

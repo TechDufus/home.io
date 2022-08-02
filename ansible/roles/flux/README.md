@@ -4,7 +4,7 @@ This role will prep a node for the RunOnFlux OS to be installed.
 
 This role ensures that docker is installed for a specific user, and copy out some config files. FOr the sake of simplicity, I still manually must install FluxOS manually after this role is applied.'
 
-Manually running / installing FluxOS myself allows me to see the progress of the script, and a rough ETA as to when it will be finished. All of this is supressed by ansible if ran in this role.
+Manually running / installing FluxOS myself allows me to see the progress of the script, and a rough ETA as to when it will be finished. All of this is suppressed by ansible if ran in this role.
 
 ## Manual Steps POST-Role application.
 

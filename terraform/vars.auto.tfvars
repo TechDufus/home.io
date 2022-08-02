@@ -33,27 +33,34 @@ cumulus_nodes = {
     storage    = "VM-SSD-0"
     macaddr    = "4E:43:52:63:9E:6D"
   },
-  # "pm-flux-cumulus-4" = {
-  #   hostname     = "pm-flux-cumulus-4"
-  #   vmid         = "114"
-  #   ip_address   = "192.168.1.14"
-  #   storage      = "VM-SSD-1"
-  #   macaddr      = "3A:3F:83:BB:DB:04"
-  # }
-  #   "pm-flux-cumulus-5" = {
-  #     hostname     = "pm-flux-cumulus-5"
-  #     vmid         = "115"
-  #     ip_address   = "192.168.1.15"
-  #     storage      = "VM-SSD-2"
-  #     macaddr      = "1A:44:53:BD:C0:72"
-  #   },
-  #   "pm-flux-cumulus-6" = {
-  #     hostname     = "pm-flux-cumulus-6"
-  #     vmid         = "116"
-  #     ip_address   = "192.168.1.16"
-  #     storage      = "VM-SSD-0"
-  #           = "1A:44:53:BD:C0:71"
-  #   }
+  "pm-flux-cumulus-4" = {
+    hostname   = "pm-flux-cumulus-4"
+    vmid       = "114"
+    ip_address = "192.168.1.14"
+    storage    = "VM-SSD-3"
+    macaddr    = "3A:3F:83:BB:DB:04"
+  }
+  "pm-flux-cumulus-5" = {
+    hostname   = "pm-flux-cumulus-5"
+    vmid       = "115"
+    ip_address = "192.168.1.15"
+    storage    = "VM-SSD-4"
+    macaddr    = "1A:44:53:BD:C0:72"
+  },
+  "pm-flux-cumulus-6" = {
+    hostname   = "pm-flux-cumulus-6"
+    vmid       = "116"
+    ip_address = "192.168.1.16"
+    storage    = "VM-SSD-1"
+    macaddr    = "1A:44:53:BD:C0:71"
+  },
+  "pm-flux-cumulus-7" = {
+    hostname   = "pm-flux-cumulus-7"
+    vmid       = "117"
+    ip_address = "192.168.1.17"
+    storage    = "VM-SSD-2"
+    macaddr    = "1A:44:53:BD:C1:71"
+  }
 }
 
 pihole = {

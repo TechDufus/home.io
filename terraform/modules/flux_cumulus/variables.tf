@@ -136,25 +136,25 @@ variable "vm_template" {
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 170
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 185
+  default     = 175
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 185
+  default     = 175
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 190
+  default     = 180
 }
 
 variable "ssd" {
@@ -180,7 +180,7 @@ variable "aio" {
 variable "rate" {
   description = "Mbps rate limit of the Flux node network speed."
   type        = number
-  default     = 4
+  default     = 3
 }
 
 variable "iothread" {
