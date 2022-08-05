@@ -14,6 +14,38 @@
     update_cache: yes
   loop: "{{ commonPackages }}"
 
+- name: Deploy update alias
+  copy:
+    src: "update_alias.sh"
+    dest: /etc/profile.d/update_alias.sh
+    force: yes
+  become: yes
+
+- name: Install Nala
+  block:
+    - name: Add nala repo gpg key
+      apt_key:
+        url: "https://deb.volian.org/volian/scar.key"
+        state: present
+
+    - name: Add nala repository source
+      apt_repository:
+        repo: "deb https://deb.volian.org/volian/ scar main"
+        state: present
+
+    - name: Install Nala
+      apt:
+        name: nala
+        state: latest
+      when: ansible_distribution_major_version == "22"
+
+    - name: Install Nala-legacy
+      apt:
+        name: nala-legacy
+        state: latest
+        update_cache: yes
+      when: ansible_distribution_major_version == "20"
+
 - name: Add distribution-specific variables
   include_vars: "{{ ansible_distribution }}.yaml"
 
@@ -40,3 +72,4 @@
   when: 
     - reboot_required.stdout|bool
     - inventory_hostname not in groups.fluxnodes
+    - inventory_hostname not in groups.vpnhost
