@@ -1,44 +1,24 @@
 ---
-<<<<<<< Updated upstream
-=======
+- name: Install Flux Docker
+  shell: |
+    export usernew="{{ ansible_user }}"
+    echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+  become: yes
+  become_user: root
+  args:
+    executable: /bin/bash
+  verbose: true
 
->>>>>>> Stashed changes
-# - name: Check if user exists in docker group
-#   shell: |
-#     /usr/bin/getent group | awk -F":" '{print $1}' | grep -c "docker"
-#   register: docker_group
-#   failed_when: "docker_group.rc == 2"
-#   check_mode: no
-#   changed_when: false
-  
-# - name: Install Flux Docker
-#   shell: |
-#     export usernew="{{ ansible_user }}"
-#     echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
-#   become: yes
-#   become_user: root
-#   args:
-#     executable: /bin/bash
-#   verbose: true
-#   when: docker_group.stdout == "0"
-<<<<<<< Updated upstream
+- name: Deploy Install configuration file to flux node
+  copy:
+    src: "{{ ansible_hostname }}/install_conf.json"
+    dest: "/home/{{ ansible_user }}/install_conf.json"
 
-# - name: Deploy Install configuration file to flux node
-#   copy:
-#     src: "{{ ansible_hostname }}/install_conf.json"
-#     dest: "/home/{{ ansible_user }}/install_conf.json"
-=======
-
-# - name: Deploy Install configuration file to flux node
-#   copy:
-#     src: "{{ ansible_hostname }}/install_conf.json"
-#     dest: "/home/{{ ansible_user }}/install_conf.json"
-
-# - name: Deploy flux update aliases to flux node
-#   template:
-#     src: "update_flux.j2"
-#     dest: /etc/profile.d/update_flux.sh
-#   become: yes
+- name: Deploy flux update aliases to flux node
+  template:
+    src: "update_flux.j2"
+    dest: /etc/profile.d/update_flux.sh
+  become: yes
 
 # - name: Check for root flux bootstrap file
 #   shell: |
@@ -50,7 +30,6 @@
 #   register: bootstrap_file
 #   become: yes
 #   become_user: root
->>>>>>> Stashed changes
 
 # - name: Move root bootstrap file into {{ ansible_user }} flux directory
 #   copy:
@@ -60,60 +39,52 @@
 #   become_user: "{{ ansible_user }}"
 #   when: bootstrap_file.stdout|bool
 
-# - name: "Installing FluxNode - Go get some coffee. :)"
-#   shell: |
-#     echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
-#   args:
-#     executable: /bin/bash
-#   # async: 28800 # 8 hours
-#   become: yes
-#   become_user: "{{ ansible_user }}"
+# The failed condition needs to regex any node tier, not just cumulus.
+- name: Check FluxOS Status
+  shell: fluxbench-cli getbenchmarks | jq .status
+  register: flux_status
+  failed_when: flux_status.stdout == "\"CUMULUS\""
 
-# - name: Ensure .fluxbenchmark directory exists
-#   file:
-#     path: "/home/{{ ansible_user }}/.fluxbenchmark"
-#     state: directory
+- name: "Installing FluxNode - Go get some coffee. :)"
+  shell: |
+    echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+  args:
+    executable: /bin/bash
+  # async: 28800 # 8 hours
+  become: yes
+  become_user: "{{ ansible_user }}"
 
-# - name: Deploy fluxbench.conf file
-#   copy:
-#     src: "{{ ansible_hostname }}/fluxbench.conf"
-#     dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+- name: Run multitoolbox to configure uPnP
+  shell: |
+    echo "14" | bash -ilc <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
 
-# - name: Run multitoolbox to configure uPnP
-#   shell: |
-#     echo "14" | bash -ilc <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+- name: Ensure watchdog directory exists
+  file:
+    path: "/home/{{ ansible_user }}/watchdog"
+    state: directory
 
-# - name: Ensure watchdog directory exists
-#   file:
-#     path: "/home/{{ ansible_user }}/watchdog"
-#     state: directory
+- name: Deploy watchdog configuration file to flux node
+  copy:
+    src: "{{ ansible_hostname }}/watchdog.js"
+    dest: "/home/{{ ansible_user }}/watchdog/config.js"
 
-# - name: Deploy watchdog configuration file to flux node
-#   copy:
-#     src: "{{ ansible_hostname }}/watchdog.js"
-#     dest: "/home/{{ ansible_user }}/watchdog/config.js"
+- name: Reload Watchdog
+  shell: bash -ilc 'pm2 reload watchdog --watch'
+  become: yes
+  become_user: "{{ ansible_user }}"
+  register: watchdog_reload
+  failed_when: watchdog_reload.rc != 127
 
-# - name: Reload Watchdog
-#   shell: bash -ilc 'pm2 reload watchdog --watch'
-#   become: yes
-#   become_user: "{{ ansible_user }}"
-#   register: watchdog_reload
-#   failed_when: watchdog_reload.rc != 127
+- name: Test for zelflux directory
+  shell: |
+    if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
+      echo "true"
+    fi
+  register: zelflux_dir
+  changed_when: false
 
-# # PR uPnP auto-import / auto-install feature
-# # deploy uPnP config file
-# # run multitoolbox option 14
-
-# - name: Test for zelflux directory
-#   shell: |
-#     if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
-#       echo "true"
-#     fi
-#   register: zelflux_dir
-#   changed_when: false
-
-# - name: Run update-flux command
-#   shell: bash -ilc 'update-flux'
-#   become: yes
-#   become_user: "{{ ansible_user }}"
-#   when: zelflux_dir.stdout == "true"
+- name: Run update-flux command
+  shell: bash -ilc 'update-flux'
+  become: yes
+  become_user: "{{ ansible_user }}"
+  when: zelflux_dir.stdout == "true"
