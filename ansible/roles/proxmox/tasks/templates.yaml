@@ -42,6 +42,8 @@
       shell: qm set {{ template_vm_id_2204 }} --agent enabled=1,fstrim_cloned_disks=1
     - name: Starting VM
       shell: qm start {{ template_vm_id_2204 }}
+    - name: Downloading flux_explorer_bootstrap file into template VM
+      shell: qm guest exec {{ template_check_2204 }} $(wget -O ~/flux_explorer_bootstrap.tar.gz http://cdn-7.runonflux.io/apps/fluxshare/getfile/flux_explorer_bootstrap.tar.gz -q --show-progress)
     - name: Setting ipconfig0 configuration
       shell: qm set {{ template_vm_id_2204 }} --ipconfig0 {{ ip_config }}
     - name: Stopping VM

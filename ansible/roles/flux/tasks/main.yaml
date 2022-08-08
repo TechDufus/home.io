@@ -1,4 +1,8 @@
 ---
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 # - name: Check if user exists in docker group
 #   shell: |
 #     /usr/bin/getent group | awk -F":" '{print $1}' | grep -c "docker"
@@ -17,17 +21,44 @@
 #     executable: /bin/bash
 #   verbose: true
 #   when: docker_group.stdout == "0"
+<<<<<<< Updated upstream
+
+# - name: Deploy Install configuration file to flux node
+#   copy:
+#     src: "{{ ansible_hostname }}/install_conf.json"
+#     dest: "/home/{{ ansible_user }}/install_conf.json"
+=======
 
 # - name: Deploy Install configuration file to flux node
 #   copy:
 #     src: "{{ ansible_hostname }}/install_conf.json"
 #     dest: "/home/{{ ansible_user }}/install_conf.json"
 
-- name: Deploy flux update aliases to flux node
-  template:
-    src: "update_flux.j2"
-    dest: /etc/profile.d/update_flux.sh
-  become: yes
+# - name: Deploy flux update aliases to flux node
+#   template:
+#     src: "update_flux.j2"
+#     dest: /etc/profile.d/update_flux.sh
+#   become: yes
+
+# - name: Check for root flux bootstrap file
+#   shell: |
+#     if [[ -f /root/flux_explorer_bootstrap.tar.gz ]]; then
+#       echo "0"
+#     else
+#       echo "1"
+#     fi
+#   register: bootstrap_file
+#   become: yes
+#   become_user: root
+>>>>>>> Stashed changes
+
+# - name: Move root bootstrap file into {{ ansible_user }} flux directory
+#   copy:
+#     src: "root/flux_explorer_bootstrap.tar.gz"
+#     dest: "/home/{{ ansible_user }}/.flux/flux_explorer_bootstrap.tar.gz"
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#   when: bootstrap_file.stdout|bool
 
 # - name: "Installing FluxNode - Go get some coffee. :)"
 #   shell: |

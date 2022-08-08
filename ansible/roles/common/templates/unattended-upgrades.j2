@@ -1,8 +1,11 @@
 {{ ansible_managed | comment('c') }}
 
-// Unattended-Upgrade::Origins-Pattern controls which packages are
-// upgraded.
-Unattended-Upgrade::Origins-Pattern {
+// Automatically upgrade packages from these (origin:archive) pairs
+//
+// Note that in Ubuntu security updates may pull in new dependencies
+// from non-security sources (e.g. chromium). By allowing the release
+// pocket these get automatically pulled in.
+Unattended-Upgrade::Allowed-Origins {
 {% if unattended_origins_patterns is defined %}
   {% for origin in unattended_origins_patterns %}
     "{{ origin }}";
@@ -54,6 +57,12 @@ Unattended-Upgrade::Mail "{{unattended_mail}}";
 // Set this value to "true" to get emails only on errors. Default
 // is to always send a mail if Unattended-Upgrade::Mail is set
 Unattended-Upgrade::MailOnlyOnError "true";
+{% endif %}
+
+{% if unattended_remove_unused_kernel_packages %}
+// Remove unused automatically installed kernel-related packages
+// (kernel images, kernel headers and kernel version locked tools).
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
 {% endif %}
 
 {% if unattended_remove_unused_dependencies %}
