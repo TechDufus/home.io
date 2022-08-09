@@ -7,7 +7,6 @@
   become_user: root
   args:
     executable: /bin/bash
-  verbose: true
 
 - name: Deploy Install configuration file to flux node
   copy:

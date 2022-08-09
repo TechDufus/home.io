@@ -35,7 +35,6 @@
         owner: "{{ flux_user }}"
         group: "{{ flux_user }}"
 
-
     - name: Copy root user's authorized_keys to the new user's home directory
       file:
         path: /home/{{ flux_user }}/.ssh/authorized_keys
