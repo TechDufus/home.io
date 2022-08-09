@@ -136,25 +136,25 @@ variable "vm_template" {
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 170
+  default     = 180
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 175
+  default     = 185
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 175
+  default     = 185
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 180
+  default     = 185
 }
 
 variable "ssd" {
