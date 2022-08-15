@@ -7,5 +7,5 @@
   # strategy: free
 
   roles:
-    - { role: common, tags: common }
-    - { role: flux-testnet, tags: flux-testnet }
+    - { role: common, tags: common, mainnet, testnet }
+    - { role: flux-test, tags: flux-test, mainnet, testnet }

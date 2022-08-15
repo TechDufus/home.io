@@ -2,18 +2,24 @@
 - import_tasks: user-setup.yaml
   tags: user-setup
 
-- name: Install Flux Docker
-  shell: |
-    export usernew="{{ flux_user }}"
-    echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
-  become: yes
-  become_user: root
-  args:
-    executable: /bin/bash
+# - name: Install Flux Docker
+#   shell: |
+#     export usernew="{{ flux_user }}"
+#     echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox_testnet.sh)
+#   become: yes
+#   become_user: root
+#   args:
+#     executable: /bin/bash
 
-- name: Deploy Install configuration file to flux node
+- name: Deploy TESTNET Install configuration file to flux node
   copy:
-    src: "{{ ansible_hostname }}/install_conf.json"
+    src: "testnet_install_conf.json"
+    dest: "/home/{{ flux_user }}/install_conf.json"
+  tags: testnet
+
+- name: Deploy MAINNET Install configuration file to flux node
+  copy:
+    src: "mainnet_install_conf.json"
     dest: "/home/{{ flux_user }}/install_conf.json"
 
 - name: Deploy flux update aliases to flux node
@@ -42,20 +48,20 @@
 # #   when: bootstrap_file.stdout|bool
 
 # The failed condition needs to regex any node tier, not just cumulus.
-- name: Check FluxOS Status
-  shell: fluxbench-cli getbenchmarks | jq .status
-  register: flux_status
-  failed_when: flux_status.stdout == "\"CUMULUS\""
+# - name: Check FluxOS Status
+#   shell: fluxbench-cli getbenchmarks | jq .status
+#   register: flux_status
+#   failed_when: flux_status.stdout == "\"CUMULUS\""
 
-- name: "Installing FluxNode - Go get some coffee. :)"
-  shell: |
-    echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox_testnet.sh)
-  args:
-    executable: /bin/bash
-  async: 14400 # 4 hours
-  become: yes
-  become_user: "{{ flux_user }}"
-  when: flux_status.stdout == ""
+# - name: "Installing FluxNode - Go get some coffee. :)"
+#   shell: |
+#     echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox_testnet.sh)
+#   args:
+#     executable: /bin/bash
+#   async: 14400 # 4 hours
+#   become: yes
+#   become_user: "{{ flux_user }}"
+#   when: flux_status.stdout == ""
 
 # - name: Run multitoolbox to configure uPnP
 #   shell: |
