@@ -38,62 +38,62 @@
 #   become_user: "{{ ansible_user }}"
 #   when: bootstrap_file.stdout|bool
 
-# The failed condition needs to regex any node tier, not just cumulus.
-- name: Check FluxOS Status
-  shell: fluxbench-cli getbenchmarks | jq .status
-  register: flux_status
-  failed_when: flux_status.stdout == "\"CUMULUS\""
+# # The failed condition needs to regex any node tier, not just cumulus.
+# - name: Check FluxOS Status
+#   shell: fluxbench-cli getbenchmarks | jq .status
+#   register: flux_status
+#   failed_when: flux_status.stdout == "\"CUMULUS\""
 
-- name: "Installing FluxNode - Go get some coffee. :)"
-  shell: |
-    echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
-  args:
-    executable: /bin/bash
-  # async: 28800 # 8 hours
-  become: yes
-  become_user: "{{ ansible_user }}"
+# - name: "Installing FluxNode - Go get some coffee. :)"
+#   shell: |
+#     echo "2" | bash -il <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+#   args:
+#     executable: /bin/bash
+#   # async: 28800 # 8 hours
+#   become: yes
+#   become_user: "{{ ansible_user }}"
 
-- name: Ensure .fluxbenchmark directory exists
-  file:
-    path: "/home/{{ ansible_user }}/.fluxbenchmark"
-    state: directory
+# - name: Ensure .fluxbenchmark directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/.fluxbenchmark"
+#     state: directory
 
-- name: Deploy fluxbench.conf file
-  copy:
-    src: "{{ ansible_hostname }}/fluxbench.conf"
-    dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+# - name: Deploy fluxbench.conf file
+#   copy:
+#     src: "{{ ansible_hostname }}/fluxbench.conf"
+#     dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
 
-- name: Run multitoolbox to configure uPnP
-  shell: |
-    echo "14" | bash -ilc <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+# - name: Run multitoolbox to configure uPnP
+#   shell: |
+#     echo "14" | bash -ilc <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
 
-- name: Ensure watchdog directory exists
-  file:
-    path: "/home/{{ ansible_user }}/watchdog"
-    state: directory
+# - name: Ensure watchdog directory exists
+#   file:
+#     path: "/home/{{ ansible_user }}/watchdog"
+#     state: directory
 
-- name: Deploy watchdog configuration file to flux node
-  copy:
-    src: "{{ ansible_hostname }}/watchdog.js"
-    dest: "/home/{{ ansible_user }}/watchdog/config.js"
+# - name: Deploy watchdog configuration file to flux node
+#   copy:
+#     src: "{{ ansible_hostname }}/watchdog.js"
+#     dest: "/home/{{ ansible_user }}/watchdog/config.js"
 
-- name: Reload Watchdog
-  shell: bash -ilc 'pm2 reload watchdog --watch'
-  become: yes
-  become_user: "{{ ansible_user }}"
-  register: watchdog_reload
-  failed_when: watchdog_reload.rc != 127
+# - name: Reload Watchdog
+#   shell: bash -ilc 'pm2 reload watchdog --watch'
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#   register: watchdog_reload
+#   failed_when: watchdog_reload.rc != 127
 
-- name: Test for zelflux directory
-  shell: |
-    if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
-      echo "true"
-    fi
-  register: zelflux_dir
-  changed_when: false
+# - name: Test for zelflux directory
+#   shell: |
+#     if [ -d "/home/{{ ansible_user }}/zelflux" ]; then
+#       echo "true"
+#     fi
+#   register: zelflux_dir
+#   changed_when: false
 
-- name: Run update-flux command
-  shell: bash -ilc 'update-flux'
-  become: yes
-  become_user: "{{ ansible_user }}"
-  when: zelflux_dir.stdout == "true"
+# - name: Run update-flux command
+#   shell: bash -ilc 'update-flux'
+#   become: yes
+#   become_user: "{{ ansible_user }}"
+#   when: zelflux_dir.stdout == "true"

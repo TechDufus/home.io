@@ -52,6 +52,27 @@
       shell: qm wait {{ template_vm_id_2204 }}
   when: template_check_2204.stdout == "0"
 
+- name: Updating template [Ubuntu 22.04] - {{ template_vm_name_2204 }}
+  block:
+    - name: "[Ubuntu 22.04] - Starting VM"
+      shell: qm start {{ template_vm_id_2204 }}
+    - name: "[Ubuntu 22.04] - Waiting for 20 seconds for VM to start"
+      pause:
+        seconds: 20
+    - name: "[Ubuntu 22.04] - Running apt-get update"
+      shell: qm guest exec {{ template_vm_id_2204 }} --timeout 0 -- /bin/bash -c 'apt update'
+    - name: "[Ubuntu 22.04] - Running apt-get upgrade -y"
+      shell: qm guest exec {{ template_vm_id_2204 }} --timeout 0 -- /bin/bash -c 'apt upgrade -y'
+    - name: "[Ubuntu 22.04] - Running apt-get autoremove"
+      shell: qm guest exec {{ template_vm_id_2204 }} --timeout 0 -- /bin/bash -c 'apt autoremove'
+    - name: "[Ubuntu 22.04] - Running apt-get clean"
+      shell: qm guest exec {{ template_vm_id_2204 }} --timeout 0 -- /bin/bash -c 'apt clean'
+    - name: "[Ubuntu 22.04] - Stopping VM"
+      shell: qm stop {{ template_vm_id_2204 }}
+    - name: "[Ubuntu 22.04] - Waiting for vm to stop"
+      shell: qm wait {{ template_vm_id_2204 }}
+  when: template_check_2204.stdout != "0"
+
 - name: Checking for {{ template_vm_name_2004 }} template
   shell: qm list | grep -c "{{ template_vm_id_2004 }} {{ template_vm_name_2004 }}"
   register: template_check_2004
@@ -94,6 +115,27 @@
     - name: Waiting for vm to stop
       shell: qm wait {{ template_vm_id_2004 }}
   when: template_check_2004.stdout == "0"
+
+- name: Updating template [Ubuntu Server 20.04] - {{ template_vm_name_2004 }}
+  block:
+    - name: "[Ubuntu Server 20.04] - Starting VM"
+      shell: qm start {{ template_vm_id_2004 }}
+    - name: "[Ubuntu Server 20.04] - Waiting for 20 seconds for VM to start"
+      pause:
+        seconds: 20
+    - name: "[Ubuntu Server 20.04] - Running apt-get update"
+      shell: qm guest exec {{ template_vm_id_2004 }} --timeout 0 -- /bin/bash -c 'apt update'
+    - name: "[Ubuntu Server 20.04] - Running apt-get upgrade -y"
+      shell: qm guest exec {{ template_vm_id_2004 }} --timeout 0 -- /bin/bash -c 'apt upgrade -y'
+    - name: "[Ubuntu Server 20.04] - Running apt-get autoremove"
+      shell: qm guest exec {{ template_vm_id_2004 }} --timeout 0 -- /bin/bash -c 'apt autoremove'
+    - name: "[Ubuntu Server 20.04] - Running apt-get clean"
+      shell: qm guest exec {{ template_vm_id_2004 }} --timeout 0 -- /bin/bash -c 'apt clean'
+    - name: "[Ubuntu Server 20.04] - Stopping VM"
+      shell: qm stop {{ template_vm_id_2004 }}
+    - name: "[Ubuntu Server 20.04] - Waiting for vm to stop"
+      shell: qm wait {{ template_vm_id_2004 }}
+  when: template_check_2004.stdout != "0"
 
 # These tasks outside of the template creation ensures that future
 # cloud-init clones have the updated keys

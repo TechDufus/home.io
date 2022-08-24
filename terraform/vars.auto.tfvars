@@ -98,3 +98,15 @@ vpn-host = {
     storage    = "VM-SSD-0"
   }
 }
+
+
+casaOS = {
+  # "casaOS" = {
+  #   hostname    = "casaOS"
+  #   vmid        = "119"
+  #   ip_address  = "192.168.1.19"
+  #   storage     = "VM-SSD-0"
+  #   macaddr     = "06:77:60:C0:37:F9"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # }
+}

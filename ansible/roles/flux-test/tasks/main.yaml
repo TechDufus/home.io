@@ -2,25 +2,33 @@
 - import_tasks: user-setup.yaml
   tags: user-setup
 
-# - name: Install Flux Docker
+- name: Install Flux Docker
+  shell: |
+    export usernew="{{ flux_user }}"
+    echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh) development
+  become: yes
+  become_user: root
+  args:
+    executable: /bin/bash
+
+# - name: Run Multitoolbox to create alias.
 #   shell: |
-#     export usernew="{{ flux_user }}"
-#     echo "1" | bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox_testnet.sh)
-#   become: yes
-#   become_user: root
-#   args:
-#     executable: /bin/bash
+#     bash -i <(curl -s {{ github_multitoolbox_repo_root }}multitoolbox.sh)
+
 
 - name: Deploy TESTNET Install configuration file to flux node
   copy:
     src: "testnet_install_conf.json"
     dest: "/home/{{ flux_user }}/install_conf.json"
+    force: yes
   tags: testnet
 
 - name: Deploy MAINNET Install configuration file to flux node
   copy:
     src: "mainnet_install_conf.json"
     dest: "/home/{{ flux_user }}/install_conf.json"
+    force: yes
+  tags: mainnet
 
 - name: Deploy flux update aliases to flux node
   template:
@@ -80,3 +88,4 @@
 #   become: yes
 #   become_user: "{{ flux_user }}"
 #   when: zelflux_dir.stdout == "true"
+

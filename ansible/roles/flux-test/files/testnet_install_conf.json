@@ -7,7 +7,7 @@
     "zelid": "1NYWJegFoXuhvDZYqSih4ZWkbHUSX5XxB4",
     "kda_address": "",
     "firewall_disable": "1",
-    "bootstrap_url": "0",
+    "bootstrap_url": "http://cdn-7.runonflux.io/apps/fluxshare/getfile/flux_explorer_bootstrap.tar.gz",
     "bootstrap_zip_del": "1",
     "swapon": "1",
     "use_old_chain": "1",

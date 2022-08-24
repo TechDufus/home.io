@@ -34,6 +34,12 @@ variable "vpn-host" {
   default     = {}
 }
 
+variable "casaOS" {
+  description = "Provide base casaOS config"
+  type        = map(any)
+  default     = {}
+}
+
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
