@@ -1,12 +1,12 @@
 ---
-# - name: Install Flux Docker
-#   shell: |
-#     export usernew="{{ ansible_user }}"
-#     echo "1" | bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
-#   become: yes
-#   become_user: root
-#   args:
-#     executable: /bin/bash
+- name: Install Flux Docker
+  shell: |
+    export usernew="{{ ansible_user }}"
+    echo "1" | bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
+  become: yes
+  become_user: root
+  args:
+    executable: /bin/bash
 
 - name: Deploy Install configuration file to flux node
   copy:

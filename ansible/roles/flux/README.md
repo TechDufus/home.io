@@ -15,3 +15,9 @@ Manually running / installing FluxOS myself allows me to see the progress of the
 3. `echo "4" | multitoolbox`
    1. This will configure watchdog to auto-update FluxOS, FluxDaemon, and FluxBench for the node.
 
+
+## Sysbench Repo UNSIGNED FIX
+Run the following command on a 'broken' sysbench node:
+```bash
+sudo apt -y remove sysbench && curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.deb.sh 2> /dev/null | sudo bash && sudo apt install sysbench -y
+```
