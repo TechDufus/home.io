@@ -2,10 +2,12 @@
 - name: Update APT packages
   apt:
     update_cache: yes
+  tags: update
 
 - name: Upgrade APT packages
   apt:
     upgrade: 'yes' # <-- This expects a STRING for some reason...
+  tags: update
   
 - name: Install APT packages
   apt:
@@ -61,10 +63,13 @@
     fi
   register: reboot_required
   changed_when: false
+  tags: update
+
 
 - name: REBOOT REQUIRED - IF THIS IS YELLOW THIS NODE NEEDS TO REBOOT
   shell: echo "This needs to reboot"
   when: reboot_required.stdout|bool 
+  tags: update
 
 - name: "*** --- ___REBOOTING SERVERS___ --- ***"
   reboot:
@@ -73,3 +78,4 @@
     - reboot_required.stdout|bool
     - inventory_hostname not in groups.fluxnodes
     - inventory_hostname not in groups.vpnhost
+  tags: update

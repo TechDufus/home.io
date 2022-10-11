@@ -1,0 +1,30 @@
+{
+    "import_settings": "1",
+    "prvkey": "{{ fluxnode_secret.nodepriv }}",
+    "outpoint": "{{ fluxnodes[inventory_hostname].collid }}",
+{% if fluxnodes[inventory_hostname].index is defined %}
+    "index": {{ fluxnodes[inventory_hostname].index }},
+{% else %}
+    "index": "0",
+{% endif %}
+    "ssh_port": "22",
+    "zelid": "{{ fluxnode_secret.zelid }}",
+    "kda_address": "{{ fluxnode_secret.kda_address }}",
+    "firewall_disable": "1",
+    "bootstrap_zip_del": "1",
+    "swapon": "1",
+    "use_old_chain": "1",
+    "node_label": "{{ inventory_hostname }}",
+    "discord": "{{ fluxnode_secret.discord_webhook }}",
+    "ping": "{{ fluxnode_secret.discord_nick }}",
+    "telegram_alert": "0",
+    "telegram_bot_token": "0",
+    "telegram_chat_id": "0",
+    "eps_limit": "{{ fluxnodes[inventory_hostname].eps }}",
+    "zelflux_update": "1",
+    "zelcash_update": "1",
+    "zelbench_update": "1",
+    "enable_upnp": "1",
+    "upnp_port": "{{ fluxnodes[inventory_hostname].upnp_port }}",
+    "gateway_ip": "{{ gateway }}"
+  }

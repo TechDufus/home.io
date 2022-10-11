@@ -1,9 +1,9 @@
 ---
-- hosts: fluxnodes-testnet
+- hosts: fluxnodestestnet
   vars:
     roles_path: /etc/ansible/roles:../roles
     inventory: ../hosts.ini
-  become: yes
+  become: true
   # strategy: free
 
   roles:
