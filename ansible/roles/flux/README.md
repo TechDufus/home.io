@@ -4,7 +4,7 @@ This role will prep a node for the RunOnFlux OS to be installed.
 
 This role ensures that docker is installed for a specific user, and copy out some config files. FOr the sake of simplicity, I still manually must install FluxOS manually after this role is applied.'
 
-Manually running / installing FluxOS myself allows me to see the progress of the script, and a rough ETA as to when it will be finished. All of this is supressed by ansible if ran in this role.
+Manually running / installing FluxOS myself allows me to see the progress of the script, and a rough ETA as to when it will be finished. All of this is suppressed by ansible if ran in this role.
 
 ## Manual Steps POST-Role application.
 
@@ -15,3 +15,9 @@ Manually running / installing FluxOS myself allows me to see the progress of the
 3. `echo "4" | multitoolbox`
    1. This will configure watchdog to auto-update FluxOS, FluxDaemon, and FluxBench for the node.
 
+
+## Sysbench Repo UNSIGNED FIX
+Run the following command on a 'broken' sysbench node:
+```bash
+sudo apt -y remove sysbench && curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.deb.sh 2> /dev/null | sudo bash && sudo apt install sysbench -y
+```

@@ -3,7 +3,7 @@
   vars:
     roles_path: /etc/ansible/roles:../roles
     inventory: ../hosts.ini
-  become: yes
+  become: true
 
   roles:
     - { role: common,         tags: common }

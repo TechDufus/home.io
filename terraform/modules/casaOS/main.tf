@@ -32,17 +32,14 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     mbps_rd_max = var.mbps_rd_max
     mbps_wr_max = var.mbps_wr_max
     iothread    = var.iothread
-    discard     = var.discard
-    # aio         = var.aio
-    # ssd         = var.ssd
   }
 
   network {
-    model   = var.net_model
-    bridge  = var.net_bridge
-    mtu     = var.mtu
-    rate    = var.rate
-    macaddr = var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
+    model  = var.net_model
+    bridge = var.net_bridge
+    mtu    = var.mtu
+    rate   = var.rate
+    macaddr =  var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
     # tag    = var.vlan_tag
   }
 
@@ -58,7 +55,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   ipconfig0  = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
   nameserver = var.nameserver
   desc       = <<EOF
-# Cumulus Flux Node
+# CasaOS
 Template: ${var.vm_template}
 - Name: ${var.hostname}
 - IP: ${var.ip_address}
@@ -67,7 +64,4 @@ Template: ${var.vm_template}
 - Memory: ${var.memory}
 - Disk: ${var.hdd_size}
 EOF
-  # provisioner "local-exec" {
-  #   command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ../ansible/inventory/flux.ini ../ansible/playbooks/deploy-flux-nodes.yaml"
-  # }
 }

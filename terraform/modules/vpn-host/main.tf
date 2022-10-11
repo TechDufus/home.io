@@ -32,9 +32,8 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     mbps_rd_max = var.mbps_rd_max
     mbps_wr_max = var.mbps_wr_max
     iothread    = var.iothread
+    ssd         = var.ssd
     discard     = var.discard
-    # aio         = var.aio
-    # ssd         = var.ssd
   }
 
   network {
@@ -58,7 +57,7 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   ipconfig0  = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
   nameserver = var.nameserver
   desc       = <<EOF
-# Cumulus Flux Node
+# VPN
 Template: ${var.vm_template}
 - Name: ${var.hostname}
 - IP: ${var.ip_address}

@@ -1,0 +1,4 @@
+---
+- name: Install CasaOS
+  shell: curl -fsSL https://get.casaos.io | bash
+

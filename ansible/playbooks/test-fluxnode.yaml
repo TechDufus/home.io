@@ -1,0 +1,15 @@
+---
+- hosts: fluxnodestestnet
+  vars:
+    roles_path: /etc/ansible/roles:../roles
+    inventory: ../hosts.ini
+  become: true
+  # strategy: free
+
+  roles:
+    - { role: common, tags: common, mainnet, testnet }
+    - { role: flux-test, tags: flux-test, mainnet, testnet }
+    # - { role: docker, tags: docker }
+    # - { role: minecraft, tags: minecraft }
+    # - { role: dashy, tags: dashy }
+    # - { role: portainer, tags: portainer }

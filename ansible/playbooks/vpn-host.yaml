@@ -1,9 +1,11 @@
 ---
-- hosts: all,!proxmox # <-- Apply to all hosts except the proxmox host group.
+- hosts: vpnhost
   vars:
     roles_path: /etc/ansible/roles:../roles
     inventory: ../hosts.ini
   become: true
+  # strategy: free
 
   roles:
     - { role: common, tags: common }
+

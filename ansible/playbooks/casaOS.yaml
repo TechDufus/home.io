@@ -1,5 +1,5 @@
 ---
-- hosts: all,!proxmox # <-- Apply to all hosts except the proxmox host group.
+- hosts: casaOS
   vars:
     roles_path: /etc/ansible/roles:../roles
     inventory: ../hosts.ini
@@ -7,3 +7,4 @@
 
   roles:
     - { role: common, tags: common }
+    - { role: casaOS, tags: casaOS }

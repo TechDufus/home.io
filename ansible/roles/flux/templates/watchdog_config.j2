@@ -1,0 +1,13 @@
+module.exports = {
+    label: '{{ inventory_hostname }}',
+    tier_eps_min: '{{ fluxnodes[inventory_hostname].eps }}',
+    zelflux_update: '1',
+    zelcash_update: '1',
+    zelbench_update: '1',
+    action: '1',
+    ping: '{{ fluxnode_secret.discord_nick }}',
+    web_hook_url: '{{ fluxnode_secret.discord_webhook }}',
+    telegram_alert: '0',
+    telegram_bot_token: '0',
+    telegram_chat_id: '0'
+}

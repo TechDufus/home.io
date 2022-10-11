@@ -1,0 +1,6 @@
+---
+- name: "flux: Restart Watchdog"
+  shell: bash -ilc 'pm2 reload watchdog --watch'
+  become: true
+  become_user: "{{ ansible_user }}"
+
