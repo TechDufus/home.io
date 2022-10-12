@@ -1,36 +1,30 @@
 ---
 gateway: '192.168.1.1'
+# Setting a default eps value. Provide one in fluxnodes if it differs
+eps: 90
 
 fluxnodes:
   pm-flux-cumulus-0:
     upnp_port: '16127'
     collid: '88f46bf543266600c200ec33eb1b60483da09a1343b8bcba5e7b3d23aabe313c'
-    eps: '90'
   pm-flux-cumulus-1:
     upnp_port: '16137'
     collid: 'f802bab6a11d32a684d1ef2d63dfb622aa078f75c1ae2f46284d0a05b4a66a8c'
-    eps: '90'
   pm-flux-cumulus-2:
     upnp_port: '16147'
     collid: 'f5a48afb4476b99db532fd0abbf08b5be5a5dd7e674a300c5967b26605794f78'
-    eps: '90'
   pm-flux-cumulus-3:
     upnp_port: '16157'
     collid: '5d4d952b97e6122af9aea4ff6d7c648b0f2872f01e0b284c14590b70c4caff3a'
-    eps: '90'
   pm-flux-cumulus-4:
     upnp_port: '16167'
     collid: 'eacf6f57b6dd3b1ca7ac06b63c315bf99a5a823065469527d863f0867a5e8fb7'
-    eps: '90'
   pm-flux-cumulus-5:
     upnp_port: '16177'
     collid: '04c833d86a66cb33216f6e1453a9be3011a343c1343dc98d333ea400cd012d36'
-    eps: '90'
   pm-flux-cumulus-6:
     upnp_port: '16187'
     collid: 'b4508a0ff15b9514e88bebf54d5e99468c2e25d8ce5a822c0de6a2d8ce1d3cdb'
-    eps: '90'
   pm-flux-cumulus-7:
     upnp_port: '16197'
     collid: '37f7acbc6ba85f3ce23b8bd965ad01fe4f56a7e3e1d002b6a3c4cb338efd8f1c'
-    eps: '90'
