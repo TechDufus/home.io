@@ -21,7 +21,7 @@
     src: "update_alias.sh"
     dest: /etc/profile.d/update_alias.sh
     force: yes
-  become: yes
+  become: true
 
 - name: Install Nala
   block:
@@ -79,3 +79,8 @@
     - inventory_hostname not in groups.fluxnodes
     - inventory_hostname not in groups.vpnhost
   tags: update
+
+
+
+
+

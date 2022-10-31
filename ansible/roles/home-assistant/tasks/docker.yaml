@@ -5,7 +5,7 @@
     state: directory
     mode: 0755
     force: true
-  become: yes
+  become: true
 
 - name: Start home-assistant Docker Image
   docker_container:

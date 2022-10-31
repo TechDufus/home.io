@@ -1,4 +1,3 @@
----
 flux:
   gateway: '192.168.1.1'
   # Setting a default eps value. Provide one in fluxnodes if it differs

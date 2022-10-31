@@ -13,7 +13,6 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   name        = var.hostname
   vmid        = var.vmid
   ciuser      = var.username
-  sshkeys     = var.ssh_public_keys
   target_node = var.target_node
   clone       = var.vm_template
   agent       = 1

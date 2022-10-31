@@ -26,12 +26,6 @@
   become: true
   tags: config
 
-# The failed condition needs to regex any node tier, not just cumulus.
-# - name: Check FluxOS Status
-#   shell: fluxbench-cli getbenchmarks | jq .status
-#   register: flux_status
-#   failed_when: flux_status.stdout == "\"CUMULUS\""
-
 # - name: "Installing FluxNode - Go get some coffee. :)"
 #   shell: |
 #     echo "2" | bash -i <(curl -s https://raw.githubusercontent.com/RunOnFlux/fluxnode-multitool/master/multitoolbox.sh)
@@ -81,4 +75,14 @@
   notify:
     - "flux: Restart Watchdog"
   tags: config
+
+- name: Update the FluxOS software on a Node
+  git:
+       repo: "https://github.com/RunOnFlux/flux.git"
+       dest: "/home/{{ ansible_user }}/zelflux/"
+       clone: yes
+       update: yes
+       force: yes
+  notify: Restart pm2
+  tags: update-fluxos
 

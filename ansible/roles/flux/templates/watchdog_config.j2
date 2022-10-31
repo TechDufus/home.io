@@ -1,9 +1,9 @@
 module.exports = {
     label: '{{ inventory_hostname }}',
-{% if fluxnodes[inventory_hostname].eps is defined %}
-    "tier_eps_min": "{{ fluxnodes[inventory_hostname].eps }}",
+{% if flux.nodes[inventory_hostname].eps is defined %}
+    "tier_eps_min": "{{ flux.nodes[inventory_hostname].eps }}",
 {% else %}
-    "tier_eps_min": "{{ eps }}"
+    "tier_eps_min": "{{ flux.default_eps }}"
 {% endif %}
     zelflux_update: '1',
     zelcash_update: '1',

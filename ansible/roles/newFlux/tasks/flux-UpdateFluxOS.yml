@@ -1,0 +1,11 @@
+---
+- name: Update the FluxOS software on a Node
+  git:
+       repo: "https://github.com/RunOnFlux/flux.git"
+       dest: "/home/{{ ansible_user }}/zelflux/"
+       clone: yes
+       update: yes
+       force: yes
+  notify: Restart pm2
+  tags: update-fluxos
+
