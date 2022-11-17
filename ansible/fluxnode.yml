@@ -1,32 +1,32 @@
-  ##
-# This is the primary playbook
-# Site: Goldie
+##
 - hosts: fluxnodes
   gather_facts: true
   vars:
+    inventory: inventory/fluxnodes/hosts
     site: inventory/fluxnodes
     project: TechDufus Flux Nodes
     date: "{{ lookup('pipe','date +%Y.%m.%d.%H.%M') }}"
 
 # Define All tasks
   tasks:
-  - name: Running project {{project}} on {{site}} with Tags {{ansible_run_tags}} specified And tags {{ansible_skip_tags}} skipped
+  - name: "Running project {{ project }} on {{ site }} with Tags {{ ansible_run_tags }} specified And tags {{ ansible_skip_tags }} skipped"
     delegate_to: localhost
     run_once: true
     command: /bin/echo "Only running because of specified tag"
-    changed_when: False
-    tags:
-        - always
+    changed_when: false
+    tags: always
 
   - name: Common Role
     import_role:
-        name: common
+      name: common
 
   - name: Flux Role
     import_role:
-        name: flux
+      name: flux
 
 # Usage Task
+  - name: Debug message
+    debug: 
+      msg: 'You Must Specify a Tag to run this play Please see the Readme'
     run_once: true 
-  - debug: msg='You Must Specify a Tag to run this play Please see the Readme'
 

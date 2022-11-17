@@ -141,25 +141,29 @@ variable "vm_template" {
 variable "mbps_rd" {
   description = "Desired read rate of the Flux node."
   type        = number
-  default     = 180
+  #default     = 180
+  default     = 0
 }
 
 variable "mbps_rd_max" {
   description = "Maximum read rate of the Flux node."
   type        = number
-  default     = 180
+  #default     = 180
+  default     = 0
 }
 
 variable "mbps_wr" {
   description = "Desired write rate of the Flux node."
   type        = number
-  default     = 180
+  #default     = 180
+  default     = 0
 }
 
 variable "mbps_wr_max" {
   description = "Maximum write rate of the Flux node."
   type        = number
-  default     = 185
+  #default     = 185
+  default     = 0
 }
 
 # This is set to 1 int above the flux requirements.
