@@ -24,12 +24,11 @@
 {% if flux.nodes[inventory_hostname].eps is defined %}
     "eps_limit": "{{ flux.nodes[inventory_hostname].eps }}",
 {% else %}
-    "eps_limit": "{{ flux.default_eps }}"
+    "eps_limit": "{{ flux.default_eps }}",
 {% endif %}
     "zelflux_update": "1",
     "zelcash_update": "1",
     "zelbench_update": "1",
-    "enable_upnp": "1",
     "upnp_port": "{{ flux.nodes[inventory_hostname].upnp_port }}",
     "gateway_ip": "{{ flux.gateway }}"
   }

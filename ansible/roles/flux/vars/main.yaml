@@ -10,3 +10,13 @@ flux:
       collid: 'b94a97ffb5d030a1c8cd66b9f43c7d17911fe7ad435b85657d61894dba8ddf32'
       tier: 'Nimbus'
       proxmox_vm_id: 120
+    pm-flux-cumulus-0:
+      upnp_port: '16137'
+      collid: '0846cb534ad180241638931c9071947d09c6843d639a4c8e8584c4d2b5e747fc'
+      tier: 'Cumulus'
+      proxmox_vm_id: 110
+    pm-flux-cumulus-1:
+      upnp_port: '16147'
+      collid: 'bb176358f338176f3ca49f6161d75cfea2cc4d6ae7f5e32e14440eb9e0e28192'
+      tier: 'Cumulus'
+      proxmox_vm_id: 111

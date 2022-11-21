@@ -5,6 +5,7 @@
     state: present
     cache_valid_time: "{{ unattended_cache_valid_time }}"
     update_cache: yes
+  become: true
   when: unattended_only_on_ac_power
 
 - name: Install unattended-upgrades
@@ -13,6 +14,7 @@
     state: present
     cache_valid_time: "{{ unattended_cache_valid_time }}"
     update_cache: yes
+  become: true
 
 - name: Create APT auto-upgrades configuration
   template:
@@ -21,6 +23,7 @@
     owner: root
     group: root
     mode: 5473
+  become: true
 
 - name: Create unattended-upgrades configuration
   template:
@@ -29,10 +32,12 @@
     owner: root
     group: root
     mode: 5473
+  become: true
 
 - name: Restart unattended-upgrades service
   service:
     name: unattended-upgrades
     state: restarted
     enabled: yes
+  become: true
     

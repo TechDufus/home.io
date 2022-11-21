@@ -15,8 +15,7 @@
     run_once: true
     command: /bin/echo "Only running because of specified tag"
     changed_when: false
-    tags:
-        - always
+    tags: always
 
   - name: Common Role
     import_role:
@@ -28,7 +27,6 @@
 
 # Usage Task
   - name: Debug message
-    debug: 
+    debug:
       msg: 'You Must Specify a Tag to run this play Please see the Readme'
-    run_once: true 
-
+    run_once: true

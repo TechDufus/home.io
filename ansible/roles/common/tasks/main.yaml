@@ -3,17 +3,20 @@
   apt:
     update_cache: yes
   tags: update
+  become: true
 
 - name: Upgrade APT packages
   apt:
     upgrade: 'yes' # <-- This expects a STRING for some reason...
   tags: update
+  become: true
   
 - name: Install APT packages
   apt:
     name: "{{ item }}"
     state: latest
     update_cache: yes
+  become: true
   loop: "{{ commonPackages }}"
 
 - name: Deploy update alias
@@ -47,6 +50,7 @@
         state: latest
         update_cache: yes
       when: ansible_distribution_major_version == "20"
+  become: true
 
 - name: Add distribution-specific variables
   include_vars: "{{ ansible_distribution }}.yaml"
@@ -78,6 +82,7 @@
     - reboot_required.stdout|bool
     - inventory_hostname not in groups.fluxnodes
     - inventory_hostname not in groups.vpnhost
+  become: true
   tags: update
 
 
