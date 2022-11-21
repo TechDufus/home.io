@@ -2,7 +2,13 @@
 - name: Loading secret vars...
   include_vars:
     file: secrets.yaml
-  tags: config
+  tags: always
+
+- name: Install custom [M]essage [O]f [T]he [D]ay (MOTD)
+  import_tasks: motd.yml
+  tags:
+    - motd
+    - config
 
 - name: Install Flux Docker
   shell: |

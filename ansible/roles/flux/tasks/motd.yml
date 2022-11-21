@@ -1,0 +1,26 @@
+---
+# Push custom MOTD to node
+
+- name: Remove the standard MOTD Files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/update-motd.d/10-help-text
+    - /etc/update-motd.d/85-fwupd
+    - /etc/update-motd.d/91-contract-ua-esm-status
+    - /etc/update-motd.d/92-unattended-upgrades
+    - /etc/update-motd.d/97-overlayroot
+    - /etc/update-motd.d/50-motd-news
+    - /etc/update-motd.d/88-esm-announce
+    - /etc/update-motd.d/91-release-upgrade
+    - /etc/update-motd.d/95-hwe-eol
+  become: true
+
+- name: Push the Cutom MOTD to the node
+  template:
+    src: flux_motd.j2
+    dest: "/etc/update-motd.d/40-custom-motd"
+    owner: root
+    mode: 0755
+  become: true

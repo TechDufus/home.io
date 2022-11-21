@@ -7,3 +7,5 @@ flux:
       eps: 180
       upnp_port: '16127'
       collid: 'b94a97ffb5d030a1c8cd66b9f43c7d17911fe7ad435b85657d61894dba8ddf32'
+      tier: 'nimbus'
+      proxmox_vm_id: 120

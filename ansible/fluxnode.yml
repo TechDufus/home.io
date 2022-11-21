@@ -6,6 +6,7 @@
     site: inventory/fluxnodes
     project: TechDufus Flux Nodes
     date: "{{ lookup('pipe','date +%Y.%m.%d.%H.%M') }}"
+  become: true
 
 # Define All tasks
   tasks:
@@ -14,7 +15,8 @@
     run_once: true
     command: /bin/echo "Only running because of specified tag"
     changed_when: false
-    tags: always
+    tags:
+        - always
 
   - name: Common Role
     import_role:
