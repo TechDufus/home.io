@@ -16,6 +16,12 @@ variable "stratus_nodes" {
   default     = {}
 }
 
+variable "fedora_workstation" {
+  description = "The number of Fedora Workstations create and their values"
+  type        = map(any)
+  default     = {}
+}
+
 variable "pihole" {
   description = "Provide base pihole config"
   type        = map(any)

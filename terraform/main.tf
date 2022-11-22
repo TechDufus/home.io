@@ -121,3 +121,24 @@ module "casaOS" {
   target_node     = var.target_node
   storage         = each.value.storage
 }
+
+ # ▄▄▄▄▄▄            █                             ▄     ▄               █               ▄             ▄      ▀                 
+ # █       ▄▄▄    ▄▄▄█   ▄▄▄    ▄ ▄▄   ▄▄▄         █  █  █  ▄▄▄    ▄ ▄▄  █   ▄   ▄▄▄   ▄▄█▄▄   ▄▄▄   ▄▄█▄▄  ▄▄▄     ▄▄▄   ▄ ▄▄  
+ # █▄▄▄▄▄ █▀  █  █▀ ▀█  █▀ ▀█   █▀  ▀ ▀   █        ▀ █▀█ █ █▀ ▀█   █▀  ▀ █ ▄▀   █   ▀    █    ▀   █    █      █    █▀ ▀█  █▀  █ 
+ # █      █▀▀▀▀  █   █  █   █   █     ▄▀▀▀█         ██ ██▀ █   █   █     █▀█     ▀▀▀▄    █    ▄▀▀▀█    █      █    █   █  █   █ 
+ # █      ▀█▄▄▀  ▀█▄██  ▀█▄█▀   █     ▀▄▄▀█         █   █  ▀█▄█▀   █     █  ▀▄  ▀▄▄▄▀    ▀▄▄  ▀▄▄▀█    ▀▄▄  ▄▄█▄▄  ▀█▄█▀  █   █ 
+
+module "fedora_workstation" {
+  source          = "./modules/fedora_workstation"
+  for_each        = var.fedora_workstation
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  vm_template     = "fedora-workstation-37-template"
+  target_node     = var.target_node
+  storage         = each.value.storage
+}
+ 

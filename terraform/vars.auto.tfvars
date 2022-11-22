@@ -13,6 +13,32 @@ nimbus_nodes = {
     macaddr    = "56:C4:11:75:6A:32"
   },
 }
+cumulus_nodes = {
+  "pm-flux-cumulus-0" = {
+    hostname   = "pm-flux-cumulus-0"
+    vmid       = "110"
+    ip_address = "192.168.1.10"
+    storage    = "VM-SSD-3"
+    macaddr    = "56:C4:11:75:6A:11"
+  },
+  "pm-flux-cumulus-1" = {
+    hostname   = "pm-flux-cumulus-1"
+    vmid       = "111"
+    ip_address = "192.168.1.11"
+    storage    = "VM-SSD-4"
+    macaddr    = "56:C4:11:75:6A:12"
+  },
+}
+
+fedora_workstation = {
+    # "fedora_workstation" = {
+    #     hostname   = "fedora workstation"
+    #     vmid       = "420"
+    #     ip_address = "1923.168.1.42"
+    #     storage    = "vm-ssd-1"
+    #     macaddr    = "56:c4:11:75:6a:42"
+    # },
+}
 
 pihole = {
   # "pihole-primary" = {
