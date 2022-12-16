@@ -9,25 +9,25 @@ nimbus_nodes = {
     hostname   = "pm-flux-nimbus-0"
     vmid       = "120"
     ip_address = "192.168.1.20"
-    storage    = "VM-SSD-0"
+    storage    = "VM-SSD-1"
     macaddr    = "56:C4:11:75:6A:32"
   },
 }
 cumulus_nodes = {
-  "pm-flux-cumulus-0" = {
-    hostname   = "pm-flux-cumulus-0"
-    vmid       = "110"
-    ip_address = "192.168.1.10"
-    storage    = "VM-SSD-3"
-    macaddr    = "56:C4:11:75:6A:11"
-  },
-  "pm-flux-cumulus-1" = {
-    hostname   = "pm-flux-cumulus-1"
-    vmid       = "111"
-    ip_address = "192.168.1.11"
-    storage    = "VM-SSD-4"
-    macaddr    = "56:C4:11:75:6A:12"
-  },
+  # "pm-flux-cumulus-0" = {
+  #   hostname   = "pm-flux-cumulus-0"
+  #   vmid       = "110"
+  #   ip_address = "192.168.1.10"
+  #   storage    = "VM-SSD-3"
+  #   macaddr    = "56:C4:11:75:6A:11"
+  # },
+  # "pm-flux-cumulus-1" = {
+  #   hostname   = "pm-flux-cumulus-1"
+  #   vmid       = "111"
+  #   ip_address = "192.168.1.11"
+  #   storage    = "VM-SSD-4"
+  #   macaddr    = "56:C4:11:75:6A:12"
+  # },
 }
 
 fedora_workstation = {
@@ -38,6 +38,16 @@ fedora_workstation = {
     #     storage    = "vm-ssd-1"
     #     macaddr    = "56:c4:11:75:6a:42"
     # },
+}
+
+wazuh_manager = {
+  # "wazuh_manager" = {
+  #   hostname     = "wazuh-manager"
+  #   vmid         = "109"
+  #   ip_address   = "192.168.1.9"
+  #   storage      = "VM-SSD-0"
+  #   macaddr      = "56:C4:11:85:6A:32"
+  # },
 }
 
 pihole = {
@@ -60,9 +70,9 @@ pihole = {
 container-host = {
   # "container-host" = {
   #   hostname     = "container-host"
-  #   vmid         = "107"
-  #   ip_address   = "10.0.0.7"
-  #   storage      = "VM-SSD"
+  #   vmid         = "109"
+  #   ip_address   = "192.168.1.9"
+  #   storage      = "vm-ssd-1"
   #   macaddr      = "06:74:60:C0:37:F6"
   # }
 }

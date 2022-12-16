@@ -142,3 +142,25 @@ module "fedora_workstation" {
   storage         = each.value.storage
 }
  
+# ▄     ▄                      █             ▄    ▄                                          
+# █  █  █  ▄▄▄   ▄▄▄▄▄  ▄   ▄  █ ▄▄          ██  ██  ▄▄▄   ▄ ▄▄    ▄▄▄    ▄▄▄▄   ▄▄▄    ▄ ▄▄ 
+# ▀ █▀█ █ ▀   █     ▄▀  █   █  █▀  █         █ ██ █ ▀   █  █▀  █  ▀   █  █▀ ▀█  █▀  █   █▀  ▀
+#  ██ ██▀ ▄▀▀▀█   ▄▀    █   █  █   █         █ ▀▀ █ ▄▀▀▀█  █   █  ▄▀▀▀█  █   █  █▀▀▀▀   █    
+#  █   █  ▀▄▄▀█  █▄▄▄▄  ▀▄▄▀█  █   █         █    █ ▀▄▄▀█  █   █  ▀▄▄▀█  ▀█▄▀█  ▀█▄▄▀   █    
+#                                                                         ▄  █               
+#                                                                          ▀▀                
+
+module "wazuh_manager" {
+  source          = "./modules/wazuh_manager"
+  for_each        = var.wazuh_manager
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  vm_template     = var.vm_template
+  target_node     = var.target_node
+  storage         = each.value.storage
+}
+ 

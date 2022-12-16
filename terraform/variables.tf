@@ -22,6 +22,12 @@ variable "fedora_workstation" {
   default     = {}
 }
 
+variable "wazuh_manager" {
+  description = "The number of wazuh manager VMs to create and their values"
+  type        = map(any)
+  default     = {}
+}
+
 variable "pihole" {
   description = "Provide base pihole config"
   type        = map(any)
