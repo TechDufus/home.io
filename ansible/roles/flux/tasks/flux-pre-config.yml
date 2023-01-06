@@ -1,0 +1,6 @@
+---
+- name: Deploy Install configuration file to flux node
+  template:
+    src: "install_conf.j2"
+    dest: "/home/{{ ansible_user }}/install_conf.json"
+    mode: 0644

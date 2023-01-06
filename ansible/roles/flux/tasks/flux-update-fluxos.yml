@@ -1,0 +1,15 @@
+---
+- name: Checking for zelflux directory
+  ansible.builtin.stat:
+    path: "/home/{{ ansible_user }}/zelflux"
+  register: zelflux_dir
+
+- name: Update the FluxOS software on a Node
+  git:
+    repo: "https://github.com/RunOnFlux/flux.git"
+    dest: "/home/{{ ansible_user }}/zelflux/"
+    clone: true
+    update: true
+    force: true
+  notify: Restart pm2
+  when: zelflux_dir.exists

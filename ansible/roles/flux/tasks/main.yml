@@ -1,0 +1,48 @@
+---
+- name: Load Secret Vars
+  ansible.builtin.include_vars:
+    file: ../../../secrets/flux.yml
+  tags:
+    - always
+
+- name: Install custom [M]essage [O]f [T]he [D]ay (MOTD)
+  import_tasks: flux-motd.yml
+  tags:
+    - motd
+    - flux
+    - config
+    - never
+
+- name: PRE-Configure Flux Node
+  ansible.builtin.import_tasks:
+    file: flux-pre-config.yml
+  tags:
+    - flux-pre-config
+    - config
+    - flux
+    - never
+
+- name: Install FluxOS
+  ansible.builtin.import_tasks:
+    file: flux-install.yml
+  tags:
+    - flux
+    - install
+    - never
+
+- name: POST-Configure Flux Node
+  ansible.builtin.import_tasks:
+    file: flux-post-config.yml
+  tags:
+    - flux-post-config
+    - config
+    - flux
+    - never
+
+- name: Update FluxOS
+  ansible.builtin.import_tasks:
+    file: flux-update-fluxos.yml
+  tags:
+    - update-fluxos
+    - flux
+    - never

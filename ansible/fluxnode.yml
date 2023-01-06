@@ -2,7 +2,7 @@
 - hosts: fluxnodes
   gather_facts: true
   vars:
-    inventory: inventory/fluxnodes/hosts
+    inventory: inventory/fluxnodes/hosts.ini
     site: inventory/fluxnodes
     project: TechDufus Flux Nodes
     date: "{{ lookup('pipe','date +%Y.%m.%d.%H.%M') }}"

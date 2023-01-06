@@ -14,20 +14,20 @@ nimbus_nodes = {
   },
 }
 cumulus_nodes = {
-  # "pm-flux-cumulus-0" = {
-  #   hostname   = "pm-flux-cumulus-0"
-  #   vmid       = "110"
-  #   ip_address = "192.168.1.10"
-  #   storage    = "VM-SSD-3"
-  #   macaddr    = "56:C4:11:75:6A:11"
-  # },
-  # "pm-flux-cumulus-1" = {
-  #   hostname   = "pm-flux-cumulus-1"
-  #   vmid       = "111"
-  #   ip_address = "192.168.1.11"
-  #   storage    = "VM-SSD-4"
-  #   macaddr    = "56:C4:11:75:6A:12"
-  # },
+  "pm-flux-cumulus-0" = {
+    hostname   = "pm-flux-cumulus-0"
+    vmid       = "110"
+    ip_address = "192.168.1.10"
+    storage    = "VM-SSD-3"
+    macaddr    = "56:C4:11:75:6A:11"
+  },
+  "pm-flux-cumulus-1" = {
+    hostname   = "pm-flux-cumulus-1"
+    vmid       = "111"
+    ip_address = "192.168.1.11"
+    storage    = "VM-SSD-4"
+    macaddr    = "56:C4:11:75:6A:12"
+  },
 }
 
 fedora_workstation = {

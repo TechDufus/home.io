@@ -90,6 +90,21 @@
         owner: root
         group: root
         force: yes
+    # - name: Creating Template
+    #   command: "{{ item }}"
+    #   with_items:
+    #     - virt-customize -a {{ template_file_2004 }} --install qemu-guest-agent
+    #     - qm create {{ template_vm_id_2004 }} --name {{ template_vm_name_2004 }} --memory 2048 --net0 virtio,bridge=vmbr0 --ciuser {{ ciuser }}
+    #     - qm set {{ template_vm_id_2004 }} --serial0 socket --vga serial0
+    #     - qm importdisk {{ template_vm_id_2004 }} {{ template_file_2004 }} {{ template_storage }} -format qcow2
+    #     - qm set {{ template_vm_id_2004 }} --scsihw virtio-scsi-pci --scsi0 {{ template_storage }}:vm-{{ template_vm_id_2004 }}-disk-0
+    #     - qm set {{ template_vm_id_2004 }} --ide2 {{ template_storage }}:cloudinit
+    #     - qm set {{ template_vm_id_2004 }} --boot c --bootdisk scsi0
+    #     - qm set {{ template_vm_id_2004 }} --agent enabled=1,fstrim_cloned_disks=1
+    #     - qm start {{ template_vm_id_2004 }}
+    #     - qm set {{ template_vm_id_2004 }} --ipconfig0 {{ ip_config }}
+    #     - qm stop {{ template_vm_id_2004 }}
+    #     - qm wait {{ template_vm_id_2004 }}
     - name: Install qemu-guest-agent in the template
       shell: virt-customize -a {{ template_file_2004 }} --install qemu-guest-agent
     - name: Create VM

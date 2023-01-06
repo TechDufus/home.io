@@ -1,0 +1,45 @@
+---
+- name: Deploy flux update aliases to flux node
+  template:
+    src: "update_flux.j2"
+    dest: /etc/profile.d/update_flux.sh
+  become: true
+  tags:
+    - config
+    - flux
+    - never
+
+- name: Checking for fluxbench file
+  stat:
+    path: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+  register: fluxbench
+  tags:
+    - config
+    - flux
+    - never
+
+- name: Deploy fluxbench config file
+  template:
+    src: "fluxbench.j2"
+    dest: "/home/{{ ansible_user }}/.fluxbenchmark/fluxbench.conf"
+    owner: "root"
+    group: "root"
+    mode: 0644
+  become: true
+  when: fluxbench.stat.exists
+
+- name: Checking for watchdog config file
+  stat:
+    path: "/home/{{ ansible_user }}/watchdog/config.js"
+  register: watchdog_config
+
+- name: Deploy watchdog config file
+  template:
+    src: "watchdog_config.j2"
+    dest: "/home/{{ ansible_user }}/watchdog/config.js"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+  when: watchdog_config.stat.exists
+  notify:
+    - "flux: Restart Watchdog"

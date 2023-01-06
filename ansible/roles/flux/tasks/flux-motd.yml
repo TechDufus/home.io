@@ -1,6 +1,4 @@
 ---
-# Push custom MOTD to node
-
 - name: Remove the standard MOTD Files
   ansible.builtin.file:
     path: "{{ item }}"
