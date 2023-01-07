@@ -19,3 +19,8 @@ flux:
       collid: 'bb176358f338176f3ca49f6161d75cfea2cc4d6ae7f5e32e14440eb9e0e28192'
       tier: 'cumulus'
       proxmox_vm_id: 111
+    pm-flux-cumulus-2:
+      upnp_port: '16157'
+      collid: '10d55587d5586baf82460025dd3a88bb0517b144d7a72e86961ee418dbca249f'
+      tier: 'cumulus'
+      proxmox_vm_id: 112
