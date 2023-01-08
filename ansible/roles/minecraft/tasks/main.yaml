@@ -24,8 +24,8 @@
       - /opt/minecraft:/data
       # - /etc/timezone:/etc/timezone:ro
     restart_policy: "unless-stopped"
-    restart: yes
-    pull: yes
+    restart: true
+    pull: true
     detach: true
     pid_mode: host
-  become: yes
+  become: true
