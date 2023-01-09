@@ -84,8 +84,3 @@
     - inventory_hostname not in groups.vpnhost
   become: true
   tags: update
-
-
-
-
-

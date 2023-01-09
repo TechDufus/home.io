@@ -35,6 +35,20 @@ cumulus_nodes = {
     storage    = "VM-SSD-2"
     macaddr    = "56:C4:11:75:6A:13"
   },
+  "pm-flux-cumulus-3" = {
+    hostname   = "pm-flux-cumulus-3"
+    vmid       = "113"
+    ip_address = "192.168.1.13"
+    storage    = "VM-SSD-0"
+    macaddr    = "56:C4:11:75:6A:14"
+  },
+  "pm-flux-cumulus-4" = {
+    hostname   = "pm-flux-cumulus-4"
+    vmid       = "114"
+    ip_address = "192.168.1.14"
+    storage    = "VM-SSD-2"
+    macaddr    = "56:C4:11:75:6A:15"
+  },
 }
 
 fedora_workstation = {
