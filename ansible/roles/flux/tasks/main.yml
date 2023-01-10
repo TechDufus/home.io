@@ -2,8 +2,13 @@
 - name: Load Secret Vars
   ansible.builtin.include_vars:
     file: ../../../secrets/flux.yml
+  no_log: true
   tags:
-    - always
+    - flux
+    - flux-pre-config
+    - config
+    - flux-post-config
+    - never
 
 - name: Install custom [M]essage [O]f [T]he [D]ay (MOTD)
   import_tasks: flux-motd.yml

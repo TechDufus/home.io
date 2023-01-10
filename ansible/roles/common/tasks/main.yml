@@ -1,0 +1,44 @@
+---
+- name: Update APT
+  ansible.builtin.import_tasks:
+    file: common-updateOS.yml
+  tags:
+    - common
+    - update
+    - updateOS
+    - never
+
+- name: Rebooting if needed
+  ansible.builtin.import_tasks:
+    file: common-reboot.yml
+  when:
+    - reboot_required is defined
+    - reboot_required.stat.exists
+  tags:
+    - reboot
+
+# Is this needed? Just use ansible you lazy tool
+# - name: Deploy update alias
+#   copy:
+#     src: "update_alias.sh"
+#     dest: /etc/profile.d/update_alias.sh
+#     force: yes
+#   become: true
+
+- name: Install Common APT Packages
+  ansible.builtin.import_tasks:
+    file: common-packages.yml
+  tags:
+    - common
+    - packages
+    - common-packages
+    - never
+
+- name: Add distribution-specific variables
+  include_vars: "{{ ansible_distribution }}.yaml"
+
+- import_tasks: unattended-upgrades.yaml
+  tags:
+    - common
+    - unattended-upgrades
+    - never
