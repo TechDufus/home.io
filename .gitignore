@@ -10,7 +10,8 @@ crash.log
 crash.*.log
 
 # local creds file
-terraform/creds.auto.tfvars
+terraform/proxmox/creds.auto.tfvars
+terraform/harvester/creds.auto.tfvars
 
 # ./Terraform backup files
 **.tfstate.backup
