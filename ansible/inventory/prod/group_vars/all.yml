@@ -1,0 +1,37 @@
+---
+flux:
+  gateway: '10.0.0.1'
+  # Setting a default eps value. Provide one in fluxnodes if it differs
+  default_eps: 90
+  nodes:
+    pm-flux-nimbus-0:
+      eps: 180
+      upnp_port: '16127'
+      collid: 'b94a97ffb5d030a1c8cd66b9f43c7d17911fe7ad435b85657d61894dba8ddf32'
+      tier: 'Nimbus'
+      proxmox_vm_id: 120
+    pm-flux-cumulus-0:
+      upnp_port: '16137'
+      collid: '0846cb534ad180241638931c9071947d09c6843d639a4c8e8584c4d2b5e747fc'
+      tier: 'Cumulus'
+      proxmox_vm_id: 110
+    pm-flux-cumulus-1:
+      upnp_port: '16147'
+      collid: 'bb176358f338176f3ca49f6161d75cfea2cc4d6ae7f5e32e14440eb9e0e28192'
+      tier: 'Cumulus'
+      proxmox_vm_id: 111
+    pm-flux-cumulus-2:
+      upnp_port: '16157'
+      collid: '10d55587d5586baf82460025dd3a88bb0517b144d7a72e86961ee418dbca249f'
+      tier: 'Cumulus'
+      proxmox_vm_id: 112
+    pm-flux-cumulus-3:
+      upnp_port: '16167'
+      collid: '9f709733f9c16b45a253611a43cf399665780269b82ba3a2430b07979c59ef79'
+      tier: 'Cumulus'
+      proxmox_vm_id: 113
+    pm-flux-cumulus-4:
+      upnp_port: '16177'
+      collid: '128c10219a76a07152eae964d01f21997205e083b092de622ad73927289be5fa'
+      tier: 'Cumulus'
+      proxmox_vm_id: 114
