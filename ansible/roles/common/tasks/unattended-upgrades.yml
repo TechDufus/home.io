@@ -1,10 +1,13 @@
 ---
+- name: Add distribution-specific variables
+  include_vars: "{{ ansible_distribution }}.yaml"
+
 - name: Install powermgmt-base
   apt:
     name:
     state: present
     cache_valid_time: "{{ unattended_cache_valid_time }}"
-    update_cache: yes
+    update_cache: true
   become: true
   when: unattended_only_on_ac_power
 
@@ -13,7 +16,7 @@
     name: unattended-upgrades
     state: present
     cache_valid_time: "{{ unattended_cache_valid_time }}"
-    update_cache: yes
+    update_cache: true
   become: true
 
 - name: Create APT auto-upgrades configuration
@@ -38,6 +41,5 @@
   service:
     name: unattended-upgrades
     state: restarted
-    enabled: yes
+    enabled: true
   become: true
-    

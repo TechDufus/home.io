@@ -27,7 +27,6 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     size        = var.hdd_size
     type        = var.hdd_type
     storage     = var.storage
-    backup      = var.disk_backup
     mbps_rd     = var.mbps_rd
     mbps_wr     = var.mbps_wr
     mbps_rd_max = var.mbps_rd_max

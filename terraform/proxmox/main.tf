@@ -16,7 +16,7 @@ module "flux_cumulus" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
 }
@@ -29,7 +29,7 @@ module "flux_nimbus" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
 }
@@ -42,7 +42,7 @@ module "flux_stratus" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
 }
@@ -65,7 +65,7 @@ module "pihole" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = var.storage
 }
@@ -87,7 +87,7 @@ module "container-host" {
   nameserver      = var.nameserver
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   macaddr         = try(each.value.macaddr, "0")
   target_node     = var.target_node
   storage         = var.storage
@@ -102,7 +102,7 @@ module "vpn-host" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  vm_template     = var.vm_template
+  vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
 }

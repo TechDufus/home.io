@@ -176,7 +176,7 @@ variable "rate" {
 variable "iothread" {
   description = "Enable/Disable I/O thread of the Flux node drive."
   type        = number
-  default     = 1
+  default     = 0
 }
 
 variable "vmid" {

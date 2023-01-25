@@ -1,7 +1,7 @@
 ---
 dashy_docker_home: /opt/dashy
 dashy_docker_port_80: 80
-dashy_host_port_80: 8080
+dashy_host_port_80: 80
 # dashy_docker_port_443: 443
 # dashy_host_port_443: 443
 

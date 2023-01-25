@@ -17,13 +17,16 @@
   tags:
     - reboot
 
-# Is this needed? Just use ansible you lazy tool
-# - name: Deploy update alias
-#   copy:
-#     src: "update_alias.sh"
-#     dest: /etc/profile.d/update_alias.sh
-#     force: yes
-#   become: true
+- name: Deploy update alias
+  copy:
+    src: "update_alias.sh"
+    dest: /etc/profile.d/update_alias.sh
+    mode: 0644
+    force: true
+  become: true
+  tags:
+    - common
+    - never
 
 - name: Install Common APT Packages
   ansible.builtin.import_tasks:
@@ -34,10 +37,7 @@
     - common-packages
     - never
 
-- name: Add distribution-specific variables
-  include_vars: "{{ ansible_distribution }}.yaml"
-
-- import_tasks: unattended-upgrades.yaml
+- import_tasks: unattended-upgrades.yml
   tags:
     - common
     - unattended-upgrades

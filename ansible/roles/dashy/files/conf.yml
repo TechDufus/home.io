@@ -5,9 +5,9 @@ pageInfo:
   description: Welcome to the Home Lab!
   navLinks:
   - title: GitHub
-    path: https://github.com/matthewjdegarmo/
+    path: https://github.com/TechDufus/
   - title: Twitter
-    path: https://twitter.matthewjdegarmo.com/
+    path: https://twitter.TechDufus.com/
   - title: Documentation
     path: https://dashy.to/docs
 
@@ -46,26 +46,26 @@ sections:
     url: https://proxmox.home.io:8006/
     icon: hl-proxmox
     statusCheckAllowInsecure: true
-  - title: Portainer
-    description: Container orchestration.
-    url: http://container-host.home.io:9000
-    icon: hl-portainer
-  - title: SensuGO
-    description: Monitoring Back-End
-    url: http://container-host.home.io:3000
-    icon: hl-sensu-green
+  # - title: Portainer
+  #   description: Container orchestration.
+  #   url: http://container-host.home.io:9000
+  #   icon: hl-portainer
+  # - title: SensuGO
+  #   description: Monitoring Back-End
+  #   url: http://container-host.home.io:3000
+  #   icon: hl-sensu-green
   - title: Home Gateway
     description: Router / Gateway for my Home
-    url: http://10.0.0.2/
+    url: http://10.0.0.1/
     icon: hl-router
   - title: Pihole-Primary
     description: Primary Pi-Hole DNS server.
     url: http://pi.hole/admin
     icon: hl-pihole
-  - title: Pihole-Secondary
-    description: Secondary Pi-Hole DNS server.
-    url: http://secondary.pi.hole/admin
-    icon: hl-pihole
+  # - title: Pihole-Secondary
+  #   description: Secondary Pi-Hole DNS server.
+  #   url: http://secondary.pi.hole/admin
+  #   icon: hl-pihole
 - name: Pi-Hole Primary Stats
   icon: hl-pihole
   displayData:
@@ -101,29 +101,9 @@ sections:
   displayData:
     collapsed: false
   items:
-  - title: cumulus0
+  - title: nimbus0
     description: Flux Node
-    url: http://10.0.0.10:16126
-    icon: hl-runonflux
-  - title: cumulus1
-    description: Flux Node
-    url: http://10.0.0.11:16136
-    icon: hl-runonflux
-  - title: cumulus2
-    description: Flux Node
-    url: http://10.0.0.12:16146
-    icon: hl-runonflux
-  - title: cumulus3
-    description: Flux Node
-    url: http://10.0.0.13:16156
-    icon: hl-runonflux
-  - title: cumulus4
-    description: Flux Node
-    url: http://10.0.0.14:16166
-    icon: hl-runonflux
-  - title: cumulus5
-    description: Flux Node
-    url: http://10.0.0.15:16176
+    url: http://10.0.0.20:16126
     icon: hl-runonflux
 - name: Crypto Nodes
   icon: https://img.icons8.com/external-kiranshastry-gradient-kiranshastry/344/external-cpu-cyber-security-kiranshastry-gradient-kiranshastry-10.png

@@ -1,64 +1,65 @@
 #global vars
-nameserver  = "1.1.1.1 8.8.8.8"
-gateway     = "192.168.1.1"
+nameserver  = "10.0.0.99"
+gateway     = "10.0.0.1"
 vm_template = "ubuntu-server-20.04-template"
 target_node = "proxmox"
 
 nimbus_nodes = {
   "pm-flux-nimbus-0" = {
-    hostname   = "pm-flux-nimbus-0"
-    vmid       = "120"
-    ip_address = "192.168.1.20"
-    storage    = "VM-SSD-1"
-    macaddr    = "56:C4:11:75:6A:32"
+    hostname    = "pm-flux-nimbus-0"
+    vmid        = "120"
+    ip_address  = "10.0.0.20"
+    storage     = "VM-SSD-1"
+    macaddr     = "56:C4:11:75:6A:32"
+    vm_template = "ubuntu-server-20.04-template"
   },
 }
 cumulus_nodes = {
-  "pm-flux-cumulus-0" = {
-    hostname   = "pm-flux-cumulus-0"
-    vmid       = "110"
-    ip_address = "192.168.1.10"
-    storage    = "VM-SSD-3"
-    macaddr    = "56:C4:11:75:6A:11"
-  },
-  "pm-flux-cumulus-1" = {
-    hostname   = "pm-flux-cumulus-1"
-    vmid       = "111"
-    ip_address = "192.168.1.11"
-    storage    = "VM-SSD-4"
-    macaddr    = "56:C4:11:75:6A:12"
-  },
-  "pm-flux-cumulus-2" = {
-    hostname   = "pm-flux-cumulus-2"
-    vmid       = "112"
-    ip_address = "192.168.1.12"
-    storage    = "VM-SSD-2"
-    macaddr    = "56:C4:11:75:6A:13"
-  },
-  "pm-flux-cumulus-3" = {
-    hostname   = "pm-flux-cumulus-3"
-    vmid       = "113"
-    ip_address = "192.168.1.13"
-    storage    = "VM-SSD-0"
-    macaddr    = "56:C4:11:75:6A:14"
-  },
-  "pm-flux-cumulus-4" = {
-    hostname   = "pm-flux-cumulus-4"
-    vmid       = "114"
-    ip_address = "192.168.1.14"
-    storage    = "VM-SSD-2"
-    macaddr    = "56:C4:11:75:6A:15"
-  },
+  # "pm-flux-cumulus-0" = {
+  #   hostname   = "pm-flux-cumulus-0"
+  #   vmid       = "110"
+  #   ip_address = "192.168.1.10"
+  #   storage    = "VM-SSD-3"
+  #   macaddr    = "56:C4:11:75:6A:11"
+  # },
+  # "pm-flux-cumulus-1" = {
+  #   hostname   = "pm-flux-cumulus-1"
+  #   vmid       = "111"
+  #   ip_address = "192.168.1.11"
+  #   storage    = "VM-SSD-4"
+  #   macaddr    = "56:C4:11:75:6A:12"
+  # },
+  # "pm-flux-cumulus-2" = {
+  #   hostname   = "pm-flux-cumulus-2"
+  #   vmid       = "112"
+  #   ip_address = "192.168.1.12"
+  #   storage    = "VM-SSD-2"
+  #   macaddr    = "56:C4:11:75:6A:13"
+  # },
+  # "pm-flux-cumulus-3" = {
+  #   hostname   = "pm-flux-cumulus-3"
+  #   vmid       = "113"
+  #   ip_address = "192.168.1.13"
+  #   storage    = "VM-SSD-0"
+  #   macaddr    = "56:C4:11:75:6A:14"
+  # },
+  # "pm-flux-cumulus-4" = {
+  #   hostname   = "pm-flux-cumulus-4"
+  #   vmid       = "114"
+  #   ip_address = "192.168.1.14"
+  #   storage    = "VM-SSD-2"
+  #   macaddr    = "56:C4:11:75:6A:15"
+  # },
 }
 
 fedora_workstation = {
-    # "fedora_workstation" = {
-    #     hostname   = "fedora workstation"
-    #     vmid       = "420"
-    #     ip_address = "1923.168.1.42"
-    #     storage    = "vm-ssd-1"
-    #     macaddr    = "56:c4:11:75:6a:42"
-    # },
+  # "fedora_workstation" = {
+  #     hostname   = "fedora workstation"
+  #     vmid       = "420"
+  #     ip_address = "1923.168.1.42"
+  #     storage    = "vm-ssd-1"
+  #     macaddr    = "56:c4:11:75:6a:42"
+  # },
 }
 
 wazuh_manager = {
@@ -89,22 +90,23 @@ pihole = {
 }
 
 container-host = {
-  # "container-host" = {
-  #   hostname     = "container-host"
-  #   vmid         = "109"
-  #   ip_address   = "192.168.1.9"
-  #   storage      = "vm-ssd-1"
-  #   macaddr      = "06:74:60:C0:37:F6"
-  # }
+  "container-host" = {
+    hostname     = "container-host"
+    vmid         = "109"
+    ip_address   = "10.0.0.9"
+    storage      = "VM-SSD-3"
+    macaddr      = "06:74:60:C0:37:F6"
+    vm_template = "ubuntu-server-22.04-template"
+  }
 }
 
 vpn-host = {
-  "vpn-host" = {
-    hostname   = "vpn-host"
-    vmid       = "118"
-    ip_address = "192.168.1.18"
-    storage    = "VM-SSD-0"
-  }
+  # "vpn-host" = {
+  #   hostname   = "vpn-host"
+  #   vmid       = "118"
+  #   ip_address = "192.168.1.18"
+  #   storage    = "VM-SSD-0"
+  # }
 }
 
 
