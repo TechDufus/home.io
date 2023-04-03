@@ -52,6 +52,36 @@ cumulus_nodes = {
   # },
 }
 
+k8s_master = {
+  "k8s-master-0" = {
+    hostname    = "k8s-master-0"
+    vmid        = "140"
+    ip_address  = "10.0.0.40"
+    storage     = "VM-SSD-3"
+    macaddr     = "56:C4:11:75:6A:40"
+    vm_template = "ubuntu-server-22.04-template"
+  },
+}
+
+k8s_nodes = {
+  "k8s-node-0" = {
+    hostname    = "k8s-node-0"
+    vmid        = "142"
+    ip_address  = "10.0.0.42"
+    storage     = "VM-SSD-4"
+    macaddr     = "56:C4:11:75:6A:42"
+    vm_template = "ubuntu-server-22.04-template"
+  },
+  "k8s-node-1" = {
+    hostname    = "k8s-node-1"
+    vmid        = "143"
+    ip_address  = "10.0.0.43"
+    storage     = "VM-SSD-4"
+    macaddr     = "56:C4:11:75:6A:43"
+    vm_template = "ubuntu-server-22.04-template"
+  },
+}
+
 fedora_workstation = {
   # "fedora_workstation" = {
   #     hostname   = "fedora workstation"
@@ -90,14 +120,14 @@ pihole = {
 }
 
 container-host = {
-  "container-host" = {
-    hostname     = "container-host"
-    vmid         = "109"
-    ip_address   = "10.0.0.9"
-    storage      = "VM-SSD-3"
-    macaddr      = "06:74:60:C0:37:F6"
-    vm_template = "ubuntu-server-22.04-template"
-  }
+  # "container-host" = {
+  #   hostname     = "container-host"
+  #   vmid         = "109"
+  #   ip_address   = "10.0.0.9"
+  #   storage      = "VM-SSD-3"
+  #   macaddr      = "06:74:60:C0:37:F6"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # }
 }
 
 vpn-host = {

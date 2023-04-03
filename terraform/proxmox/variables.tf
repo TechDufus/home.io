@@ -16,6 +16,18 @@ variable "stratus_nodes" {
   default     = {}
 }
 
+variable "k8s_master" {
+  description = "Map of k8s master nodes"
+  type        = map(any)
+  default     = {}
+}
+
+variable "k8s_nodes" {
+  description = "Map of k8s worker nodes"
+  type        = map(any)
+  default     = {}
+}
+
 variable "fedora_workstation" {
   description = "The number of Fedora Workstations create and their values"
   type        = map(any)
