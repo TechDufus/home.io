@@ -1,0 +1,60 @@
+---
+# - name: Ensure Minecraft directory exists
+#   file:
+#     path: /opt/minecraft
+#     state: directory
+#     mode: 0755
+#
+# - name: Deploy allowlist.json
+#   copy:
+#     src: files/allowlist.json
+#     dest: /opt/minecraft/allowlist.json
+#
+# - name: Deploy Minecraft
+#   docker_container:
+#     name: minecraft
+#     image: itzg/minecraft-bedrock-server
+#     state: started
+#     published_ports:
+#       - "19132:19132/udp"
+#     env:
+#       EULA: "TRUE"
+#       ALLOW_LIST: "true"
+#     volumes:
+#       - /opt/minecraft:/data
+#       # - /etc/timezone:/etc/timezone:ro
+#     restart_policy: "unless-stopped"
+#     restart: true
+#     pull: true
+#     detach: true
+#     pid_mode: host
+#   become: true
+- name: Ensure Minecraft directory exists
+  file:
+    path: /opt/rlcraft
+    state: absent
+    mode: 0755
+
+# - name: Deploy allowlist.json
+#   copy:
+#     src: files/allowlist.json
+#     dest: /opt/rlcraft/allowlist.json
+
+- name: Deploy Minecraft
+  docker_container:
+    name: rlcraft
+    image: doubleem/rlcraft-server
+    state: absent
+    published_ports:
+      - "25565:25565/tcp"
+    env:
+      EULA: "TRUE"
+      ALLOW_LIST: "true"
+    volumes:
+      - /opt/rlcraft:/server/server-data
+    restart_policy: "unless-stopped"
+    restart: true
+    pull: true
+    detach: true
+    pid_mode: host
+  become: true

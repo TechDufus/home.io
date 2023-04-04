@@ -90,7 +90,7 @@ variable "cpu_sockets" {
 variable "memory" {
   description = "Memory of the node."
   type        = number
-  default     = 6144
+  default     = 8192
 }
 
 variable "hdd_size" {

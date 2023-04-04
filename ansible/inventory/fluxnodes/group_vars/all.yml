@@ -1,6 +1,6 @@
 ---
 flux:
-  gateway: '192.168.1.1'
+  gateway: '10.0.0.1'
   # Setting a default eps value. Provide one in fluxnodes if it differs
   default_eps: 90
   nodes:
