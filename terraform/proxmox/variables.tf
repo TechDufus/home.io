@@ -4,6 +4,12 @@ variable "cumulus_nodes" {
   default     = {}
 }
 
+variable "cumulus_nodes_test" {
+  description = "The number of Cumulus nodes to create and their values"
+  type        = map(any)
+  default     = {}
+}
+
 variable "nimbus_nodes" {
   description = "The number of Nimbus nodes to create and their values"
   type        = map(any)

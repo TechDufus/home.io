@@ -21,11 +21,7 @@
     "telegram_alert": "0",
     "telegram_bot_token": "0",
     "telegram_chat_id": "0",
-{% if flux.nodes[inventory_hostname].eps is defined %}
-    "eps_limit": "{{ flux.nodes[inventory_hostname].eps }}",
-{% else %}
-    "eps_limit": "{{ flux.default_eps }}",
-{% endif %}
+    "eps_limit": "{{ flux.nodes[inventory_hostname].eps | default(flux.default_eps)}}",
     "zelflux_update": "1",
     "zelcash_update": "1",
     "zelbench_update": "1",
