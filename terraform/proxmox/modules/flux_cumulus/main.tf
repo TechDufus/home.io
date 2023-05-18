@@ -32,9 +32,6 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     mbps_rd_max = var.mbps_rd_max
     mbps_wr_max = var.mbps_wr_max
     iothread    = var.iothread
-    discard     = var.discard
-    # aio         = var.aio
-    # ssd         = var.ssd
   }
 
   network {
