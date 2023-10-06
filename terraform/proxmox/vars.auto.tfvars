@@ -11,7 +11,7 @@ nimbus_nodes = {
     ip_address  = "10.0.0.20"
     storage     = "VM-SSD-1"
     macaddr     = "56:C4:11:75:6A:32"
-    vm_template = "ubuntu-server-20.04-template"
+    vm_template = "ubuntu-server-22.04-template"
   },
   "pm-flux-nimbus-1" = {
     hostname    = "pm-flux-nimbus-1"
@@ -19,26 +19,34 @@ nimbus_nodes = {
     ip_address  = "10.0.0.21"
     storage     = "VM-SSD-2"
     macaddr     = "56:C4:11:75:6A:33"
-    vm_template = "ubuntu-server-20.04-template"
+    vm_template = "ubuntu-server-22.04-template"
+  },
+  "pm-flux-nimbus-2" = {
+    hostname    = "pm-flux-nimbus-2"
+    vmid        = "122"
+    ip_address  = "10.0.0.22"
+    storage     = "VM-SSD-0"
+    macaddr     = "56:C4:11:75:6A:34"
+    vm_template = "ubuntu-server-22.04-template"
   },
 }
 cumulus_nodes = {
-  "pm-flux-cumulus-0" = {
-    hostname   = "pm-flux-cumulus-0"
-    vmid       = "110"
-    ip_address = "10.0.0.10"
-    storage    = "VM-SSD-3"
-    macaddr    = "56:C4:11:75:6A:11"
-    vm_template = "ubuntu-server-20.04-template"
-  },
-  "pm-flux-cumulus-1" = {
-    hostname   = "pm-flux-cumulus-1"
-    vmid       = "111"
-    ip_address = "10.0.0.11"
-    storage    = "VM-SSD-4"
-    macaddr    = "56:C4:11:75:6A:12"
-    vm_template = "ubuntu-server-20.04-template"
-  },
+  # "pm-flux-cumulus-0" = {
+  #   hostname   = "pm-flux-cumulus-0"
+  #   vmid       = "110"
+  #   ip_address = "10.0.0.10"
+  #   storage    = "VM-SSD-3"
+  #   macaddr    = "56:C4:11:75:6A:11"
+  #   vm_template = "ubuntu-server-20.04-template"
+  # },
+  # "pm-flux-cumulus-1" = {
+  #   hostname   = "pm-flux-cumulus-1"
+  #   vmid       = "111"
+  #   ip_address = "10.0.0.11"
+  #   storage    = "VM-SSD-4"
+  #   macaddr    = "56:C4:11:75:6A:12"
+  #   vm_template = "ubuntu-server-20.04-template"
+  # },
   # "pm-flux-cumulus-2" = {
   #   hostname   = "pm-flux-cumulus-2"
   #   vmid       = "112"
@@ -74,9 +82,41 @@ k8s_master = {
   #   macaddr     = "56:C4:11:75:6A:40"
   #   vm_template = "ubuntu-server-22.04-template"
   # },
+  # "k8s-master-1" = {
+  #   hostname    = "k8s-master-1"
+  #   vmid        = "141"
+  #   ip_address  = "10.0.0.41"
+  #   storage     = "VM-SSD-4"
+  #   macaddr     = "56:C4:11:75:6A:41"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
+  # "k8s-master-2" = {
+  #   hostname    = "k8s-master-2"
+  #   vmid        = "142"
+  #   ip_address  = "10.0.0.42"
+  #   storage     = "VM-SSD-4"
+  #   macaddr     = "56:C4:11:75:6A:42"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
 }
 
 k8s_nodes = {
+  # "test-FluxCore-1" = {
+  #   hostname    = "test-FluxCore-1"
+  #   vmid        = "150"
+  #   ip_address  = "10.0.0.50"
+  #   storage     = "VM-SSD-4"
+  #   macaddr     = "56:C4:11:75:6A:50"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
+  # "test-FluxCore-2" = {
+  #   hostname    = "test-FluxCore-2"
+  #   vmid        = "151"
+  #   ip_address  = "10.0.0.51"
+  #   storage     = "VM-SSD-4"
+  #   macaddr     = "56:C4:11:75:6A:51"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
   # "k8s-node-1" = {
   #   hostname    = "k8s-node-1"
   #   vmid        = "143"
@@ -91,14 +131,6 @@ k8s_nodes = {
   #   ip_address  = "10.0.0.44"
   #   storage     = "VM-SSD-4"
   #   macaddr     = "56:C4:11:75:6A:44"
-  #   vm_template = "ubuntu-server-22.04-template"
-  # },
-  # "k8s-node-3" = {
-  #   hostname    = "k8s-node-3"
-  #   vmid        = "145"
-  #   ip_address  = "10.0.0.45"
-  #   storage     = "VM-SSD-4"
-  #   macaddr     = "56:C4:11:75:6A:45"
   #   vm_template = "ubuntu-server-22.04-template"
   # },
   # "k8s-node-4" = {
@@ -151,21 +183,21 @@ pihole = {
 container-host = {
   # "container-host" = {
   #   hostname     = "container-host"
-  #   vmid         = "109"
-  #   ip_address   = "10.0.0.9"
-  #   storage      = "VM-SSD-3"
-  #   macaddr      = "06:74:60:C0:37:F6"
+  #   vmid         = "149"
+  #   ip_address   = "10.0.0.49"
+  #   storage      = "VM-SSD-4"
+  #   macaddr      = "06:74:60:C0:37:49"
   #   vm_template = "ubuntu-server-22.04-template"
   # }
 }
 
 vpn-host = {
-  # "vpn-host" = {
-  #   hostname   = "vpn-host"
-  #   vmid       = "118"
-  #   ip_address = "192.168.1.18"
-  #   storage    = "VM-SSD-0"
-  # }
+  "vpn-host" = {
+    hostname   = "vpn-host"
+    vmid       = "118"
+    ip_address = "192.168.1.18"
+    storage    = "VM-SSD-0"
+  }
 }
 
 

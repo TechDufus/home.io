@@ -82,7 +82,7 @@ variable "target_node" {
 variable "cpu_cores" {
   description = "Number of CPU cores of the k8s node."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "cpu_sockets" {

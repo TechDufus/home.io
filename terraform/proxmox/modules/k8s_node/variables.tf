@@ -94,7 +94,7 @@ variable "cpu_sockets" {
 variable "memory" {
   description = "Memory of the k8s node."
   type        = number
-  default     = 4096
+  default     = 6144
 }
 
 variable "hdd_size" {
