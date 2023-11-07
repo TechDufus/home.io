@@ -126,7 +126,7 @@ module "casaOS" {
   for_each        = var.casaOS
   hostname        = each.value.hostname
   vmid            = each.value.vmid
-  nameserver      = var.nameserver
+  # nameserver      = var.nameserver
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")

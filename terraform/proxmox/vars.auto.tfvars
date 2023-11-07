@@ -11,7 +11,7 @@ nimbus_nodes = {
     ip_address  = "10.0.0.20"
     storage     = "VM-SSD-1"
     macaddr     = "56:C4:11:75:6A:32"
-    vm_template = "ubuntu-server-22.04-template"
+    vm_template = "ubuntu-server-20.04-template"
   },
   "pm-flux-nimbus-1" = {
     hostname    = "pm-flux-nimbus-1"
@@ -19,7 +19,7 @@ nimbus_nodes = {
     ip_address  = "10.0.0.21"
     storage     = "VM-SSD-2"
     macaddr     = "56:C4:11:75:6A:33"
-    vm_template = "ubuntu-server-22.04-template"
+    vm_template = "ubuntu-server-20.04-template"
   },
   "pm-flux-nimbus-2" = {
     hostname    = "pm-flux-nimbus-2"
@@ -31,22 +31,22 @@ nimbus_nodes = {
   },
 }
 cumulus_nodes = {
-  # "pm-flux-cumulus-0" = {
-  #   hostname   = "pm-flux-cumulus-0"
-  #   vmid       = "110"
-  #   ip_address = "10.0.0.10"
-  #   storage    = "VM-SSD-3"
-  #   macaddr    = "56:C4:11:75:6A:11"
-  #   vm_template = "ubuntu-server-20.04-template"
-  # },
-  # "pm-flux-cumulus-1" = {
-  #   hostname   = "pm-flux-cumulus-1"
-  #   vmid       = "111"
-  #   ip_address = "10.0.0.11"
-  #   storage    = "VM-SSD-4"
-  #   macaddr    = "56:C4:11:75:6A:12"
-  #   vm_template = "ubuntu-server-20.04-template"
-  # },
+  "pm-flux-cumulus-0" = {
+    hostname   = "pm-flux-cumulus-0"
+    vmid       = "110"
+    ip_address = "10.0.0.10"
+    storage    = "VM-SSD-3"
+    macaddr    = "56:C4:11:75:6A:11"
+    vm_template = "ubuntu-server-22.04-template"
+  },
+  "pm-flux-cumulus-1" = {
+    hostname   = "pm-flux-cumulus-1"
+    vmid       = "111"
+    ip_address = "10.0.0.11"
+    storage    = "VM-SSD-4"
+    macaddr    = "56:C4:11:75:6A:12"
+    vm_template = "ubuntu-server-20.04-template"
+  },
   # "pm-flux-cumulus-2" = {
   #   hostname   = "pm-flux-cumulus-2"
   #   vmid       = "112"
@@ -181,23 +181,24 @@ pihole = {
 }
 
 container-host = {
-  # "container-host" = {
-  #   hostname     = "container-host"
-  #   vmid         = "149"
-  #   ip_address   = "10.0.0.49"
-  #   storage      = "VM-SSD-4"
-  #   macaddr      = "06:74:60:C0:37:49"
-  #   vm_template = "ubuntu-server-22.04-template"
-  # }
+  "container-host" = {
+    hostname     = "container-host"
+    vmid         = "149"
+    ip_address   = "10.0.0.49"
+    storage      = "VM-SSD-4"
+    macaddr      = "06:74:60:C0:37:49"
+    vm_template = "ubuntu-server-22.04-template"
+  }
 }
 
 vpn-host = {
   "vpn-host" = {
     hostname   = "vpn-host"
     vmid       = "118"
-    ip_address = "192.168.1.18"
+    ip_address = "10.0.0.18"
+    vm_template = "ubuntu-server-22.04-template"
     storage    = "VM-SSD-0"
-  }
+  },
 }
 
 
@@ -205,7 +206,7 @@ casaOS = {
   # "casaOS" = {
   #   hostname    = "casaOS"
   #   vmid        = "119"
-  #   ip_address  = "192.168.1.19"
+  #   ip_address  = "10.0.0.19"
   #   storage     = "VM-SSD-0"
   #   macaddr     = "06:77:60:C0:37:F9"
   #   vm_template = "ubuntu-server-22.04-template"

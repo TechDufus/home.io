@@ -105,6 +105,14 @@ sections:
     description: Flux Node
     url: http://10.0.0.20:16126
     icon: hl-runonflux
+  - title: nimbus1
+    description: Flux Node
+    url: http://10.0.0.21:16136
+    icon: hl-runonflux
+  - title: nimbus2-puma
+    description: Flux Node
+    url: http://136.56.7.53:16126
+    icon: hl-runonflux
 - name: Crypto Nodes
   icon: https://img.icons8.com/external-kiranshastry-gradient-kiranshastry/344/external-cpu-cyber-security-kiranshastry-gradient-kiranshastry-10.png
   items:

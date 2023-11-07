@@ -11,4 +11,4 @@
     - { role: dashy, tags: dashy }
     # - { role: home-assistant, tags: home-assistant }
     # - { role: portainer, tags: portainer }
-    - { role: minecraft, tags: minecraft }
+    # - { role: minecraft, tags: minecraft }

@@ -8,4 +8,5 @@
 
   roles:
     - { role: common, tags: common }
+    - { role: pivpn, tags: pivpn }
 

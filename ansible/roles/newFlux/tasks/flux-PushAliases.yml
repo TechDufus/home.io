@@ -1,9 +1,0 @@
----
-
-- name: Deploy flux update aliases to flux node
-  template:
-    src: "update_flux.j2"
-    dest: /etc/profile.d/update_flux.sh
-  become: true
-  tags: config
-

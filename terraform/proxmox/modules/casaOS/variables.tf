@@ -13,13 +13,13 @@ variable "username" {
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
-  default     = "10.0.0.2"
+  default     = "10.0.0.1"
 }
 
 variable "nameserver" {
   description = "Nameserver of the node."
   type        = string
-  default     = "1.1.1.1"
+  default     = "45.90.28.163 45.90.30.163"
 }
 
 variable "ip_address" {
