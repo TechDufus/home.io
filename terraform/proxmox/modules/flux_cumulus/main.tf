@@ -65,6 +65,12 @@ Template: ${var.vm_template}
 - Disk: ${var.hdd_size}
 EOF
   # provisioner "local-exec" {
-  #   command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ../ansible/inventory/flux.ini ../ansible/playbooks/deploy-flux-nodes.yaml"
+  #   command = "cp /etc/skel/.bashrc /home/${var.username}/.bashrc; chown ${var.username}:${var.username} /home/${var.username}/.bashrc; cp /etc/skel/.profile /home/${var.username}/.profile; chown ${var.username}:${var.username} /home/${var.username}/.profile"
+  #   interpreter = ["/bin/bash", "-c"]
+  #   connection {
+  #     type        = "ssh"
+  #     user        = var.username
+  #     host        = var.ip_address
+  #   }
   # }
 }

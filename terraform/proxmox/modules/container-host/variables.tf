@@ -13,7 +13,7 @@ variable "username" {
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
-  default     = "10.0.0.2"
+  default     = "10.0.0.1"
 }
 
 variable "nameserver" {
@@ -96,7 +96,7 @@ variable "memory" {
 variable "hdd_size" {
   description = "Size of the HDD of the node."
   type        = string
-  default     = "30G"
+  default     = "60G"
 }
 
 variable "hdd_type" {

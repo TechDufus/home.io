@@ -5,13 +5,13 @@
     state: directory
     mode: 0755
     force: true
-  become: yes
+  become: true
 
 - name: "Docker: Deploy dashy Configuration"
   copy:
     src: "conf.yml"
     dest: "{{ dashy_docker_home }}"
-  become: yes
+  become: true
 
 - name: Start Dashy Docker Image
   docker_container:
@@ -29,6 +29,6 @@
     pull: yes
     detach: true
     pid_mode: host
-  become: yes
+  become: true
 
 
