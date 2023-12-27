@@ -9,6 +9,6 @@
     - { role: common, tags: common }
     - { role: docker, tags: docker }
     - { role: dashy, tags: dashy }
-    # - { role: home-assistant, tags: home-assistant }
+    - { role: home-assistant, tags: home-assistant }
     # - { role: portainer, tags: portainer }
     # - { role: minecraft, tags: minecraft }
