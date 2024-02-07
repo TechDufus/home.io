@@ -106,7 +106,6 @@ module "flux_stratus" {
   mbps_wr         = var.flux_stratus_requirements.mbps_wr
   mbps_wr_max     = var.flux_stratus_requirements.mbps_wr_max
   rate            = var.flux_stratus_requirements.rate
-
 }
 
 #             ▄▄                                  ▄▄
