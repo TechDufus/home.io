@@ -83,7 +83,7 @@ variable "nameserver" {
 variable "vlan_tag" {
   description = "VLAN tag of the node."
   type        = number
-  default     = 101
+  default     = -1
 }
 
 variable "net_model" {
@@ -101,7 +101,7 @@ variable "net_bridge" {
 variable "target_node" {
   description = "Target ProxMox node to host the node."
   type        = string
-  default     = "proxmox"
+  default     = "pve"
 }
 
 variable "cpu_cores" {
@@ -150,5 +150,95 @@ variable "vm_template" {
   description = "Template to clone for the node."
   type        = string
   default     = "ubuntu-server-20.04-template"
+}
+
+variable "username" {
+  description = "Username of the node"
+  type        = string
+  default     = "techdufus"
+}
+
+variable "searchdomain" {
+  description = "Search domain of the node"  
+  type        = string
+  default     = "home.io"
+}
+
+variable "agent" {
+  description = "QEMU UserAgent for Proxmox"
+  type        = number
+  default     = 0
+}
+
+variable "flux_cumulus_requirements" {
+  description   = "Requirements for flux Cumulus node"
+  type          = object({
+    cpu_cores   = number
+    memory      = number
+    hdd_size    = number
+    mbps_rd     = number
+    mbps_rd_max = number
+    mbps_wr     = number
+    mbps_wr_max = number
+    rate        = number
+  })
+  default = {
+    cpu_cores   = 2
+    memory      = 7400
+    hdd_size    = 230
+    mbps_rd     = 180
+    mbps_rd_max = 185
+    mbps_wr     = 180
+    mbps_wr_max = 185
+    rate        = 3
+  }
+}
+
+variable "flux_nimbus_requirements" {
+  description   = "Requirements for a flux Nimbus Node"
+  type          = object({
+    cpu_cores   = number
+    memory      = number
+    hdd_size    = number
+    mbps_rd     = number
+    mbps_rd_max = number
+    mbps_wr     = number
+    mbps_wr_max = number
+    rate        = number
+  })
+  default = {
+    cpu_cores   = 4
+    memory      = 32000
+    hdd_size    = 450
+    mbps_rd     = 0
+    mbps_rd_max = 0
+    mbps_wr     = 0
+    mbps_wr_max = 0
+    rate        = 6
+  }
+}
+
+variable "flux_stratus_requirements" {
+  description   = "Requirements for a flux Nimbus Node"
+  type          = object({
+    cpu_cores   = number
+    memory      = number
+    hdd_size    = number
+    mbps_rd     = number
+    mbps_rd_max = number
+    mbps_wr     = number
+    mbps_wr_max = number
+    rate        = number
+  })
+  default = {
+    cpu_cores   = 8
+    memory      = 64000
+    hdd_size    = 890
+    mbps_rd     = 400
+    mbps_rd_max = 410
+    mbps_wr     = 400
+    mbps_wr_max = 410
+    rate        = 14
+  }
 }
 
