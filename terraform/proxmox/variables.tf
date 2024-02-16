@@ -70,6 +70,12 @@ variable "casaOS" {
   default     = {}
 }
 
+variable "fileserver" {
+  description = "Set of LXC containers for fileserver"
+  type        = map(any)
+  default     = {}
+}
+
 variable "gateway" {
   description = "Gateway of the node."
   type        = string
@@ -169,6 +175,12 @@ variable "agent" {
   type        = number
   default     = 0
 }
+
+variable "ssh_public_keys" {
+  description = "Default Public SSH key for access"
+  type        = string
+  default = ""
+  }
 
 variable "flux_cumulus_requirements" {
   description   = "Requirements for flux Cumulus node"
