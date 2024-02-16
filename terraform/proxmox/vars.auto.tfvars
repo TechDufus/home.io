@@ -232,3 +232,38 @@ casaOS = {
   #   vm_template = "ubuntu-server-22.04-template"
   # }
 }
+# Example Container with rootfs and 2 mounted drives defined. 
+fileserver = {
+  "fileserver" = {
+    hostname    = "FileServer"
+    vmid        = "112"
+    ip_address  = "10.1.1.12"
+    # rootfs_size = 8G # Using default
+    storage     = "wdBlue"
+    # macaddr     = "" #Let it set and then save it
+    os_type     = "debian"
+
+    # local:vztmpl prior to the template name is critical
+    os_template = "local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst"
+    cores       = 4
+    memory      = 2048
+    unprivileged= false #Default
+
+    mountpoints = [
+      {
+        key = "1"
+        slot = 1
+        storage = "wdBlue"
+        mp = "/mnt/share_1"
+        size = "100G"
+      },
+      {
+        key = "2"
+        slot = 2
+        storage = "wdBlue"
+        mp = "/mnt/share_2"
+        size = "50G"
+      }
+    ]
+  }
+}

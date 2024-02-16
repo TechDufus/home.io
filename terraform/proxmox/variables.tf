@@ -70,6 +70,12 @@ variable "casaOS" {
   default     = {}
 }
 
+variable "fileserver" {
+  description = "Set of LXC containers for fileserver"
+  type        = map(any)
+  default     = {}
+}
+
 variable "gateway" {
   description = "Gateway of the VM."
   type        = string
