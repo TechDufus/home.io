@@ -14,14 +14,21 @@ resource "proxmox_lxc" "lxc_container" {
   vmid        = var.vmid             
   target_node = var.target_node          
   
-  ostype     = var.os_type   
+  #ostype     = var.os_type # Redundant  
   ostemplate = var.os_template
   cores       = var.cpu_cores                        
   #cpu_    = var.cpu_units           
   memory      = var.memory             
+  swap        = var.swap
   unprivileged = var.unprivileged
   onboot      = true
   ssh_public_keys = var.ssh_public_keys
+  start     = var.start
+  
+  features {
+    # A couple of bugs if this is disabled
+    nesting = true
+  }
 
   rootfs{
     storage = var.storage
@@ -47,6 +54,8 @@ resource "proxmox_lxc" "lxc_container" {
   network {
     name = var.net_name
     bridge  = var.net_bridge
+    ip      = var.ip_address
+    gw      = var.gateway
     #mtu     = var.mtu
     #rate    = var.rate
     hwaddr = var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
