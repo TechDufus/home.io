@@ -281,15 +281,16 @@ module "fileserver" {
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  os_template      = each.value.os_template
+  os_template     = each.value.os_template
   target_node     = var.target_node
+  cpu_cores       = each.value.cpu_cores
   storage         = each.value.storage
   memory          = each.value.memory
+  swap            = each.value.swap
   ssh_public_keys = try(var.ssh_public_keys, "")
   unprivileged    = each.value.unprivileged
 
   # Mountpoint is dynamic for 0-many extra mounts
   # all the work is done in the tfvars file
   mountpoints     = try(each.value.mountpoints, {})
-
 }

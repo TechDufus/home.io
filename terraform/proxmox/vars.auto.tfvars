@@ -232,8 +232,8 @@ casaOS = {
 fileserver = {
   "fileserver" = {
     hostname    = "FileServer"
-    vmid        = "112"
-    ip_address  = "10.1.1.12"
+    vmid        = "111"
+    ip_address  = "10.1.1.11/24"
     # rootfs_size = 8G # Using default
     storage     = "wdBlue"
     # macaddr     = "" #Let it set and then save it
@@ -241,9 +241,11 @@ fileserver = {
 
     # local:vztmpl prior to the template name is critical
     os_template = "local:vztmpl/debian-12-standard_12.2-1_amd64.tar.zst"
-    cores       = 4
+    #cpu       = 4
     memory      = 2048
-    unprivileged= false #Default
+    swap        = 512
+    unprivileged= true #Default
+    cpu_cores    = 4
 
     mountpoints = [
       {

@@ -135,6 +135,20 @@ variable "net_name" {
   
 }
 
+variable "start" {
+  description = "Autostart on creation"
+  type = bool
+  default = true  
+}
+
+variable "swap" {
+  description = "Swap space available to container"
+  type = number
+  default = 512
+
+}
+
+
 variable "mountpoints" {
     description = "List of mount points for container"
     type = list(object({
