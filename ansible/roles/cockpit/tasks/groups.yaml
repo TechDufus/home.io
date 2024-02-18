@@ -15,3 +15,4 @@
     create_home: false
     update_password: on_create
   loop: "{{ cockpit_users }}"
+  no_log: true
