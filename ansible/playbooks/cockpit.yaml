@@ -1,0 +1,10 @@
+---
+- hosts: cockpit
+  vars:
+    roles_path: /etc/ansible/roles:../roles
+    inventory: ../hosts.ini
+  become: true
+  
+  roles: 
+    - { role: cockpit, tags: cockpit }
+    
