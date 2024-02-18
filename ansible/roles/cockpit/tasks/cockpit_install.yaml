@@ -1,4 +1,14 @@
 ---
+- name: Update APT packages
+  apt:
+    update_cache: true
+  become: true
+
+- name: Upgrade APT packages
+  apt:
+    upgrade: 'yes' # <-- This expects a STRING for some reason...
+  become: true
+
 - name: Install Cockpit without recommended packages
   ansible.builtin.apt:
     name: cockpit
