@@ -4,14 +4,14 @@ terraform {
   required_providers {
     proxmox = {
       source = "telmate/proxmox"
-      version = "2.9.11"
+      version = "3.0.1-rc1"
     }
   }
 }
 
 variable "proxmox_api_url" {
   type    = string
-  default = "https://10.0.20.3:8006/api2/json"
+  default = "https://10.1.1.10:8006/api2/json"
 }
 
 variable "pm_user" {

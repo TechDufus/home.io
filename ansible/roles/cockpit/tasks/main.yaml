@@ -1,0 +1,4 @@
+---
+
+- import_tasks: cockpit_install.yaml
+- import_tasks: groups.yaml

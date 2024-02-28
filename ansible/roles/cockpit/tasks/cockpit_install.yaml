@@ -1,0 +1,38 @@
+---
+- name: Update APT packages
+  apt:
+    update_cache: true
+  become: true
+
+- name: Upgrade APT packages
+  apt:
+    upgrade: 'yes' # <-- This expects a STRING for some reason...
+  become: true
+
+- name: Install Cockpit without recommended packages
+  ansible.builtin.apt:
+    name: cockpit
+    state: present
+    install_recommends: no
+    update_cache: yes
+  become: yes
+  
+- name: Download Cockpit modules
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "/tmp/{{ item.filename }}"
+  loop: "{{ cockpit_modules }}"
+  become: yes
+
+- name: Install downloaded Cockpit modules
+  ansible.builtin.apt:
+    deb: "/tmp/{{ item.filename }}"
+  loop: "{{ cockpit_modules }}"
+  become: yes
+
+- name: Remove downloaded Cockpit modules
+  ansible.builtin.file:
+    path: "/tmp/{{ item.filename }}"
+    state: absent
+  loop: "{{ cockpit_modules }}"
+  become: yes

@@ -8,20 +8,32 @@
 # ▄████▄    ▄████▄ ▀████▀███▄██▄   ▄██▄   ▄███▄    ██   ▀█████▀  ▀████▀███▄ ▀█████▀██████▀
 
 module "flux_cumulus" {
-  source          = "./modules/flux_cumulus"
+  source          = "./modules/proxmox_vm"
   for_each        = var.cumulus_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
+  searchdomain    = var.searchdomain
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+  cpu_cores       = var.flux_cumulus_requirements.cpu_cores
+  memory          = var.flux_cumulus_requirements.memory
+  hdd_size        = var.flux_cumulus_requirements.hdd_size
+  mbps_rd         = var.flux_cumulus_requirements.mbps_rd
+  mbps_rd_max     = var.flux_cumulus_requirements.mbps_rd_max
+  mbps_wr         = var.flux_cumulus_requirements.mbps_wr
+  mbps_wr_max     = var.flux_cumulus_requirements.mbps_wr_max
+  rate            = var.flux_cumulus_requirements.rate
 }
 module "flux_cumulus_test" {
-  source          = "./modules/flux_cumulus"
+  source          = "./modules/proxmox_vm"
   for_each        = var.cumulus_nodes_test
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -32,9 +44,20 @@ module "flux_cumulus_test" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+  cpu_cores       = var.flux_cumulus_requirements.cpu_cores
+  memory          = var.flux_cumulus_requirements.memory
+  hdd_size        = var.flux_cumulus_requirements.hdd_size
+  mbps_rd         = var.flux_cumulus_requirements.mbps_rd
+  mbps_rd_max     = var.flux_cumulus_requirements.mbps_rd_max
+  mbps_wr         = var.flux_cumulus_requirements.mbps_wr
+  mbps_wr_max     = var.flux_cumulus_requirements.mbps_wr_max
+  rate            = var.flux_cumulus_requirements.rate
 }
 module "flux_nimbus" {
-  source          = "./modules/flux_nimbus"
+  source          = "./modules/proxmox_vm"
   for_each        = var.nimbus_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -45,9 +68,20 @@ module "flux_nimbus" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+  cpu_cores       = var.flux_nimbus_requirements.cpu_cores
+  memory          = var.flux_nimbus_requirements.memory
+  hdd_size        = var.flux_nimbus_requirements.hdd_size
+  mbps_rd         = var.flux_nimbus_requirements.mbps_rd
+  mbps_rd_max     = var.flux_nimbus_requirements.mbps_rd_max
+  mbps_wr         = var.flux_nimbus_requirements.mbps_wr
+  mbps_wr_max     = var.flux_nimbus_requirements.mbps_wr_max
+  rate            = var.flux_nimbus_requirements.rate
 }
 module "flux_stratus" {
-  source          = "./modules/flux_stratus"
+  source          = "./modules/proxmox_vm"
   for_each        = var.stratus_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -58,6 +92,18 @@ module "flux_stratus" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+  cpu_cores       = var.flux_stratus_requirements.cpu_cores
+  memory          = var.flux_stratus_requirements.memory
+  hdd_size        = var.flux_stratus_requirements.hdd_size
+  mbps_rd         = var.flux_stratus_requirements.mbps_rd
+  mbps_rd_max     = var.flux_stratus_requirements.mbps_rd_max
+  mbps_wr         = var.flux_stratus_requirements.mbps_wr
+  mbps_wr_max     = var.flux_stratus_requirements.mbps_wr_max
+  rate            = var.flux_stratus_requirements.rate
+  
 }
 
 #             ▄▄                                  ▄▄
@@ -70,7 +116,7 @@ module "flux_stratus" {
 # ▄████▄    ▄████▄      ▄████▄  ▄████▄▄ ▀█████▀ ▄████▄ ▀█████▀
 
 module "pihole" {
-  source          = "./modules/pihole"
+  source          = "./modules/proxmox_vm"
   for_each        = var.pihole
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -81,6 +127,9 @@ module "pihole" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = var.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
 #                                               ▄▄
@@ -93,7 +142,7 @@ module "pihole" {
 #   ▀▀█████▀  ▀█████▀▄████  ████▄ ▀████████▀██▄████▄████  ████▄ ▀█████▀████▄         ▄████▄  ▄████▄▄ ▀█████▀ ██████▀ ▀████
 
 module "container-host" {
-  source          = "./modules/container-host"
+  source          = "./modules/proxmox_vm"
   for_each        = var.container-host
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -104,10 +153,13 @@ module "container-host" {
   macaddr         = try(each.value.macaddr, "0")
   target_node     = var.target_node
   storage         = var.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
 module "vpn-host" {
-  source          = "./modules/vpn-host"
+  source          = "./modules/proxmox_vm"
   for_each        = var.vpn-host
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -118,21 +170,27 @@ module "vpn-host" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
 
 module "casaOS" {
-  source          = "./modules/casaOS"
+  source          = "./modules/proxmox_vm"
   for_each        = var.casaOS
   hostname        = each.value.hostname
   vmid            = each.value.vmid
-  # nameserver      = var.nameserver
+  nameserver      = var.nameserver
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template != null ? each.value.vm_template : var.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
  # ▄▄▄▄▄▄            █                             ▄     ▄               █               ▄             ▄      ▀
@@ -142,7 +200,7 @@ module "casaOS" {
  # █      ▀█▄▄▀  ▀█▄██  ▀█▄█▀   █     ▀▄▄▀█         █   █  ▀█▄█▀   █     █  ▀▄  ▀▄▄▄▀    ▀▄▄  ▀▄▄▀█    ▀▄▄  ▄▄█▄▄  ▀█▄█▀  █   █
 
 module "fedora_workstation" {
-  source          = "./modules/fedora_workstation"
+  source          = "./modules/proxmox_vm"
   for_each        = var.fedora_workstation
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -153,6 +211,9 @@ module "fedora_workstation" {
   vm_template     = "fedora-workstation-37-template"
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
 # ▄     ▄                      █             ▄    ▄
@@ -164,7 +225,7 @@ module "fedora_workstation" {
 #                                                                          ▀▀
 
 module "wazuh_manager" {
-  source          = "./modules/wazuh_manager"
+  source          = "./modules/proxmox_vm"
   for_each        = var.wazuh_manager
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -175,12 +236,15 @@ module "wazuh_manager" {
   vm_template     = var.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 # ░█░█░█░█░█▀▄░█▀▀░█▀▄░█▀█░█▀▀░▀█▀░█▀▀░█▀▀░░░█▄█░█▀█░█▀▀░▀█▀░█▀▀░█▀▄
 # ░█▀▄░█░█░█▀▄░█▀▀░█▀▄░█░█░█▀▀░░█░░█▀▀░▀▀█░░░█░█░█▀█░▀▀█░░█░░█▀▀░█▀▄
 # ░▀░▀░▀▀▀░▀▀░░▀▀▀░▀░▀░▀░▀░▀▀▀░░▀░░▀▀▀░▀▀▀░░░▀░▀░▀░▀░▀▀▀░░▀░░▀▀▀░▀░▀
 module "k8s_master" {
-  source          = "./modules/k8s_master"
+  source          = "./modules/proxmox_vm"
   for_each        = var.k8s_master
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -191,13 +255,16 @@ module "k8s_master" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
 }
 
 # ░█░█░█░█░█▀▄░█▀▀░█▀▄░█▀█░█▀▀░▀█▀░█▀▀░█▀▀░░░█▀█░█▀█░█▀▄░█▀▀
 # ░█▀▄░█░█░█▀▄░█▀▀░█▀▄░█░█░█▀▀░░█░░█▀▀░▀▀█░░░█░█░█░█░█░█░█▀▀
 # ░▀░▀░▀▀▀░▀▀░░▀▀▀░▀░▀░▀░▀░▀▀▀░░▀░░▀▀▀░▀▀▀░░░▀░▀░▀▀▀░▀▀░░▀▀▀
 module "k8s_node" {
-  source          = "./modules/k8s_node"
+  source          = "./modules/proxmox_vm"
   for_each        = var.k8s_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
@@ -208,4 +275,34 @@ module "k8s_node" {
   vm_template     = each.value.vm_template
   target_node     = var.target_node
   storage         = each.value.storage
+  memory          = each.value.memory
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+}
+
+#
+# Container Time! Use as an example
+# FileShare Container
+module "fileserver" {
+  source          = "./modules/proxmox_lxc"
+  for_each        = var.fileserver
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  os_template     = each.value.os_template
+  target_node     = var.target_node
+  cpu_cores       = each.value.cpu_cores
+  storage         = each.value.storage
+  memory          = each.value.memory
+  swap            = each.value.swap
+  ssh_public_keys = try(var.ssh_public_keys, "")
+  unprivileged    = each.value.unprivileged
+
+  # Mountpoint is dynamic for 0-many extra mounts
+  # all the work is done in the tfvars file
+  mountpoints     = try(each.value.mountpoints, {})
 }

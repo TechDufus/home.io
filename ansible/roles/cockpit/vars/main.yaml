@@ -1,0 +1,37 @@
+## Modules to setup the webGUI and filesharing
+cockpit_modules:
+  - url: 'https://github.com/45Drives/cockpit-file-sharing/releases/download/v3.3.4/cockpit-file-sharing_3.3.4-1focal_all.deb'
+    filename: 'cockpit-file-sharing.deb'
+  - url: 'https://github.com/45Drives/cockpit-navigator/releases/download/v0.5.10/cockpit-navigator_0.5.10-1focal_all.deb'
+    filename: 'cockpit-navigator.deb'
+  - url: 'https://github.com/45Drives/cockpit-identities/releases/download/v0.1.12/cockpit-identities_0.1.12-1focal_all.deb'
+    filename: 'cockpit-identities.deb'
+
+## Users and Groups to be auto added 
+cockpit_groups:
+  - group: qbit
+  - group: plex
+  - group: k8s
+  - group: samba
+  - group: nfs
+
+cockpit_users:
+  - user: qbit
+    password: 'k8s.pass'
+    groups: ['qbit', 'samba', 'nfs']
+  - user: plex
+    password: "k8s.pass"
+    groups: ['plex', 'samba', 'nfs']
+  - user: k8s
+    password: "k8s.pass"
+    groups: ['k8s', 'samba', 'nfs']
+  - user: torque
+    password: torque.pass
+    groups: ['sudo', 'samba', 'nfs']
+  - user: fileshare-test
+    password: default.pass
+    groups: ['samba', 'nfs']
+  - user: asseenontv
+    password: default.pass
+    groups: ['samba', 'nfs']
+
