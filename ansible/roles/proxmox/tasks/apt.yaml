@@ -11,6 +11,23 @@
     line: deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise
     state: absent
 
+- name: Removing enterprise ceph apt repo
+  lineinfile:
+    path: /etc/apt/sources.list.d/ceph.list
+    line: deb https://enterprise.proxmox.com/debian/ceph-quincy bookworm enterprise
+    state: absent
+
+#Important to do this after updating the apt repos
+- name: Update APT packages
+  apt:
+    update_cache: true
+  become: true
+
+- name: Upgrade APT packages
+  apt:
+    upgrade: 'yes' # <-- This expects a STRING for some reason...
+  become: true
+
 - name: Installing packages
   apt:
     name: "{{ item }}"

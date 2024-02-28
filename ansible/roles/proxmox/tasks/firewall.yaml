@@ -1,4 +1,10 @@
 ---
+- name: Ensure firewall directory exists
+  ansible.builtin.file:
+    path: /etc/pve/nodes/proxmox/
+    state: directory
+    mode: 0640
+
 - name: Ensure firewall host file exists
   file:
     path: "{{ item }}"
