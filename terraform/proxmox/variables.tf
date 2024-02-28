@@ -161,7 +161,7 @@ variable "vm_template" {
 variable "username" {
   description = "Username of the VM"
   type        = string
-  default     = "techdufus"
+  default     = "torque"
 }
 
 variable "searchdomain" {
