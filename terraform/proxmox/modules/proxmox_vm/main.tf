@@ -24,8 +24,11 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   memory      = var.memory             
   scsihw      = var.scsihw             
   onboot      = true
-
+  sshkeys     = var.ssh_public_keys
+  boot        = "order=scsi0;ide3"
   bootdisk    = var.bootdisk
+  cloudinit_cdrom_storage = var.cloudinit_cdrom_storage
+  
   disks{
     scsi {
       scsi0 {

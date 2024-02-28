@@ -6,7 +6,7 @@ variable "hostname" {
 variable "username" {
   description = "Username of the k8s node."
   type        = string
-  default     = "techdufus"
+  default     = "torque"
 }
 
 variable "nameserver" {
@@ -203,7 +203,7 @@ variable "ssh_public_keys" {
 variable "ssh_user" {
   description = "SSH user of the k8s node."
   type        = string
-  default     = "techdufus"
+  default     = "torque"
 }
 
 variable "macaddr" {
@@ -215,4 +215,10 @@ variable "agent" {
   description = "QEMU UserAgent for Proxmox"
   type        = number
   default     = 0
+}
+
+variable "cloudinit_cdrom_storage" {
+  description = "Location of cloudinit cdrom storage"
+  type = string
+  default = "local-lvm"
 }
