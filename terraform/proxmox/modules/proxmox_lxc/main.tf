@@ -11,20 +11,20 @@ terraform {
 
 resource "proxmox_lxc" "lxc_container" {
   hostname     = var.hostname
-  vmid        = var.vmid             
-  target_node = var.target_node          
-  
-  #ostype     = var.os_type # Redundant  
+  vmid        = var.vmid
+  target_node = var.target_node
+
+  #ostype     = var.os_type # Redundant
   ostemplate = var.os_template
-  cores       = var.cpu_cores                        
-  #cpu_    = var.cpu_units           
-  memory      = var.memory             
+  cores       = var.cpu_cores
+  #cpu_    = var.cpu_units
+  memory      = var.memory
   swap        = var.swap
   unprivileged = var.unprivileged
   onboot      = true
   ssh_public_keys = var.ssh_public_keys
   start     = var.start
-  
+
   features {
     # A couple of bugs if this is disabled
     nesting = true
@@ -35,7 +35,7 @@ resource "proxmox_lxc" "lxc_container" {
     size = var.rootfs_size
   }
 
-  #This will create a mountpoint for each mountpoint object defined. 
+  #This will create a mountpoint for each mountpoint object defined.
   # 0 Mountpoints means none will be injected and it'll still be fine.
   dynamic "mountpoint" {
     for_each = var.mountpoints
@@ -46,9 +46,9 @@ resource "proxmox_lxc" "lxc_container" {
         #Could potentially be volume now
         storage = mountpoint.value.storage
         mp = mountpoint.value.mp
-        size = mountpoint.value.size        
+        size = mountpoint.value.size
     }
-    
+
   }
 
   network {
@@ -62,16 +62,6 @@ resource "proxmox_lxc" "lxc_container" {
     tag    = var.vlan_tag
   }
 
-  #clone       = var.vm_template # required a Container to clone
-
-           
-  
-  
-
-
-  
-
-  
 
   # Terraform will ignore these vm object values if / when they change.
   # This might cause terraform to destroy and recreate the VM entirely for some small change.
@@ -82,17 +72,16 @@ resource "proxmox_lxc" "lxc_container" {
   #   ]
   # }
   # Cloud-init config
-  # ciuser      = var.username             
+  # ciuser      = var.username
   # ipconfig0  = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
   # nameserver = var.nameserver
   # searchdomain = var.nameserver
-  # desc       = <<EOF
-# k8s Node
+#   desc       = <<EOF
+#   # ${var.notes_title}
 # Template: ${var.vm_template}
 # - Name: ${var.hostname}
 # - IP: ${var.ip_address}
 # - CPUs: ${var.cpu_cores}
-# - Sockets: ${var.cpu_sockets}
 # - Memory: ${var.memory}
 # - Disk: ${var.hdd_size}
 # EOF

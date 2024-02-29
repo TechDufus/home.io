@@ -285,10 +285,9 @@ module "k8s_node" {
 
 #
 # Container Time! Use as an example
-# FileShare Container
-module "fileserver" {
+module "lxc_flux_cumulus" {
   source          = "./modules/proxmox_lxc"
-  for_each        = var.fileserver
+  for_each        = var.lxc_cumulus_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
@@ -299,8 +298,9 @@ module "fileserver" {
   target_node     = var.target_node
   cpu_cores       = each.value.cpu_cores
   storage         = each.value.storage
-  memory          = each.value.memory
-  swap            = each.value.swap
+  memory          = var.flux_cumulus_requirements.memory
+  # rootfs_size     = "${var.flux_cumulus_requirements.hdd_size}G"
+  swap            = try(each.value.swap, 0)
   ssh_public_keys = try(var.ssh_public_keys, "")
   unprivileged    = each.value.unprivileged
 

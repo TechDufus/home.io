@@ -6,7 +6,7 @@ variable "hostname" {
 variable "username" {
   description = "Username of the VM."
   type        = string
-  default     = "torque"
+  default     = "techdufus"
 }
 
 variable "nameserver" {
@@ -203,7 +203,7 @@ variable "ssh_public_keys" {
 variable "ssh_user" {
   description = "SSH user of the VM."
   type        = string
-  default     = "torque"
+  default     = "techdufus"
 }
 
 variable "macaddr" {

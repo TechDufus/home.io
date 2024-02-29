@@ -22,6 +22,12 @@ variable "stratus_nodes" {
   default     = {}
 }
 
+variable "lxc_cumulus_nodes" {
+  description = "The number of LXC Cumulus nodes to create and their values"
+  type = map(any)
+  default = {}
+}
+
 variable "k8s_master" {
   description = "Map of k8s master nodes"
   type        = map(any)
@@ -161,7 +167,7 @@ variable "vm_template" {
 variable "username" {
   description = "Username of the VM"
   type        = string
-  default     = "torque"
+  default     = "techdufus"
 }
 
 variable "searchdomain" {
@@ -259,4 +265,5 @@ variable "flux_stratus_requirements" {
     rate        = 14
   }
 }
+
 
