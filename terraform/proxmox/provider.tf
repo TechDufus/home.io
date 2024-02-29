@@ -11,7 +11,7 @@ terraform {
 
 variable "proxmox_api_url" {
   type    = string
-  default = "https://10.1.1.10:8006/api2/json"
+  default = "https://10.0.20.3:8006/api2/json"
 }
 
 variable "pm_user" {
@@ -32,10 +32,9 @@ provider "proxmox" {
 
   # # Debugging
   # pm_log_enable = true
-  # pm_log_file = "terraform-plugin-proxmox.log"
   # pm_debug = true
   # pm_log_levels = {
   #   _default = "debug"
-  #   _capturelog = ""
+  #   # _capturelog = ""
   # }
 }

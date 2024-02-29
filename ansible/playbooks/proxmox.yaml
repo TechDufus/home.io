@@ -6,4 +6,4 @@
 
   roles:
     - { role: proxmox, tags: proxmox }
-    - { role: glances, tags: glances }
+    # - { role: glances, tags: glances }
