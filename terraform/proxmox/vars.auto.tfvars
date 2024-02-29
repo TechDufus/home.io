@@ -4,9 +4,9 @@ gateway     = "10.0.20.1"
 vm_template = "ubuntu-server-20.04-template"
 target_node = "proxmox"
 ssh_public_keys = <<EOF
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d
-    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn
-  EOF
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn
+EOF
 
 nimbus_nodes = {
   "pm-flux-nimbus-0" = {
@@ -81,7 +81,7 @@ cumulus_nodes = {
   #   ip_address = "192.168.1.14"
   #   storage    = "VM-SSD-2"
   #   macaddr    = "56:C4:11:75:6A:15"
-    # vm_template = "ubuntu-server-20.04-template"
+  # vm_template = "ubuntu-server-20.04-template"
   # },
 }
 
@@ -231,4 +231,31 @@ casaOS = {
   #   macaddr     = "06:77:60:C0:37:F9"
   #   vm_template = "ubuntu-server-22.04-template"
   # }
+}
+# Example Container with rootfs and 2 mounted drives defined.
+lxc_cumulus_nodes = {
+  "lxc-cumulus0" = {
+    hostname    = "lxc-cumulus0"
+    vmid        = "110"
+    ip_address  = "10.0.20.10/24"
+    # rootfs_size = 8G # Using default
+    storage = "VM-SSD-0"
+    cpu_cores = 4
+    # macaddr     = "" #Let it set and then save it
+    os_type     = "debian"
+
+    # local:vztmpl prior to the template name is critical
+    os_template = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
+    unprivileged = true #Default
+
+    mountpoints = [
+      {
+        key = "1"
+        slot = 1
+        storage = "VM-SSD-0"
+        mp = "/home/techdufus"
+        size = "222G"
+      }
+    ]
+  }
 }

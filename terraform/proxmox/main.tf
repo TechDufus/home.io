@@ -106,7 +106,6 @@ module "flux_stratus" {
   mbps_wr         = var.flux_stratus_requirements.mbps_wr
   mbps_wr_max     = var.flux_stratus_requirements.mbps_wr_max
   rate            = var.flux_stratus_requirements.rate
-
 }
 
 #             ▄▄                                  ▄▄
@@ -282,4 +281,30 @@ module "k8s_node" {
   username        = var.username
   agent           = var.agent
   ssh_public_keys = var.ssh_public_keys
+}
+
+#
+# Container Time! Use as an example
+module "lxc_flux_cumulus" {
+  source          = "./modules/proxmox_lxc"
+  for_each        = var.lxc_cumulus_nodes
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  os_template     = each.value.os_template
+  target_node     = var.target_node
+  cpu_cores       = each.value.cpu_cores
+  storage         = each.value.storage
+  memory          = var.flux_cumulus_requirements.memory
+  # rootfs_size     = "${var.flux_cumulus_requirements.hdd_size}G"
+  swap            = try(each.value.swap, 0)
+  ssh_public_keys = try(var.ssh_public_keys, "")
+  unprivileged    = each.value.unprivileged
+
+  # Mountpoint is dynamic for 0-many extra mounts
+  # all the work is done in the tfvars file
+  mountpoints     = try(each.value.mountpoints, {})
 }
