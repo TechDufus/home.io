@@ -2,13 +2,13 @@
 - name: Adding pve-no-subscription apt source
   lineinfile:
     path: /etc/apt/sources.list
-    line: deb http://download.proxmox.com/debian/pve bullseye pve-no-subscription
+    line: deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
     state: present
 
 - name: Removing enterprise apt repo
   lineinfile:
     path: /etc/apt/sources.list.d/pve-enterprise.list
-    line: deb https://enterprise.proxmox.com/debian/pve bullseye pve-enterprise
+    line: deb https://enterprise.proxmox.com/debian/pve bookworm pve-enterprise
     state: absent
 
 - name: Installing packages
