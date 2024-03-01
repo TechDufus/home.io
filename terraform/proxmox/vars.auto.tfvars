@@ -3,6 +3,10 @@ nameserver  = "10.0.20.1"
 gateway     = "10.0.20.1"
 vm_template = "ubuntu-server-20.04-template"
 target_node = "proxmox"
+ssh_public_keys = <<EOF
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d
+    ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn
+  EOF
 
 nimbus_nodes = {
   "pm-flux-nimbus-0" = {
@@ -31,30 +35,30 @@ nimbus_nodes = {
   },
 }
 cumulus_nodes = {
-  "pm-flux-cumulus-0" = {
-    hostname   = "pm-flux-cumulus-0"
-    vmid       = "110"
-    ip_address = "10.0.20.10"
-    storage    = "VM-SSD-3"
-    macaddr    = "56:C4:11:75:6A:11"
-    vm_template = "ubuntu-server-22.04-template"
-  },
-  "pm-flux-cumulus-1" = {
-    hostname   = "pm-flux-cumulus-1"
-    vmid       = "111"
-    ip_address = "10.0.20.11"
-    storage    = "VM-SSD-4"
-    macaddr    = "56:C4:11:75:6A:12"
-    vm_template = "ubuntu-server-22.04-template"
-  },
-  "pm-flux-cumulus-2" = {
-    hostname   = "pm-flux-cumulus-2"
-    vmid       = "112"
-    ip_address = "10.0.20.12"
-    storage    = "VM-SSD-0"
-    macaddr    = "56:C4:11:75:6A:13"
-    vm_template = "ubuntu-server-20.04-template"
-  },
+  # "pm-flux-cumulus-0" = {
+  #   hostname   = "pm-flux-cumulus-0"
+  #   vmid       = "110"
+  #   ip_address = "10.0.20.10"
+  #   storage    = "VM-SSD-3"
+  #   macaddr    = "56:C4:11:75:6A:11"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
+  # "pm-flux-cumulus-1" = {
+  #   hostname   = "pm-flux-cumulus-1"
+  #   vmid       = "111"
+  #   ip_address = "10.0.20.11"
+  #   storage    = "VM-SSD-4"
+  #   macaddr    = "56:C4:11:75:6A:12"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
+  # "pm-flux-cumulus-2" = {
+  #   hostname   = "pm-flux-cumulus-2"
+  #   vmid       = "112"
+  #   ip_address = "10.0.20.12"
+  #   storage    = "VM-SSD-0"
+  #   macaddr    = "56:C4:11:75:6A:13"
+  #   vm_template = "ubuntu-server-20.04-template"
+  # },
   # "pm-flux-cumulus-2" = {
   #   hostname   = "pm-flux-cumulus-2"
   #   vmid       = "112"
@@ -189,14 +193,14 @@ pihole = {
 }
 
 container-host = {
-  "container-host" = {
-    hostname     = "container-host"
-    vmid         = "149"
-    ip_address   = "10.0.20.49"
-    storage      = "VM-SSD-4"
-    macaddr      = "06:74:60:C0:37:49"
-    vm_template = "ubuntu-server-22.04-template"
-  },
+  # "container-host" = {
+  #   hostname     = "container-host"
+  #   vmid         = "149"
+  #   ip_address   = "10.0.20.49"
+  #   storage      = "VM-SSD-4"
+  #   macaddr      = "06:74:60:C0:37:49"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
   # "dev-box" = {
   #   hostname     = "dev-box"
   #   vmid         = "150"
