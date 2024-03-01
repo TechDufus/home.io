@@ -9,11 +9,12 @@
 
 module "flux_cumulus" {
   source          = "./modules/proxmox_vm"
+  notes_title     = "Flux Cumulus Node"
   for_each        = var.cumulus_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   searchdomain    = var.searchdomain
   macaddr         = try(each.value.macaddr, "0")
@@ -38,7 +39,7 @@ module "flux_cumulus_test" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -59,10 +60,11 @@ module "flux_cumulus_test" {
 module "flux_nimbus" {
   source          = "./modules/proxmox_vm"
   for_each        = var.nimbus_nodes
+  notes_title     = "Flux Nimbus Node"
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -83,10 +85,11 @@ module "flux_nimbus" {
 module "flux_stratus" {
   source          = "./modules/proxmox_vm"
   for_each        = var.stratus_nodes
+  notes_title     = "Flux Stratus Node"
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -103,7 +106,6 @@ module "flux_stratus" {
   mbps_wr         = var.flux_stratus_requirements.mbps_wr
   mbps_wr_max     = var.flux_stratus_requirements.mbps_wr_max
   rate            = var.flux_stratus_requirements.rate
-  
 }
 
 #             ▄▄                                  ▄▄
@@ -121,7 +123,7 @@ module "pihole" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -147,7 +149,7 @@ module "container-host" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   vm_template     = each.value.vm_template
   macaddr         = try(each.value.macaddr, "0")
@@ -164,7 +166,7 @@ module "vpn-host" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -182,7 +184,7 @@ module "casaOS" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template != null ? each.value.vm_template : var.vm_template
@@ -193,11 +195,11 @@ module "casaOS" {
   ssh_public_keys = var.ssh_public_keys
 }
 
- # ▄▄▄▄▄▄            █                             ▄     ▄               █               ▄             ▄      ▀
- # █       ▄▄▄    ▄▄▄█   ▄▄▄    ▄ ▄▄   ▄▄▄         █  █  █  ▄▄▄    ▄ ▄▄  █   ▄   ▄▄▄   ▄▄█▄▄   ▄▄▄   ▄▄█▄▄  ▄▄▄     ▄▄▄   ▄ ▄▄
- # █▄▄▄▄▄ █▀  █  █▀ ▀█  █▀ ▀█   █▀  ▀ ▀   █        ▀ █▀█ █ █▀ ▀█   █▀  ▀ █ ▄▀   █   ▀    █    ▀   █    █      █    █▀ ▀█  █▀  █
- # █      █▀▀▀▀  █   █  █   █   █     ▄▀▀▀█         ██ ██▀ █   █   █     █▀█     ▀▀▀▄    █    ▄▀▀▀█    █      █    █   █  █   █
- # █      ▀█▄▄▀  ▀█▄██  ▀█▄█▀   █     ▀▄▄▀█         █   █  ▀█▄█▀   █     █  ▀▄  ▀▄▄▄▀    ▀▄▄  ▀▄▄▀█    ▀▄▄  ▄▄█▄▄  ▀█▄█▀  █   █
+# ▄▄▄▄▄▄            █                             ▄     ▄               █               ▄             ▄      ▀
+# █       ▄▄▄    ▄▄▄█   ▄▄▄    ▄ ▄▄   ▄▄▄         █  █  █  ▄▄▄    ▄ ▄▄  █   ▄   ▄▄▄   ▄▄█▄▄   ▄▄▄   ▄▄█▄▄  ▄▄▄     ▄▄▄   ▄ ▄▄
+# █▄▄▄▄▄ █▀  █  █▀ ▀█  █▀ ▀█   █▀  ▀ ▀   █        ▀ █▀█ █ █▀ ▀█   █▀  ▀ █ ▄▀   █   ▀    █    ▀   █    █      █    █▀ ▀█  █▀  █
+# █      █▀▀▀▀  █   █  █   █   █     ▄▀▀▀█         ██ ██▀ █   █   █     █▀█     ▀▀▀▄    █    ▄▀▀▀█    █      █    █   █  █   █
+# █      ▀█▄▄▀  ▀█▄██  ▀█▄█▀   █     ▀▄▄▀█         █   █  ▀█▄█▀   █     █  ▀▄  ▀▄▄▄▀    ▀▄▄  ▀▄▄▀█    ▀▄▄  ▄▄█▄▄  ▀█▄█▀  █   █
 
 module "fedora_workstation" {
   source          = "./modules/proxmox_vm"
@@ -205,7 +207,7 @@ module "fedora_workstation" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = "fedora-workstation-37-template"
@@ -230,7 +232,7 @@ module "wazuh_manager" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = var.vm_template
@@ -249,7 +251,7 @@ module "k8s_master" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -269,7 +271,7 @@ module "k8s_node" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   vm_template     = each.value.vm_template
@@ -283,6 +285,30 @@ module "k8s_node" {
 
 #
 # Container Time! Use as an example
+module "lxc_flux_cumulus" {
+  source          = "./modules/proxmox_lxc"
+  for_each        = var.lxc_cumulus_nodes
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = "${each.value.ip_address}"
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  os_template     = each.value.os_template
+  target_node     = var.target_node
+  cpu_cores       = each.value.cpu_cores
+  storage         = each.value.storage
+  memory          = var.flux_cumulus_requirements.memory
+  # rootfs_size     = "${var.flux_cumulus_requirements.hdd_size}G"
+  swap            = try(each.value.swap, 0)
+  ssh_public_keys = try(var.ssh_public_keys, "")
+  unprivileged    = each.value.unprivileged
+
+  # Mountpoint is dynamic for 0-many extra mounts
+  # all the work is done in the tfvars file
+  mountpoints     = try(each.value.mountpoints, {})
+}
+
 # FileShare Container
 module "fileserver" {
   source          = "./modules/proxmox_lxc"
