@@ -21,10 +21,10 @@
     import_role:
       name: common
 
-  - name: Flux Role
-    import_role:
-      name: flux
-
+  # - name: Flux Role
+  #   import_role:
+  #     name: flux
+  #
 # Usage Task
   - name: Debug message
     debug:

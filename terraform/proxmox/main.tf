@@ -283,28 +283,54 @@ module "k8s_node" {
   ssh_public_keys = var.ssh_public_keys
 }
 
+module "generic_vm" {
+  source          = "./modules/proxmox_vm"
+  for_each        = var.generic_vm
+  hostname        = each.value.hostname
+  vmid            = each.value.vmid
+  nameserver      = var.nameserver
+  ip_address      = each.value.ip_address
+  gateway         = var.gateway
+  macaddr         = try(each.value.macaddr, "0")
+  vm_template     = each.value.vm_template
+  target_node     = var.target_node
+  storage         = each.value.storage
+  username        = var.username
+  agent           = var.agent
+  ssh_public_keys = var.ssh_public_keys
+  cpu_cores       = var.generic_vm_requirements.cpu_cores
+  memory          = var.generic_vm_requirements.memory
+  hdd_size        = var.generic_vm_requirements.hdd_size
+  mbps_rd         = var.generic_vm_requirements.mbps_rd
+  mbps_rd_max     = var.generic_vm_requirements.mbps_rd_max
+  mbps_wr         = var.generic_vm_requirements.mbps_wr
+  mbps_wr_max     = var.generic_vm_requirements.mbps_wr_max
+  rate            = var.generic_vm_requirements.rate
+}
+
 #
 # Container Time! Use as an example
-module "lxc_flux_cumulus" {
+module "lxc_k8s_node" {
   source          = "./modules/proxmox_lxc"
-  for_each        = var.lxc_cumulus_nodes
+  for_each        = var.lxc_k8s_nodes
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
   ip_address      = "${each.value.ip_address}"
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
-  os_template     = each.value.os_template
+  os_template     = try(each.value.os_template, var.k8s_node_requirements.os_template)
   target_node     = var.target_node
-  cpu_cores       = each.value.cpu_cores
-  storage         = each.value.storage
-  memory          = var.flux_cumulus_requirements.memory
-  # rootfs_size     = "${var.flux_cumulus_requirements.hdd_size}G"
+  cpu_cores       = try(each.value.cpu_cores, var.k8s_node_requirements.cpu_cores)
+  storage         = try(each.value.storage, var.k8s_node_requirements.storage)
+  memory          = try(each.value.memory, var.k8s_node_requirements.memory)
+  rootfs_size     = try(each.value.rootfs_size, var.k8s_node_requirements.rootfs_size)
   swap            = try(each.value.swap, 0)
   ssh_public_keys = try(var.ssh_public_keys, "")
-  unprivileged    = each.value.unprivileged
+  unprivileged    = try(each.value.unprivileged, var.k8s_node_requirements.unprivileged)
 
   # Mountpoint is dynamic for 0-many extra mounts
   # all the work is done in the tfvars file
-  mountpoints     = try(each.value.mountpoints, {})
+  mountpoints     = try(each.value.mountpoints, [])
 }
+

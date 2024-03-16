@@ -9,30 +9,30 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn
 EOF
 
 nimbus_nodes = {
-  "pm-flux-nimbus-0" = {
-    hostname    = "pm-flux-nimbus-0"
-    vmid        = "120"
-    ip_address  = "10.0.20.20"
-    storage     = "VM-SSD-1"
-    macaddr     = "56:C4:11:75:6A:32"
-    vm_template = "ubuntu-server-20.04-template"
-  },
-  "pm-flux-nimbus-1" = {
-    hostname    = "pm-flux-nimbus-1"
-    vmid        = "121"
-    ip_address  = "10.0.20.21"
-    storage     = "VM-SSD-2"
-    macaddr     = "56:C4:11:75:6A:33"
-    vm_template = "ubuntu-server-20.04-template"
-  },
-  "pm-flux-nimbus-2" = {
-    hostname    = "pm-flux-nimbus-2"
-    vmid        = "122"
-    ip_address  = "10.0.20.22"
-    storage     = "VM-SSD-0"
-    macaddr     = "56:C4:11:75:6A:34"
-    vm_template = "ubuntu-server-22.04-template"
-  },
+  # "pm-flux-nimbus-0" = {
+  #   hostname    = "pm-flux-nimbus-0"
+  #   vmid        = "120"
+  #   ip_address  = "10.0.20.20"
+  #   storage     = "VM-SSD-1"
+  #   macaddr     = "56:C4:11:75:6A:32"
+  #   vm_template = "ubuntu-server-20.04-template"
+  # },
+  # "pm-flux-nimbus-1" = {
+  #   hostname    = "pm-flux-nimbus-1"
+  #   vmid        = "121"
+  #   ip_address  = "10.0.20.21"
+  #   storage     = "VM-SSD-2"
+  #   macaddr     = "56:C4:11:75:6A:33"
+  #   vm_template = "ubuntu-server-20.04-template"
+  # },
+  # "pm-flux-nimbus-2" = {
+  #   hostname    = "pm-flux-nimbus-2"
+  #   vmid        = "122"
+  #   ip_address  = "10.0.20.22"
+  #   storage     = "VM-SSD-0"
+  #   macaddr     = "56:C4:11:75:6A:34"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
 }
 cumulus_nodes = {
   # "pm-flux-cumulus-0" = {
@@ -113,22 +113,6 @@ k8s_master = {
 }
 
 k8s_nodes = {
-  # "test-FluxCore-1" = {
-  #   hostname    = "test-FluxCore-1"
-  #   vmid        = "150"
-  #   ip_address  = "10.0.20.50"
-  #   storage     = "VM-SSD-4"
-  #   macaddr     = "56:C4:11:75:6A:50"
-  #   vm_template = "ubuntu-server-22.04-template"
-  # },
-  # "test-FluxCore-2" = {
-  #   hostname    = "test-FluxCore-2"
-  #   vmid        = "151"
-  #   ip_address  = "10.0.20.51"
-  #   storage     = "VM-SSD-4"
-  #   macaddr     = "56:C4:11:75:6A:51"
-  #   vm_template = "ubuntu-server-22.04-template"
-  # },
   # "k8s-node-1" = {
   #   hostname    = "k8s-node-1"
   #   vmid        = "143"
@@ -232,30 +216,48 @@ casaOS = {
   #   vm_template = "ubuntu-server-22.04-template"
   # }
 }
+
+generic_vm = {
+  # "casaOS" = {
+  #   hostname    = "CasaOS"
+  #   vmid        = "110"
+  #   ip_address  = "10.0.20.10"
+  #   storage     = "VM-SSD-0"
+  #   macaddr     = "56:C4:11:75:6A:69"
+  #   vm_template = "ubuntu-server-22.04-template"
+  # },
+}
+
 # Example Container with rootfs and 2 mounted drives defined.
-lxc_cumulus_nodes = {
-  "lxc-cumulus0" = {
-    hostname    = "lxc-cumulus0"
-    vmid        = "110"
-    ip_address  = "10.0.20.10/24"
-    # rootfs_size = 8G # Using default
+lxc_k8s_nodes = {
+  "k8s-master0" = {
+    hostname    = "k8s-master0"
+    vmid        = "140"
+    ip_address  = "10.0.20.40/24"
     storage = "VM-SSD-0"
-    cpu_cores = 4
-    # macaddr     = "" #Let it set and then save it
-    os_type     = "debian"
-
-    # local:vztmpl prior to the template name is critical
-    os_template = "local:vztmpl/ubuntu-20.04-standard_20.04-1_amd64.tar.gz"
-    unprivileged = true #Default
-
-    mountpoints = [
-      {
-        key = "1"
-        slot = 1
-        storage = "VM-SSD-0"
-        mp = "/home/techdufus"
-        size = "222G"
-      }
-    ]
   }
+  "k8s-node0" = {
+    hostname    = "k8s-node0"
+    vmid        = "141"
+    ip_address  = "10.0.20.41/24"
+    storage = "VM-SSD-0"
+  }
+  "k8s-node1" = {
+    hostname    = "k8s-node1"
+    vmid        = "142"
+    ip_address  = "10.0.20.42/24"
+    storage = "VM-SSD-0"
+  }
+  "k8s-node2" = {
+    hostname    = "k8s-node2"
+    vmid        = "143"
+    ip_address  = "10.0.20.43/24"
+    storage = "VM-SSD-0"
+  }
+  # "k8s-node3" = {
+  #   hostname    = "k8s-node3"
+  #   vmid        = "144"
+  #   ip_address  = "10.0.20.44/24"
+  #   storage = "VM-SSD-0"
+  # }
 }
