@@ -1,0 +1,165 @@
+---
+- name: Check if cluster is already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubernetes_init_stat
+
+- name: Initialize Kubernetes cluster
+  when: not kubernetes_init_stat.stat.exists
+  block:
+    - name: Create kubeadm configuration file
+      copy:
+        content: |
+          {{ kubeadm_init_config | to_nice_yaml }}
+          ---
+          {{ kubeadm_cluster_config | to_nice_yaml }}
+          ---
+          {{ kubeadm_kubelet_config | to_nice_yaml }}
+        dest: /tmp/kubeadm-config.yaml
+        mode: '0600'
+
+    - name: Initialize the cluster
+      command: >
+        kubeadm init
+        --config=/tmp/kubeadm-config.yaml
+        --upload-certs
+      register: kubeadm_init
+      changed_when: kubeadm_init.rc == 0
+
+    - name: Create .kube directory for user
+      file:
+        path: "{{ kubectl_config_path }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ kubectl_config_path }}/config"
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: Create .kube directory for root
+      file:
+        path: /root/.kube
+        state: directory
+        mode: '0755'
+
+    - name: Copy admin.conf to root's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Remove kubeadm config file
+      file:
+        path: /tmp/kubeadm-config.yaml
+        state: absent
+
+- name: Install CNI plugin
+  when: not kubernetes_init_stat.stat.exists
+  block:
+    - name: Install Calico CNI
+      when: cni_plugin == "calico"
+      block:
+        - name: Download Calico operator
+          get_url:
+            url: "{{ cni_plugin_urls.calico }}"
+            dest: /tmp/calico-operator.yaml
+            mode: '0644'
+
+        - name: Apply Calico operator
+          kubernetes.core.k8s:
+            src: /tmp/calico-operator.yaml
+            state: present
+            kubeconfig: /etc/kubernetes/admin.conf
+
+        - name: Create Calico custom resources
+          kubernetes.core.k8s:
+            definition:
+              apiVersion: operator.tigera.io/v1
+              kind: Installation
+              metadata:
+                name: default
+              spec:
+                calicoNetwork:
+                  ipPools:
+                    - blockSize: 26
+                      cidr: "{{ pod_network_cidr }}"
+                      encapsulation: VXLANCrossSubnet
+                      natOutgoing: Enabled
+                      nodeSelector: all()
+            state: present
+            kubeconfig: /etc/kubernetes/admin.conf
+
+    - name: Install Flannel CNI
+      when: cni_plugin == "flannel"
+      kubernetes.core.k8s:
+        src: "{{ cni_plugin_urls.flannel }}"
+        state: present
+        kubeconfig: /etc/kubernetes/admin.conf
+
+- name: Generate join command for worker nodes
+  command: kubeadm token create --print-join-command
+  register: kubernetes_join_command
+  changed_when: false
+
+- name: Save join command to file
+  copy:
+    content: "{{ kubernetes_join_command.stdout }}"
+    dest: /tmp/k8s-join-command
+    mode: '0600'
+  delegate_to: localhost
+  become: no
+
+- name: Wait for all control plane pods to be ready
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - "tier=control-plane"
+    kubeconfig: /etc/kubernetes/admin.conf
+  register: control_plane_pods
+  until: control_plane_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length >= 4
+  retries: 60
+  delay: 10
+
+- name: Remove node taint for single node cluster (optional)
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ ansible_hostname }}"
+      spec:
+        taints: []
+    kubeconfig: /etc/kubernetes/admin.conf
+  when: remove_control_plane_taint | default(false)
+
+- name: Create ETCD backup script
+  when: etcd_backup_enabled
+  template:
+    src: etcd-backup.sh.j2
+    dest: /usr/local/bin/etcd-backup.sh
+    mode: '0755'
+
+- name: Create ETCD backup cron job
+  when: etcd_backup_enabled
+  cron:
+    name: "ETCD backup"
+    minute: "{{ etcd_backup_schedule.split()[0] }}"
+    hour: "{{ etcd_backup_schedule.split()[1] }}"
+    day: "{{ etcd_backup_schedule.split()[2] }}"
+    month: "{{ etcd_backup_schedule.split()[3] }}"
+    weekday: "{{ etcd_backup_schedule.split()[4] }}"
+    job: "/usr/local/bin/etcd-backup.sh"
+    user: root

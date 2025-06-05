@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dashy
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashy-config
+  namespace: dashy
+data:
+  conf.yml: |
+    pageInfo:
+      title: Home Lab Dashboard
+      description: Welcome to the techdufus home lab
+      logo: https://i.ibb.co/qWWpD0v/astro-dab-128.png
+    
+    appConfig:
+      theme: nord-frost
+      layout: auto
+      iconSize: medium
+      language: en
+      hideComponents:
+        hideHeading: false
+        hideNav: false
+        hideSearch: false
+        hideSettings: false
+        hideFooter: true
+    
+    sections:
+    - name: Infrastructure
+      icon: fas fa-server
+      items:
+      - title: Proxmox
+        description: Hypervisor Management
+        icon: hl-proxmox
+        url: https://proxmox.home.io:8006
+      - title: ArgoCD
+        description: GitOps for Kubernetes
+        icon: hl-argocd
+        url: https://argocd.home.io
+      - title: Pi-hole Primary
+        description: DNS Ad Blocker
+        icon: hl-pihole
+        url: https://pihole.home.io/admin
+    
+    - name: Applications
+      icon: fas fa-rocket
+      items:
+      - title: Home Assistant
+        description: Home Automation
+        icon: hl-homeassistant
+        url: https://ha.home.io
+      - title: Portainer
+        description: Container Management
+        icon: hl-portainer
+        url: https://portainer.home.io
+    
+    - name: External Access
+      icon: fas fa-globe
+      items:
+      - title: ArgoCD (External)
+        description: GitOps - External Access
+        icon: hl-argocd
+        url: https://argocd.lab.techdufus.com
+      - title: Home Assistant (External)
+        description: Home Automation - External Access
+        icon: hl-homeassistant
+        url: https://ha.lab.techdufus.com
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashy
+  namespace: dashy
+  labels:
+    app: dashy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashy
+  template:
+    metadata:
+      labels:
+        app: dashy
+    spec:
+      containers:
+      - name: dashy
+        image: lissy93/dashy:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config
+          mountPath: /app/public/conf.yml
+          subPath: conf.yml
+        env:
+        - name: NODE_ENV
+          value: production
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: config
+        configMap:
+          name: dashy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashy
+  namespace: dashy
+spec:
+  selector:
+    app: dashy
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashy-internal
+  namespace: dashy
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  labels:
+    app.kubernetes.io/name: dashy
+spec:
+  ingressClassName: nginx
+  rules:
+  # Internal only - no external access
+  - host: dashboard.home.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dashy
+            port:
+              number: 80

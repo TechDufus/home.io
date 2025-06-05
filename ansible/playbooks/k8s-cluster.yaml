@@ -1,0 +1,41 @@
+---
+- name: Deploy Kubernetes Common Configuration
+  hosts: k8s_control_plane:k8s_workers
+  become: yes
+  gather_facts: yes
+  roles:
+    - k8s-common
+  tags:
+    - k8s-common
+    - k8s
+
+- name: Initialize Kubernetes Control Plane
+  hosts: k8s_control_plane
+  become: yes
+  gather_facts: yes
+  serial: 1
+  roles:
+    - k8s-control-plane
+  tags:
+    - k8s-control-plane
+    - k8s
+
+- name: Join Worker Nodes to Cluster
+  hosts: k8s_workers
+  become: yes
+  gather_facts: yes
+  roles:
+    - k8s-worker
+  tags:
+    - k8s-worker
+    - k8s
+
+- name: Deploy ArgoCD
+  hosts: k8s_control_plane[0]
+  become: yes
+  gather_facts: yes
+  roles:
+    - argocd
+  tags:
+    - argocd
+    - k8s-apps

@@ -1,0 +1,66 @@
+---
+# Kubernetes version
+k8s_version: "1.29.0"
+
+# Network configuration
+pod_network_cidr: "10.244.0.0/16"
+service_cidr: "10.96.0.0/12"
+
+# CNI plugin
+cni_plugin: "calico"  # Options: calico, flannel, cilium
+
+# Feature gates
+feature_gates: {}
+
+# Cluster name
+cluster_name: "home-k8s"
+
+# Container runtime
+container_runtime: "containerd"
+
+# System requirements
+disable_swap: true
+enable_ip_forward: true
+
+# Kernel modules
+k8s_kernel_modules:
+  - overlay
+  - br_netfilter
+
+# Sysctl settings
+k8s_sysctl_config:
+  net.bridge.bridge-nf-call-iptables: 1
+  net.bridge.bridge-nf-call-ip6tables: 1
+  net.ipv4.ip_forward: 1
+  net.ipv4.ip_nonlocal_bind: 1
+  net.ipv6.conf.all.forwarding: 1
+
+# Apt repositories
+docker_apt_repo: "https://download.docker.com/linux/ubuntu"
+k8s_apt_repo: "https://pkgs.k8s.io/core:/stable:/v1.29/deb/"
+
+# Required packages
+k8s_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+containerd_packages:
+  - containerd.io
+
+common_packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - open-iscsi
+  - nfs-common
+  - jq
+
+# Crictl configuration
+crictl_config:
+  runtime-endpoint: "unix:///var/run/containerd/containerd.sock"
+  image-endpoint: "unix:///var/run/containerd/containerd.sock"
+  timeout: 2
+  debug: false

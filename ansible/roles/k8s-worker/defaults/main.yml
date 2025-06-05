@@ -1,0 +1,22 @@
+---
+# Worker node configuration
+control_plane_endpoint: "{{ groups['k8s_control_plane'][0] }}"
+
+# Join configuration
+join_config:
+  apiVersion: kubeadm.k8s.io/v1beta3
+  kind: JoinConfiguration
+  nodeRegistration:
+    criSocket: "unix:///var/run/containerd/containerd.sock"
+    kubeletExtraArgs:
+      cgroup-driver: "systemd"
+
+# Kubectl configuration
+configure_kubectl: true
+kubectl_config_path: "/home/{{ ansible_user }}/.kube"
+
+# Node labels
+node_labels: {}
+
+# Node taints
+node_taints: []

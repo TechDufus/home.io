@@ -1,0 +1,87 @@
+---
+# ArgoCD version
+argocd_version: "v2.9.3"
+argocd_namespace: "argocd"
+
+# ArgoCD installation method
+argocd_install_method: "manifest"  # Options: manifest, helm
+
+# ArgoCD service type
+argocd_server_service_type: "NodePort"
+argocd_server_nodeport: 30443
+argocd_server_insecure: false
+
+# ArgoCD repository configuration
+argocd_repo_url: "https://github.com/{{ github_username | default('techdufus') }}/home.io"
+argocd_repo_path: "kubernetes/apps"
+argocd_repo_branch: "main"
+
+# ArgoCD admin configuration
+argocd_admin_password_bcrypt: ""  # Leave empty to use generated password
+argocd_disable_admin: false
+
+# ArgoCD RBAC configuration
+argocd_rbac_policy: |
+  p, role:readonly, applications, get, */*, allow
+  p, role:readonly, certificates, get, *, allow
+  p, role:readonly, clusters, get, *, allow
+  p, role:readonly, repositories, get, *, allow
+  g, argocd-readonly, role:readonly
+
+# ArgoCD server configuration
+argocd_server_config:
+  url: "https://argocd.home.io"
+  dex.config: |
+    connectors: []
+  resource.customizations: |
+    admissionregistration.k8s.io/MutatingWebhookConfiguration:
+      ignoreDifferences: |
+        jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+    admissionregistration.k8s.io/ValidatingWebhookConfiguration:
+      ignoreDifferences: |
+        jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+
+# ArgoCD application configuration
+argocd_applications:
+  - name: "root-app"
+    namespace: "{{ argocd_namespace }}"
+    destination:
+      server: "https://kubernetes.default.svc"
+      namespace: "{{ argocd_namespace }}"
+    source:
+      repoURL: "{{ argocd_repo_url }}"
+      path: "{{ argocd_repo_path }}"
+      targetRevision: "{{ argocd_repo_branch }}"
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
+# Resource limits
+argocd_controller_resources:
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+
+argocd_server_resources:
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+  requests:
+    cpu: "125m"
+    memory: "256Mi"
+
+argocd_repo_server_resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"

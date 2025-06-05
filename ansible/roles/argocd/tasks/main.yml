@@ -1,0 +1,191 @@
+---
+- name: Create ArgoCD namespace
+  kubernetes.core.k8s:
+    name: "{{ argocd_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+    kubeconfig: /etc/kubernetes/admin.conf
+
+- name: Download ArgoCD manifest
+  get_url:
+    url: "https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/install.yaml"
+    dest: /tmp/argocd-install.yaml
+    mode: '0644'
+  when: argocd_install_method == "manifest"
+
+- name: Apply ArgoCD manifest
+  kubernetes.core.k8s:
+    src: /tmp/argocd-install.yaml
+    namespace: "{{ argocd_namespace }}"
+    state: present
+    kubeconfig: /etc/kubernetes/admin.conf
+  when: argocd_install_method == "manifest"
+
+- name: Patch ArgoCD server service for NodePort
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: argocd-server
+        namespace: "{{ argocd_namespace }}"
+      spec:
+        type: "{{ argocd_server_service_type }}"
+        ports:
+          - name: https
+            port: 443
+            protocol: TCP
+            targetPort: 8080
+            nodePort: "{{ argocd_server_nodeport }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  when: argocd_server_service_type == "NodePort"
+
+- name: Configure ArgoCD server
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-server-config
+        namespace: "{{ argocd_namespace }}"
+      data:
+        url: "{{ argocd_server_config.url }}"
+        dex.config: "{{ argocd_server_config['dex.config'] }}"
+        resource.customizations: "{{ argocd_server_config['resource.customizations'] }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+
+- name: Configure ArgoCD RBAC
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-rbac-cm
+        namespace: "{{ argocd_namespace }}"
+      data:
+        policy.csv: "{{ argocd_rbac_policy }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+
+- name: Wait for ArgoCD pods to be ready
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    namespace: "{{ argocd_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/part-of=argocd"
+    kubeconfig: /etc/kubernetes/admin.conf
+  register: argocd_pods
+  until: argocd_pods.resources | selectattr('status.phase', 'equalto', 'Running') | list | length >= 7
+  retries: 60
+  delay: 10
+
+- name: Get ArgoCD admin password
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: argocd-initial-admin-secret
+    namespace: "{{ argocd_namespace }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  register: admin_secret
+
+- name: Display ArgoCD admin password
+  debug:
+    msg: "ArgoCD admin password: {{ admin_secret.resources[0].data.password | b64decode }}"
+  when: admin_secret.resources | length > 0
+
+- name: Create ArgoCD root application
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: "{{ item.name }}"
+        namespace: "{{ item.namespace }}"
+        finalizers:
+          - resources-finalizer.argocd.argoproj.io
+      spec:
+        project: default
+        source:
+          repoURL: "{{ item.source.repoURL }}"
+          path: "{{ item.source.path }}"
+          targetRevision: "{{ item.source.targetRevision }}"
+        destination:
+          server: "{{ item.destination.server }}"
+          namespace: "{{ item.destination.namespace }}"
+        syncPolicy:
+          automated:
+            prune: "{{ item.syncPolicy.automated.prune }}"
+            selfHeal: "{{ item.syncPolicy.automated.selfHeal }}"
+          syncOptions: "{{ item.syncPolicy.syncOptions }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  loop: "{{ argocd_applications }}"
+  when: argocd_applications is defined
+
+- name: Install ArgoCD CLI
+  block:
+    - name: Download ArgoCD CLI
+      get_url:
+        url: "https://github.com/argoproj/argo-cd/releases/download/{{ argocd_version }}/argocd-linux-amd64"
+        dest: /tmp/argocd
+        mode: '0755'
+
+    - name: Install ArgoCD CLI
+      copy:
+        src: /tmp/argocd
+        dest: /usr/local/bin/argocd
+        mode: '0755'
+        remote_src: true
+
+- name: Create ArgoCD ingress
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: argocd-server-ingress
+        namespace: "{{ argocd_namespace }}"
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-redirect: "false"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      spec:
+        ingressClassName: nginx
+        rules:
+          - host: argocd.home.io
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: argocd-server
+                      port:
+                        number: 443
+    kubeconfig: /etc/kubernetes/admin.conf
+  when: false  # Disabled by default, enable when ingress controller is deployed
+
+- name: Save ArgoCD access information
+  copy:
+    content: |
+      ArgoCD Access Information
+      ========================
+
+      URL: https://{{ ansible_default_ipv4.address }}:{{ argocd_server_nodeport }}
+      Username: admin
+      Password: {{ admin_secret.resources[0].data.password | b64decode if admin_secret.resources | length > 0 else 'Check secret manually' }}
+
+      CLI Login:
+      argocd login {{ ansible_default_ipv4.address }}:{{ argocd_server_nodeport }} --insecure
+
+      Repository: {{ argocd_repo_url }}
+      Branch: {{ argocd_repo_branch }}
+      Path: {{ argocd_repo_path }}
+    dest: /home/{{ ansible_user }}/argocd-info.txt
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'

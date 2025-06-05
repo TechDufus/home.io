@@ -1,0 +1,53 @@
+---
+# Control plane configuration
+control_plane_endpoint: "{{ ansible_fqdn }}:6443"
+
+# Kubeadm init configuration
+kubeadm_init_config:
+  apiVersion: kubeadm.k8s.io/v1beta3
+  kind: InitConfiguration
+  nodeRegistration:
+    criSocket: "unix:///var/run/containerd/containerd.sock"
+
+kubeadm_cluster_config:
+  apiVersion: kubeadm.k8s.io/v1beta3
+  kind: ClusterConfiguration
+  kubernetesVersion: "v{{ k8s_version }}"
+  controlPlaneEndpoint: "{{ control_plane_endpoint }}"
+  networking:
+    serviceSubnet: "{{ service_cidr }}"
+    podSubnet: "{{ pod_network_cidr }}"
+  apiServer:
+    certSANs:
+      - "{{ ansible_hostname }}"
+      - "{{ ansible_fqdn }}"
+      - "{{ ansible_default_ipv4.address }}"
+      - "127.0.0.1"
+      - "localhost"
+
+kubeadm_kubelet_config:
+  apiVersion: kubelet.config.k8s.io/v1beta1
+  kind: KubeletConfiguration
+  serverTLSBootstrap: true
+  cgroupDriver: systemd
+
+# Kubectl configuration
+kubectl_config_path: "/home/{{ ansible_user }}/.kube"
+
+# CNI plugin URLs
+cni_plugin_urls:
+  calico: "https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/tigera-operator.yaml"
+  flannel: "https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml"
+  cilium: "https://raw.githubusercontent.com/cilium/cilium-cli/master/install.sh"
+
+# Join token expiration
+token_ttl: "24h"
+
+# Certificate configuration
+certificate_key_ttl: "2h"
+
+# ETCD backup configuration
+etcd_backup_enabled: false
+etcd_backup_schedule: "0 2 * * *"
+etcd_backup_retention_days: 7
+etcd_backup_path: "/var/backups/etcd"

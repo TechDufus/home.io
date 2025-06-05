@@ -1,0 +1,96 @@
+---
+- name: Check if node is already joined to cluster
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubernetes_join_stat
+
+- name: Get join command from control plane
+  when: not kubernetes_join_stat.stat.exists
+  block:
+    - name: Read join command from file
+      slurp:
+        src: /tmp/k8s-join-command
+      register: join_command_content
+      delegate_to: localhost
+      become: no
+
+    - name: Decode join command
+      set_fact:
+        join_command: "{{ join_command_content.content | b64decode | trim }}"
+
+- name: Join the cluster
+  when: not kubernetes_join_stat.stat.exists
+  command: "{{ join_command }}"
+  register: kubeadm_join
+  changed_when: kubeadm_join.rc == 0
+
+- name: Wait for kubelet to be ready
+  systemd:
+    name: kubelet
+    state: started
+  register: kubelet_status
+  until: kubelet_status.status.ActiveState == "active"
+  retries: 30
+  delay: 10
+
+- name: Configure kubectl for worker node
+  when: configure_kubectl
+  block:
+    - name: Create .kube directory for user
+      file:
+        path: "{{ kubectl_config_path }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Copy admin kubeconfig from control plane
+      fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: /tmp/admin.conf
+        flat: yes
+      delegate_to: "{{ groups['k8s_control_plane'][0] }}"
+      become: yes
+
+    - name: Copy kubeconfig to worker node
+      copy:
+        src: /tmp/admin.conf
+        dest: "{{ kubectl_config_path }}/config"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: Update kubeconfig server URL
+      replace:
+        path: "{{ kubectl_config_path }}/config"
+        regexp: 'server: https://[^:]+:6443'
+        replace: "server: https://{{ control_plane_endpoint }}:6443"
+
+- name: Label the node
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ ansible_hostname }}"
+        labels: "{{ node_labels | combine({'node-role.kubernetes.io/worker': ''}) }}"
+    kubeconfig: "{{ kubectl_config_path }}/config"
+  when: 
+    - configure_kubectl
+    - node_labels is defined
+
+- name: Taint the node
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ ansible_hostname }}"
+      spec:
+        taints: "{{ node_taints }}"
+    kubeconfig: "{{ kubectl_config_path }}/config"
+  when: 
+    - configure_kubectl
+    - node_taints | length > 0
