@@ -1,0 +1,114 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: grafana-internal
+  namespace: monitoring
+  annotations:
+    gateway.networking.k8s.io/description: "Internal access to Grafana"
+spec:
+  parentRefs:
+  - name: internal-gateway
+    namespace: nginx-gateway
+    sectionName: http-internal
+  hostnames:
+  - "grafana.${CLUSTER_NAME}.home.io"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: grafana
+      port: 3000
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: http
+        - name: X-Forwarded-Host
+          value: "grafana.${CLUSTER_NAME}.home.io"
+        - name: X-Forwarded-Port
+          value: "80"
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: grafana-external
+  namespace: monitoring
+  annotations:
+    gateway.networking.k8s.io/description: "External access to Grafana via Cloudflare Tunnel"
+spec:
+  parentRefs:
+  - name: external-gateway
+    namespace: nginx-gateway
+    sectionName: http-external
+  hostnames:
+  - "grafana.${CLUSTER_NAME}.lab.techdufus.com"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: grafana
+      port: 3000
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: https  # Cloudflare terminates TLS
+        - name: X-Forwarded-Host
+          value: "grafana.${CLUSTER_NAME}.lab.techdufus.com"
+        - name: X-Forwarded-Port
+          value: "443"
+        - name: X-Real-IP
+          value: "%{REMOTE_ADDR}"
+    # Security headers for external access
+    - type: ResponseHeaderModifier
+      responseHeaderModifier:
+        set:
+        - name: X-Frame-Options
+          value: DENY
+        - name: X-Content-Type-Options
+          value: nosniff
+        - name: Referrer-Policy
+          value: strict-origin-when-cross-origin
+---
+# HTTPS route for internal access
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: grafana-internal-tls
+  namespace: monitoring
+  annotations:
+    gateway.networking.k8s.io/description: "Internal HTTPS access to Grafana"
+spec:
+  parentRefs:
+  - name: internal-gateway
+    namespace: nginx-gateway
+    sectionName: https-internal
+  hostnames:
+  - "grafana.${CLUSTER_NAME}.home.io"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: grafana
+      port: 3000
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: https
+        - name: X-Forwarded-Host
+          value: "grafana.${CLUSTER_NAME}.home.io"
+        - name: X-Forwarded-Port
+          value: "443"

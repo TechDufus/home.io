@@ -1,0 +1,347 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: ${CLUSTER_NAMESPACE:=default}
+  labels:
+    cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+    environment: ${ENVIRONMENT:=dev}
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+        - ${POD_CIDR:=10.244.0.0/16}
+    services:
+      cidrBlocks:
+        - ${SERVICE_CIDR:=10.96.0.0/12}
+    serviceDomain: ${SERVICE_DOMAIN:=cluster.local}
+  
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+    kind: ProxmoxCluster
+    name: ${CLUSTER_NAME}
+    namespace: ${CLUSTER_NAMESPACE:=default}
+  
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    name: ${CLUSTER_NAME}-control-plane
+    namespace: ${CLUSTER_NAMESPACE:=default}
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxCluster
+metadata:
+  name: ${CLUSTER_NAME}
+  namespace: ${CLUSTER_NAMESPACE:=default}
+spec:
+  controlPlaneEndpoint:
+    host: ${CONTROL_PLANE_ENDPOINT_HOST}
+    port: ${CONTROL_PLANE_ENDPOINT_PORT:=6443}
+  
+  # IPv4 configuration
+  ipv4Config:
+    addresses:
+      - ${CLUSTER_CIDR:=10.0.20.0/24}
+    gateway: ${GATEWAY:=10.0.20.1}
+    nameservers:
+      - ${DNS_SERVER_1:=10.0.20.2}
+      - ${DNS_SERVER_2:=10.0.20.3}
+    searchDomains:
+      - ${SEARCH_DOMAIN:=home.io}
+  
+  # Allowed CIDRs for API server access
+  allowedCIDRs:
+    - "10.0.0.0/8"
+    - "192.168.0.0/16"
+    - "172.16.0.0/12"
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: ${CLUSTER_NAME}-control-plane
+  namespace: ${CLUSTER_NAMESPACE:=default}
+spec:
+  replicas: ${CONTROL_PLANE_REPLICAS:=3}
+  version: ${KUBERNETES_VERSION:=v1.29.0}
+  
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+      kind: ProxmoxMachineTemplate
+      name: ${CLUSTER_NAME}-control-plane-template
+      namespace: ${CLUSTER_NAMESPACE:=default}
+  
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cloud-provider: external
+          cgroup-driver: systemd
+    
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: external
+          audit-log-maxage: "30"
+          audit-log-maxbackup: "3"
+          audit-log-maxsize: "100"
+          audit-log-path: /var/log/apiserver/audit.log
+          enable-admission-plugins: "NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook"
+        extraVolumes:
+          - name: audit-log
+            hostPath: /var/log/apiserver
+            mountPath: /var/log/apiserver
+            pathType: DirectoryOrCreate
+      
+      controllerManager:
+        extraArgs:
+          cloud-provider: external
+          bind-address: 0.0.0.0
+      
+      scheduler:
+        extraArgs:
+          bind-address: 0.0.0.0
+      
+      etcd:
+        local:
+          dataDir: /var/lib/etcd
+          extraArgs:
+            listen-metrics-urls: http://0.0.0.0:2381
+    
+    joinConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cloud-provider: external
+          cgroup-driver: systemd
+    
+    preKubeadmCommands:
+      # Disable swap
+      - swapoff -a
+      - sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+      
+      # Load kernel modules
+      - modprobe overlay
+      - modprobe br_netfilter
+      
+      # Configure sysctl
+      - sysctl --system
+      
+      # Configure containerd
+      - mkdir -p /etc/containerd
+      - containerd config default | tee /etc/containerd/config.toml
+      - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+      - systemctl restart containerd
+      - systemctl enable containerd
+    
+    postKubeadmCommands:
+      # Install CNI (will be replaced by ClusterResourceSet)
+      - export KUBECONFIG=/etc/kubernetes/admin.conf
+      - kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/tigera-operator.yaml
+      
+      # Create audit log directory
+      - mkdir -p /var/log/apiserver
+      - chmod 755 /var/log/apiserver
+    
+    files:
+      # Sysctl configuration for Kubernetes
+      - path: /etc/sysctl.d/k8s.conf
+        content: |
+          net.bridge.bridge-nf-call-iptables  = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward                 = 1
+          net.ipv4.ip_nonlocal_bind           = 1
+          net.ipv6.conf.all.forwarding        = 1
+        permissions: "0644"
+      
+      # Kernel modules for Kubernetes
+      - path: /etc/modules-load.d/k8s.conf
+        content: |
+          overlay
+          br_netfilter
+        permissions: "0644"
+      
+      # Crictl configuration
+      - path: /etc/crictl.yaml
+        content: |
+          runtime-endpoint: unix:///var/run/containerd/containerd.sock
+          image-endpoint: unix:///var/run/containerd/containerd.sock
+          timeout: 2
+          debug: false
+        permissions: "0644"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-control-plane-template
+  namespace: ${CLUSTER_NAMESPACE:=default}
+spec:
+  template:
+    spec:
+      virtualMachineCloneSpec:
+        sourceNode: ${PROXMOX_SOURCE_NODE:=proxmox}
+        template: ${VM_TEMPLATE:=ubuntu-server-22.04-template}
+        description: "Kubernetes control plane node for ${CLUSTER_NAME}"
+        full: true
+        format: "qcow2"
+      
+      hardware:
+        cpu:
+          cores: ${CONTROL_PLANE_CPU_CORES:=4}
+          sockets: 1
+          type: "host"
+        memory:
+          size: "${CONTROL_PLANE_MEMORY:=8192}M"
+        disk:
+          - storage: ${STORAGE:=local-lvm}
+            size: "${CONTROL_PLANE_DISK_SIZE:=50}G"
+            type: "scsi"
+            cache: "writethrough"
+            iothread: true
+        network:
+          - bridge: ${NETWORK_BRIDGE:=vmbr0}
+            model: "virtio"
+      
+      cloudInit:
+        user: ${SSH_USER:=techdufus}
+        sshAuthorizedKeys:
+          - ${SSH_PUBLIC_KEY_1}
+          - ${SSH_PUBLIC_KEY_2:=""}
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: ${CLUSTER_NAME}-workers
+  namespace: ${CLUSTER_NAMESPACE:=default}
+  labels:
+    cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+    pool: worker-pool
+spec:
+  clusterName: ${CLUSTER_NAME}
+  replicas: ${WORKER_REPLICAS:=3}
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+      pool: worker-pool
+  
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME}
+        pool: worker-pool
+    spec:
+      clusterName: ${CLUSTER_NAME}
+      version: ${KUBERNETES_VERSION:=v1.29.0}
+      
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: ${CLUSTER_NAME}-worker-template
+          namespace: ${CLUSTER_NAMESPACE:=default}
+      
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+        kind: ProxmoxMachineTemplate
+        name: ${CLUSTER_NAME}-worker-template
+        namespace: ${CLUSTER_NAMESPACE:=default}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: ${CLUSTER_NAME}-worker-template
+  namespace: ${CLUSTER_NAMESPACE:=default}
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cloud-provider: external
+            cgroup-driver: systemd
+      
+      preKubeadmCommands:
+        # Disable swap
+        - swapoff -a
+        - sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+        
+        # Load kernel modules
+        - modprobe overlay
+        - modprobe br_netfilter
+        
+        # Configure sysctl
+        - sysctl --system
+        
+        # Configure containerd
+        - mkdir -p /etc/containerd
+        - containerd config default | tee /etc/containerd/config.toml
+        - sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+        - systemctl restart containerd
+        - systemctl enable containerd
+      
+      files:
+        # Sysctl configuration for Kubernetes
+        - path: /etc/sysctl.d/k8s.conf
+          content: |
+            net.bridge.bridge-nf-call-iptables  = 1
+            net.bridge.bridge-nf-call-ip6tables = 1
+            net.ipv4.ip_forward                 = 1
+            net.ipv4.ip_nonlocal_bind           = 1
+            net.ipv6.conf.all.forwarding        = 1
+          permissions: "0644"
+        
+        # Kernel modules for Kubernetes
+        - path: /etc/modules-load.d/k8s.conf
+          content: |
+            overlay
+            br_netfilter
+          permissions: "0644"
+        
+        # Crictl configuration
+        - path: /etc/crictl.yaml
+          content: |
+            runtime-endpoint: unix:///var/run/containerd/containerd.sock
+            image-endpoint: unix:///var/run/containerd/containerd.sock
+            timeout: 2
+            debug: false
+          permissions: "0644"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxMachineTemplate
+metadata:
+  name: ${CLUSTER_NAME}-worker-template
+  namespace: ${CLUSTER_NAMESPACE:=default}
+spec:
+  template:
+    spec:
+      virtualMachineCloneSpec:
+        sourceNode: ${PROXMOX_SOURCE_NODE:=proxmox}
+        template: ${VM_TEMPLATE:=ubuntu-server-22.04-template}
+        description: "Kubernetes worker node for ${CLUSTER_NAME}"
+        full: true
+        format: "qcow2"
+      
+      hardware:
+        cpu:
+          cores: ${WORKER_CPU_CORES:=4}
+          sockets: 1
+          type: "host"
+        memory:
+          size: "${WORKER_MEMORY:=8192}M"
+        disk:
+          - storage: ${STORAGE:=local-lvm}
+            size: "${WORKER_DISK_SIZE:=100}G"
+            type: "scsi"
+            cache: "writethrough"
+            iothread: true
+        network:
+          - bridge: ${NETWORK_BRIDGE:=vmbr0}
+            model: "virtio"
+      
+      cloudInit:
+        user: ${SSH_USER:=techdufus}
+        sshAuthorizedKeys:
+          - ${SSH_PUBLIC_KEY_1}
+          - ${SSH_PUBLIC_KEY_2:=""}

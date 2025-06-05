@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cluster.yaml
+
+# Environment-specific configurations for production
+patchesStrategicMerge:
+  - |-
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    metadata:
+      name: prod-cluster-control-plane
+    spec:
+      kubeadmConfigSpec:
+        clusterConfiguration:
+          apiServer:
+            extraArgs:
+              # Production-specific API server configurations
+              audit-log-maxage: "30"  # Longer retention for prod
+              audit-log-maxbackup: "10"
+              audit-log-maxsize: "100"
+              v: "1"  # Less verbose logging for prod
+              # Additional security for production
+              enable-admission-plugins: "NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,LimitRanger"
+              request-timeout: "300s"
+              default-not-ready-toleration-seconds: "300"
+              default-unreachable-toleration-seconds: "300"
+          controllerManager:
+            extraArgs:
+              v: "1"  # Less verbose logging for prod
+              # Production-specific controller manager settings
+              node-monitor-period: "5s"
+              node-monitor-grace-period: "40s"
+              pod-eviction-timeout: "5m"
+          scheduler:
+            extraArgs:
+              v: "1"  # Less verbose logging for prod
+          etcd:
+            local:
+              extraArgs:
+                # Production etcd settings
+                quota-backend-bytes: "8589934592"  # 8GB
+                auto-compaction-mode: periodic
+                auto-compaction-retention: "1h"
+
+# Add labels for environment identification
+commonLabels:
+  environment: prod
+  cluster-type: production
+
+# Add annotations
+commonAnnotations:
+  cluster.x-k8s.io/managed-by: "capi"
+  cluster.x-k8s.io/environment: "prod"
+  cluster.x-k8s.io/purpose: "production-workloads"
+  cluster.x-k8s.io/backup-policy: "daily"
+  cluster.x-k8s.io/monitoring: "enabled"

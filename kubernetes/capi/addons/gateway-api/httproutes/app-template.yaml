@@ -1,0 +1,190 @@
+# Template for custom application HTTPRoutes
+# Replace ${APP_NAME}, ${NAMESPACE}, and ${CLUSTER_NAME} with actual values
+
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: ${APP_NAME}-internal
+  namespace: ${NAMESPACE}
+  annotations:
+    gateway.networking.k8s.io/description: "Internal access to ${APP_NAME}"
+    # Optional: Add authentication annotations
+    # auth.nginx.org/type: "basic"
+    # auth.nginx.org/secret: "${APP_NAME}-auth"
+spec:
+  parentRefs:
+  - name: internal-gateway
+    namespace: nginx-gateway
+    sectionName: http-internal
+  hostnames:
+  - "${APP_NAME}.${CLUSTER_NAME}.home.io"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${APP_NAME}
+      port: ${APP_PORT}
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: http
+        - name: X-Forwarded-Host
+          value: "${APP_NAME}.${CLUSTER_NAME}.home.io"
+    # Optional: Add request timeout
+    # timeouts:
+    #   request: 30s
+    #   backendRequest: 25s
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: ${APP_NAME}-external
+  namespace: ${NAMESPACE}
+  annotations:
+    gateway.networking.k8s.io/description: "External access to ${APP_NAME} via Cloudflare Tunnel"
+spec:
+  parentRefs:
+  - name: external-gateway
+    namespace: nginx-gateway
+    sectionName: http-external
+  hostnames:
+  - "${APP_NAME}.${CLUSTER_NAME}.lab.techdufus.com"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${APP_NAME}
+      port: ${APP_PORT}
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: https  # Cloudflare terminates TLS
+        - name: X-Forwarded-Host
+          value: "${APP_NAME}.${CLUSTER_NAME}.lab.techdufus.com"
+        - name: X-Real-IP
+          value: "%{REMOTE_ADDR}"
+    # Enhanced security headers for external access
+    - type: ResponseHeaderModifier
+      responseHeaderModifier:
+        set:
+        - name: X-Frame-Options
+          value: SAMEORIGIN
+        - name: X-Content-Type-Options
+          value: nosniff
+        - name: X-XSS-Protection
+          value: "1; mode=block"
+        - name: Strict-Transport-Security
+          value: "max-age=31536000; includeSubDomains"
+        - name: Referrer-Policy
+          value: strict-origin-when-cross-origin
+        - name: Content-Security-Policy
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+---
+# Advanced Example: Canary Deployment with Traffic Splitting
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: ${APP_NAME}-canary-external
+  namespace: ${NAMESPACE}
+  annotations:
+    gateway.networking.k8s.io/description: "Canary deployment for ${APP_NAME} with traffic splitting"
+spec:
+  parentRefs:
+  - name: external-gateway
+    namespace: nginx-gateway
+    sectionName: http-external
+  hostnames:
+  - "${APP_NAME}-canary-${CLUSTER_NAME}.lab.techdufus.com"
+  rules:
+  # 90% traffic to stable version
+  # 10% traffic to canary version
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${APP_NAME}-stable
+      port: ${APP_PORT}
+      weight: 90
+    - name: ${APP_NAME}-canary
+      port: ${APP_PORT}
+      weight: 10
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Forwarded-Proto
+          value: https
+        - name: X-Forwarded-Host
+          value: "${APP_NAME}-canary-${CLUSTER_NAME}.lab.techdufus.com"
+        - name: X-Deployment-Type
+          value: canary
+---
+# Advanced Example: Header-based routing
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: ${APP_NAME}-header-routing
+  namespace: ${NAMESPACE}
+  annotations:
+    gateway.networking.k8s.io/description: "Header-based routing for ${APP_NAME}"
+spec:
+  parentRefs:
+  - name: external-gateway
+    namespace: nginx-gateway
+    sectionName: http-external
+  hostnames:
+  - "${APP_NAME}.${CLUSTER_NAME}.lab.techdufus.com"
+  rules:
+  # Route beta users to canary version
+  - matches:
+    - headers:
+      - name: X-User-Type
+        value: beta
+      path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${APP_NAME}-canary
+      port: ${APP_PORT}
+      weight: 100
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: X-Backend-Version
+          value: canary
+  # Route API calls to dedicated API backend
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/
+    backendRefs:
+    - name: ${APP_NAME}-api
+      port: ${API_PORT}
+      weight: 100
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /v1/
+  # Default route to stable version
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: ${APP_NAME}-stable
+      port: ${APP_PORT}
+      weight: 100

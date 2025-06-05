@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-gateway
+  labels:
+    name: nginx-gateway
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: internal-gateway
+  namespace: nginx-gateway
+  annotations:
+    gateway.networking.k8s.io/description: "Gateway for internal cluster services"
+spec:
+  gatewayClassName: nginx-internal
+  listeners:
+  # HTTP listener for internal traffic (no TLS termination needed)
+  - name: http-internal
+    port: 80
+    protocol: HTTP
+    hostname: "*.${CLUSTER_NAME}.home.io"
+    allowedRoutes:
+      namespaces:
+        from: All  # Allow routes from all namespaces
+  # HTTPS listener for internal traffic (optional, for development)
+  - name: https-internal
+    port: 443
+    protocol: HTTPS
+    hostname: "*.${CLUSTER_NAME}.home.io"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: internal-tls-cert
+        kind: Secret
+    allowedRoutes:
+      namespaces:
+        from: All
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: external-gateway
+  namespace: nginx-gateway
+  annotations:
+    gateway.networking.k8s.io/description: "Gateway for external services via Cloudflare Tunnel"
+spec:
+  gatewayClassName: nginx-external
+  listeners:
+  # HTTP listener for external traffic (Cloudflare Tunnel terminates TLS)
+  - name: http-external
+    port: 80
+    protocol: HTTP
+    hostname: "*.${CLUSTER_NAME}.lab.techdufus.com"
+    allowedRoutes:
+      namespaces:
+        from: All  # Allow routes from all namespaces
+  # HTTPS listener for external traffic (for direct access)
+  - name: https-external
+    port: 443
+    protocol: HTTPS
+    hostname: "*.${CLUSTER_NAME}.lab.techdufus.com"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: external-tls-cert
+        kind: Secret
+    allowedRoutes:
+      namespaces:
+        from: All
+---
+# Self-signed certificate for internal development (replace with proper certs in production)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: internal-tls-cert
+  namespace: nginx-gateway
+type: kubernetes.io/tls
+data:
+  # These are placeholder values - replace with actual certificates
+  tls.crt: ""  # Base64 encoded certificate
+  tls.key: ""  # Base64 encoded private key
+---
+# Certificate for external traffic (can be Let's Encrypt or Cloudflare Origin cert)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: external-tls-cert
+  namespace: nginx-gateway
+type: kubernetes.io/tls
+data:
+  # These are placeholder values - replace with actual certificates
+  tls.crt: ""  # Base64 encoded certificate
+  tls.key: ""  # Base64 encoded private key
+---
+# Service for internal gateway (MetalLB will assign an IP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-gateway-service
+  namespace: nginx-gateway
+  annotations:
+    metallb.universe.tf/address-pool: internal-pool
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 10.0.20.200  # Reserved IP for internal gateway
+  selector:
+    gateway.networking.k8s.io/gateway-name: internal-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP
+---
+# Service for external gateway (Cloudflare Tunnel will connect here)
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-gateway-service
+  namespace: nginx-gateway
+  annotations:
+    metallb.universe.tf/address-pool: external-pool
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 10.0.20.201  # Reserved IP for external gateway
+  selector:
+    gateway.networking.k8s.io/gateway-name: external-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP

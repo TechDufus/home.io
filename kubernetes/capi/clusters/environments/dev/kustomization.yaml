@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cluster.yaml
+
+# Environment-specific configurations for dev
+patchesStrategicMerge:
+  - |-
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    metadata:
+      name: dev-cluster-control-plane
+    spec:
+      kubeadmConfigSpec:
+        clusterConfiguration:
+          apiServer:
+            extraArgs:
+              # Dev-specific API server configurations
+              audit-log-maxage: "7"  # Shorter retention for dev
+              audit-log-maxbackup: "1"
+              v: "2"  # More verbose logging for dev
+          controllerManager:
+            extraArgs:
+              v: "2"  # More verbose logging for dev
+          scheduler:
+            extraArgs:
+              v: "2"  # More verbose logging for dev
+
+# Add labels for environment identification
+commonLabels:
+  environment: dev
+  cluster-type: development
+
+# Add annotations
+commonAnnotations:
+  cluster.x-k8s.io/managed-by: "capi"
+  cluster.x-k8s.io/environment: "dev"
+  cluster.x-k8s.io/purpose: "development-testing"

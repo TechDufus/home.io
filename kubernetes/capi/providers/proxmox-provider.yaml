@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: proxmox-credentials
+  namespace: capmox-system
+type: Opaque
+stringData:
+  # Update these values with your Proxmox credentials
+  username: "root@pam"  # or your specific user
+  password: "your-proxmox-password"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxmox-config
+  namespace: capmox-system
+data:
+  # Update with your Proxmox API endpoint
+  endpoint: "https://proxmox.home.io:8006/api2/json"
+  # Set to "false" if using valid SSL certificates
+  insecure: "true"
+  # Optional: specify default storage
+  storage: "local-lvm"
+  # Optional: specify default network bridge
+  bridge: "vmbr0"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxClusterTemplate
+metadata:
+  name: proxmox-cluster-template
+  namespace: default
+spec:
+  template:
+    spec:
+      controlPlaneEndpoint:
+        host: ""  # Will be set per cluster
+        port: 6443
+      # Optional: specify allowed CIDRs for API server access
+      allowedCIDRs:
+        - "10.0.0.0/8"
+        - "192.168.0.0/16"
+        - "172.16.0.0/12"
+      # IPv4 configuration
+      ipv4Config:
+        addresses:
+          - "10.0.20.0/24"  # Update to match your network
+        gateway: "10.0.20.1"  # Update to match your gateway
+        nameservers:
+          - "10.0.20.2"   # Pi-hole primary
+          - "10.0.20.3"   # Pi-hole secondary
+        searchDomains:
+          - "home.io"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxMachineTemplate
+metadata:
+  name: proxmox-control-plane-template
+  namespace: default
+spec:
+  template:
+    spec:
+      # VM configuration for control plane nodes
+      virtualMachineCloneSpec:
+        sourceNode: "proxmox"  # Update with your Proxmox node name
+        template: "ubuntu-server-22.04-template"  # Update with your template name
+        description: "Kubernetes control plane node managed by CAPI"
+        full: true
+        format: "qcow2"
+      
+      # Hardware specifications for control plane
+      hardware:
+        cpu:
+          cores: 4
+          sockets: 1
+          type: "host"
+        memory:
+          size: "8192M"
+        disk:
+          - storage: "local-lvm"
+            size: "50G"
+            type: "scsi"
+            cache: "writethrough"
+            iothread: true
+        network:
+          - bridge: "vmbr0"
+            model: "virtio"
+      
+      # Cloud-init configuration
+      cloudInit:
+        user: "techdufus"
+        sshAuthorizedKeys:
+          # Add your SSH public keys here
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d"
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+kind: ProxmoxMachineTemplate
+metadata:
+  name: proxmox-worker-template
+  namespace: default
+spec:
+  template:
+    spec:
+      # VM configuration for worker nodes
+      virtualMachineCloneSpec:
+        sourceNode: "proxmox"  # Update with your Proxmox node name
+        template: "ubuntu-server-22.04-template"  # Update with your template name
+        description: "Kubernetes worker node managed by CAPI"
+        full: true
+        format: "qcow2"
+      
+      # Hardware specifications for workers
+      hardware:
+        cpu:
+          cores: 4
+          sockets: 1
+          type: "host"
+        memory:
+          size: "8192M"
+        disk:
+          - storage: "local-lvm"
+            size: "100G"
+            type: "scsi"
+            cache: "writethrough"
+            iothread: true
+        network:
+          - bridge: "vmbr0"
+            model: "virtio"
+      
+      # Cloud-init configuration
+      cloudInit:
+        user: "techdufus"
+        sshAuthorizedKeys:
+          # Add your SSH public keys here
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d"
+          - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn"

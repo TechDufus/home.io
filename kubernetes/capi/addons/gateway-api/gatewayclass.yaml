@@ -1,0 +1,75 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: nginx-internal
+  annotations:
+    gateway.networking.k8s.io/description: "NGINX Gateway for internal traffic (*.home.io)"
+spec:
+  controllerName: k8s.nginx.org/nginx-gateway-controller
+  description: "NGINX Gateway for internal cluster services"
+  parametersRef:
+    group: gateway.nginx.org
+    kind: NginxGateway
+    name: internal-config
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: nginx-external
+  annotations:
+    gateway.networking.k8s.io/description: "NGINX Gateway for external traffic (*.lab.techdufus.com)"
+spec:
+  controllerName: k8s.nginx.org/nginx-gateway-controller
+  description: "NGINX Gateway for external services via Cloudflare Tunnel"
+  parametersRef:
+    group: gateway.nginx.org
+    kind: NginxGateway
+    name: external-config
+---
+# NGINX Gateway configuration for internal traffic
+apiVersion: gateway.nginx.org/v1alpha1
+kind: NginxGateway
+metadata:
+  name: internal-config
+  namespace: nginx-gateway
+spec:
+  # Internal-specific configuration
+  logging:
+    level: info
+  observability:
+    tracing:
+      strategy: disabled
+  # Performance tuning for internal traffic
+  nginx:
+    config:
+      server-tokens: "off"
+      ssl-protocols: "TLSv1.2 TLSv1.3"
+      ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+---
+# NGINX Gateway configuration for external traffic
+apiVersion: gateway.nginx.org/v1alpha1
+kind: NginxGateway
+metadata:
+  name: external-config
+  namespace: nginx-gateway
+spec:
+  # External-specific configuration with enhanced security
+  logging:
+    level: warn  # Less verbose for external traffic
+  observability:
+    tracing:
+      strategy: disabled
+  # Security hardening for external traffic
+  nginx:
+    config:
+      server-tokens: "off"
+      ssl-protocols: "TLSv1.3"  # Only TLS 1.3 for external
+      ssl-ciphers: "TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256"
+      # Rate limiting for external traffic
+      limit-req-zone: "$binary_remote_addr zone=external:10m rate=10r/s"
+      # Security headers
+      add-header:
+        - "X-Frame-Options DENY always"
+        - "X-Content-Type-Options nosniff always"
+        - "X-XSS-Protection '1; mode=block' always"
+        - "Strict-Transport-Security 'max-age=31536000; includeSubDomains' always"

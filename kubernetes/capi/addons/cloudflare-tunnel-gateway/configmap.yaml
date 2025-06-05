@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-config
+  namespace: cloudflare-tunnel
+data:
+  config.yaml: |
+    tunnel: ${CLUSTER_NAME}-tunnel
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    
+    # With Gateway API, tunnel points to the external gateway service
+    # The gateway handles routing based on hostname headers
+    ingress:
+      # All external traffic goes through the external gateway
+      # The gateway will route based on hostname to appropriate HTTPRoutes
+      - hostname: "*.${CLUSTER_NAME}.lab.techdufus.com"
+        service: http://external-gateway-service.nginx-gateway.svc.cluster.local:80
+        originRequest:
+          # Preserve the original hostname for gateway routing
+          httpHostHeader: "*.${CLUSTER_NAME}.lab.techdufus.com"
+          # HTTP/2 support for better performance
+          http2Origin: true
+          # Connection settings for gateway
+          connectTimeout: 10s
+          tlsTimeout: 10s
+          tcpKeepAlive: 30s
+          keepAliveConnections: 100
+          keepAliveTimeout: 90s
+      
+      # Specific service routing (alternative approach for direct routing)
+      # Use this if you want to bypass gateway for specific services
+      
+      # ArgoCD direct routing (bypass gateway)
+      - hostname: argocd.${CLUSTER_NAME}.lab.techdufus.com
+        service: http://external-gateway-service.nginx-gateway.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: argocd.${CLUSTER_NAME}.lab.techdufus.com
+      
+      # Grafana direct routing (bypass gateway)  
+      - hostname: grafana.${CLUSTER_NAME}.lab.techdufus.com
+        service: http://external-gateway-service.nginx-gateway.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: grafana.${CLUSTER_NAME}.lab.techdufus.com
+      
+      # WebSocket support for specific applications
+      - hostname: ws.${CLUSTER_NAME}.lab.techdufus.com
+        service: http://external-gateway-service.nginx-gateway.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: ws.${CLUSTER_NAME}.lab.techdufus.com
+          # Enable WebSocket support
+          noTLSVerify: false
+          originServerName: ws.${CLUSTER_NAME}.lab.techdufus.com
+      
+      # Health check endpoint
+      - hostname: health.${CLUSTER_NAME}.lab.techdufus.com
+        service: http://external-gateway-service.nginx-gateway.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: health.${CLUSTER_NAME}.lab.techdufus.com
+      
+      # Catch-all rule (required) - returns 404 for unmatched domains
+      - service: http_status:404
+    
+    # Logging configuration
+    log:
+      level: info
+      format: json
+    
+    # Metrics for monitoring tunnel performance  
+    metrics: 0.0.0.0:9090
+    
+    # Tunnel features
+    features:
+      # Enable HTTP/2 for better performance
+      - http2
+      # Enable connection pooling
+      - connection-pool
+    
+    # Retry configuration for reliability
+    retries: 3
+    retry-timeout: 30s
+    
+    # Grace period for graceful shutdown
+    grace-period: 30s

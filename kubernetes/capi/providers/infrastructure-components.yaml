@@ -1,0 +1,206 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: capi-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: capmox-system
+---
+# CNI Configuration for workload clusters
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cni-calico
+  namespace: default
+data:
+  calico.yaml: |
+    apiVersion: operator.tigera.io/v1
+    kind: Installation
+    metadata:
+      name: default
+    spec:
+      calicoNetwork:
+        ipPools:
+        - blockSize: 26
+          cidr: 10.244.0.0/16
+          encapsulation: VXLANCrossSubnet
+          natOutgoing: Enabled
+          nodeSelector: all()
+---
+# CNI Configuration for Cilium (alternative)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cni-cilium
+  namespace: default
+data:
+  cilium.yaml: |
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChart
+    metadata:
+      name: cilium
+      namespace: kube-system
+    spec:
+      chart: cilium
+      repo: https://helm.cilium.io/
+      targetNamespace: kube-system
+      valuesContent: |-
+        ipam:
+          mode: kubernetes
+        kubeProxyReplacement: partial
+        hostServices:
+          enabled: false
+        externalIPs:
+          enabled: true
+        nodePort:
+          enabled: true
+        hostPort:
+          enabled: true
+        bpf:
+          masquerade: false
+        image:
+          pullPolicy: IfNotPresent
+        operator:
+          rollOutPods: true
+        tunnel: vxlan
+---
+# MetalLB Configuration for LoadBalancer services
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metallb-config
+  namespace: default
+data:
+  metallb.yaml: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: metallb-system
+    ---
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: default-pool
+      namespace: metallb-system
+    spec:
+      addresses:
+      - 10.0.20.200-10.0.20.250  # Update to match your network
+    ---
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      name: default-l2
+      namespace: metallb-system
+    spec:
+      ipAddressPools:
+      - default-pool
+---
+# Storage provisioner configuration (local-path)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-path-storage
+  namespace: default
+data:
+  local-path-provisioner.yaml: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: local-path-storage
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: local-path-provisioner-service-account
+      namespace: local-path-storage
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: local-path-config
+      namespace: local-path-storage
+    data:
+      config.json: |-
+        {
+                "nodePathMap":[
+                {
+                        "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                        "paths":["/opt/local-path-provisioner"]
+                }
+                ]
+        }
+      setup: |-
+        #!/bin/sh
+        while getopts "m:s:p:" opt
+        do
+            case $opt in
+                p)
+                absolutePath=$OPTARG
+                ;;
+                s)
+                sizeInBytes=$OPTARG
+                ;;
+                m)
+                volMode=$OPTARG
+                ;;
+            esac
+        done
+        
+        mkdir -m 0777 -p ${absolutePath}
+      teardown: |-
+        #!/bin/sh
+        while getopts "m:s:p:" opt
+        do
+            case $opt in
+                p)
+                absolutePath=$OPTARG
+                ;;
+                s)
+                sizeInBytes=$OPTARG
+                ;;
+                m)
+                volMode=$OPTARG
+                ;;
+            esac
+        done
+        
+        rm -rf ${absolutePath}
+---
+# Ingress-NGINX configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx
+  namespace: default
+data:
+  ingress-nginx.yaml: |
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: ingress-nginx
+    ---
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChart
+    metadata:
+      name: ingress-nginx
+      namespace: kube-system
+    spec:
+      chart: ingress-nginx
+      repo: https://kubernetes.github.io/ingress-nginx
+      targetNamespace: ingress-nginx
+      valuesContent: |-
+        controller:
+          service:
+            type: LoadBalancer
+            annotations:
+              metallb.universe.tf/address-pool: default-pool
+          config:
+            use-proxy-protocol: "false"
+            compute-full-forwarded-for: "true"
+            use-forwarded-headers: "true"
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false

@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cloudflare-tunnel
+
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - configmap.yaml
+  - deployment.yaml
+
+# Replace cluster name placeholder in ConfigMap
+patchesStrategicMerge:
+  - |-
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: cloudflare-tunnel-config
+      namespace: cloudflare-tunnel

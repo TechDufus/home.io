@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflare-tunnel-config
+  namespace: cloudflare-tunnel
+data:
+  config.yaml: |
+    tunnel: ${CLUSTER_NAME}-tunnel
+    credentials-file: /etc/cloudflared/creds/credentials.json
+    
+    # Ingress rules - these map external domains to internal services
+    ingress:
+      # ArgoCD for this cluster
+      - hostname: argocd-${CLUSTER_NAME}.lab.techdufus.com
+        service: http://argocd-server.argocd.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: argocd-${CLUSTER_NAME}.home.io
+      
+      # Home Assistant (if deployed on this cluster)
+      - hostname: ha-${CLUSTER_NAME}.lab.techdufus.com
+        service: http://home-assistant.home-assistant.svc.cluster.local:8123
+        originRequest:
+          httpHostHeader: ha-${CLUSTER_NAME}.home.io
+      
+      # Grafana (monitoring stack)
+      - hostname: grafana-${CLUSTER_NAME}.lab.techdufus.com
+        service: http://grafana.monitoring.svc.cluster.local:3000
+        originRequest:
+          httpHostHeader: grafana-${CLUSTER_NAME}.home.io
+      
+      # Future services - add more as needed
+      - hostname: app-${CLUSTER_NAME}.lab.techdufus.com
+        service: http://my-app.default.svc.cluster.local:80
+        originRequest:
+          httpHostHeader: app-${CLUSTER_NAME}.home.io
+      
+      # Catch-all rule (required)
+      - service: http_status:404
+    
+    # Logging and metrics
+    log:
+      level: info
+    
+    metrics: 0.0.0.0:9090
