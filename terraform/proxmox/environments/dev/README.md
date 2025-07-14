@@ -61,6 +61,35 @@ kubectl get nodes
 talosctl -n 10.0.20.10 health
 ```
 
+## Multi-Machine Access with 1Password
+
+### Save kubeconfig to 1Password (after cluster creation)
+```bash
+# Store the kubeconfig securely in 1Password
+op item create --category=Document \
+  --title="homelab-dev-kubeconfig" \
+  --vault="Personal" \
+  kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
+```
+
+### Access from Another Machine
+```bash
+# Download kubeconfig from 1Password
+op document get "homelab-dev-kubeconfig" --vault="Personal" > ~/.kube/config-homelab-dev
+
+# Option 1: Merge with existing kubeconfig
+KUBECONFIG=~/.kube/config:~/.kube/config-homelab-dev kubectl config view --flatten > ~/.kube/config.tmp
+mv ~/.kube/config.tmp ~/.kube/config
+kubectl config use-context homelab-dev
+
+# Option 2: Use directly
+export KUBECONFIG=~/.kube/config-homelab-dev
+kubectl get nodes
+
+# Option 3: Create an alias for quick access
+alias kdev='kubectl --kubeconfig ~/.kube/config-homelab-dev'
+```
+
 ## Configuration
 
 ### Required Variables
