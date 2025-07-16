@@ -8,6 +8,12 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "common_tags" {
+  description = "Common tags to apply to all resources"
+  type        = list(string)
+  default     = ["homelab", "terraform"]
+}
+
 variable "cluster_name" {
   description = "Kubernetes cluster name"
   type        = string
@@ -139,7 +145,7 @@ variable "cni_plugin" {
   description = "CNI plugin to use (flannel, calico, cilium)"
   type        = string
   default     = "flannel"
-  
+
   validation {
     condition     = contains(["flannel", "calico", "cilium"], var.cni_plugin)
     error_message = "CNI plugin must be flannel, calico, or cilium."

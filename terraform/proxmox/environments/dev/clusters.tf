@@ -1,91 +1,21 @@
-# Homelab Development Environment - Talos Linux
-# Production-grade Kubernetes cluster with Talos Linux
-
-terraform {
-  required_version = ">= 1.0"
-  
-  required_providers {
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.66"
-    }
-    onepassword = {
-      source  = "1Password/onepassword"
-      version = "~> 2.1"
-    }
-    talos = {
-      source  = "siderolabs/talos"
-      version = "~> 0.7"
-    }
-    http = {
-      source  = "hashicorp/http"
-      version = "~> 3.4"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.4"
-    }
-  }
-  
-  # Local backend for development
-  backend "local" {
-    path = "terraform.tfstate"
-  }
-}
-
-# 1Password data source for Proxmox credentials
-data "onepassword_item" "proxmox_terraform_user" {
-  vault = "Personal"
-  title = "Proxmox Terraform User"
-}
-
-# SSH keys for reference (not needed for Talos)
-data "http" "ssh_keys" {
-  url = "https://github.com/techdufus.keys"
-}
-
-# Configure providers
-provider "onepassword" {
-  # Uses 1Password CLI authentication
-  account = "my.1password.com"
-}
-
-provider "proxmox" {
-  endpoint = data.onepassword_item.proxmox_terraform_user.url
-  username = data.onepassword_item.proxmox_terraform_user.username
-  password = data.onepassword_item.proxmox_terraform_user.password
-  insecure = true
-  
-  ssh {
-    agent    = true
-    username = "root"
-  }
-}
-
-# Local variables
-locals {
-  # Simple tags for homelab management
-  common_tags = [
-    "homelab",
-    "dev"
-  ]
-}
+# Kubernetes Cluster Resources
+# Talos Linux Kubernetes cluster configuration for development environment
 
 # Create Talos template for this environment
 module "talos_template" {
   source = "../../modules/talos-template"
-  
+
   # Use environment-specific template ID
   template_vm_id = var.talos_template_vm_id
-  
+
   # Dev environment might use latest version
-  talos_version  = var.talos_version
-  
+  talos_version = var.talos_version
+
   # Proxmox configuration - extract IP from URL
   proxmox_node          = regex("https://([^:]+):", data.onepassword_item.proxmox_terraform_user.url)[0]
   template_storage_pool = var.template_storage_pool
-  vm_storage_pool      = var.storage_pool
-  
+  vm_storage_pool       = var.storage_pool
+
   # Tagging
   common_tags = concat(local.common_tags, ["template"])
 }
@@ -99,12 +29,12 @@ data "talos_machine_configuration" "control_plane" {
   machine_type     = "controlplane"
   cluster_endpoint = "https://${var.control_plane_ip}:6443"
   machine_secrets  = talos_machine_secrets.cluster.machine_secrets
-  
+
   config_patches = [
     yamlencode({
       cluster = {
         network = {
-          podSubnets = [var.pod_subnet]
+          podSubnets     = [var.pod_subnet]
           serviceSubnets = [var.service_subnet]
         }
         proxy = {
@@ -131,7 +61,7 @@ data "talos_machine_configuration" "control_plane" {
           rbac = true
         }
         sysctls = {
-          "net.core.somaxconn" = "65535"
+          "net.core.somaxconn"          = "65535"
           "net.core.netdev_max_backlog" = "5000"
         }
         kubelet = {
@@ -147,24 +77,24 @@ data "talos_machine_configuration" "control_plane" {
 # Generate machine configuration for worker nodes (individual configs for unique hostnames)
 data "talos_machine_configuration" "worker" {
   count = var.worker_nodes.count
-  
+
   cluster_name     = var.cluster_name
   machine_type     = "worker"
   cluster_endpoint = "https://${var.control_plane_ip}:6443"
   machine_secrets  = talos_machine_secrets.cluster.machine_secrets
-  
+
   config_patches = [
     yamlencode({
       machine = {
         network = {
-          hostname = "${var.cluster_name}-worker-${count.index + 1}"
+          hostname    = "${var.cluster_name}-worker-${count.index + 1}"
           nameservers = var.dns_servers
         }
         time = {
           servers = ["time.cloudflare.com"]
         }
         sysctls = {
-          "net.core.somaxconn" = "65535"
+          "net.core.somaxconn"          = "65535"
           "net.core.netdev_max_backlog" = "5000"
         }
         kubelet = {
@@ -180,43 +110,43 @@ data "talos_machine_configuration" "worker" {
 # Control Plane Node
 module "control_plane" {
   source = "../../modules/talos-node"
-  
+
   # Explicit dependency on template creation
   depends_on = [module.talos_template]
 
   # Node Configuration
-  node_name  = "${var.cluster_name}-cp"
-  node_role  = "controlplane"
-  vm_id      = var.control_plane_vm_id
-  
+  node_name = "${var.cluster_name}-cp"
+  node_role = "controlplane"
+  vm_id     = var.control_plane_vm_id
+
   # Template Configuration - use the template we manage
   template_vm_id = module.talos_template.template_id
   full_clone     = var.full_clone
-  
+
   # Hardware Configuration
   cpu_cores    = var.control_plane_nodes.cpu
   memory_mb    = var.control_plane_nodes.memory
   disk_size_gb = var.control_plane_nodes.disk_gb
   cpu_type     = "x86-64-v2-AES"
-  
+
   # Proxmox Configuration
-  proxmox_node   = var.proxmox_node
-  storage_pool   = var.storage_pool
-  
+  proxmox_node = var.proxmox_node
+  storage_pool = var.storage_pool
+
   # Network Configuration
-  network_bridge   = var.network_bridge
-  network_vlan_id  = var.network_vlan_id
-  ip_address       = var.control_plane_ip
-  subnet_mask      = var.subnet_mask
-  gateway          = var.gateway
-  dns_servers      = var.dns_servers
-  
+  network_bridge  = var.network_bridge
+  network_vlan_id = var.network_vlan_id
+  ip_address      = var.control_plane_ip
+  subnet_mask     = var.subnet_mask
+  gateway         = var.gateway
+  dns_servers     = var.dns_servers
+
   # Talos Configuration
   cluster_name        = var.cluster_name
   environment         = var.environment
   talos_client_config = talos_machine_secrets.cluster.client_configuration
   machine_config      = data.talos_machine_configuration.control_plane.machine_configuration
-  
+
   # Tagging
   common_tags = local.common_tags
 }
@@ -225,43 +155,43 @@ module "control_plane" {
 module "worker_nodes" {
   source = "../../modules/talos-node"
   count  = var.worker_nodes.count
-  
+
   # Explicit dependency on template creation
   depends_on = [module.talos_template]
 
   # Node Configuration
-  node_name  = "${var.cluster_name}-worker-${count.index + 1}"
-  node_role  = "worker"
-  vm_id      = var.worker_vm_id_start + count.index
-  
+  node_name = "${var.cluster_name}-worker-${count.index + 1}"
+  node_role = "worker"
+  vm_id     = var.worker_vm_id_start + count.index
+
   # Template Configuration - use the template we manage
   template_vm_id = module.talos_template.template_id
   full_clone     = var.full_clone
-  
+
   # Hardware Configuration
   cpu_cores    = var.worker_nodes.cpu
   memory_mb    = var.worker_nodes.memory
   disk_size_gb = var.worker_nodes.disk_gb
   cpu_type     = "x86-64-v2-AES"
-  
+
   # Proxmox Configuration
-  proxmox_node   = var.proxmox_node
-  storage_pool   = var.storage_pool
-  
+  proxmox_node = var.proxmox_node
+  storage_pool = var.storage_pool
+
   # Network Configuration
-  network_bridge   = var.network_bridge
-  network_vlan_id  = var.network_vlan_id
-  ip_address       = cidrhost("${var.control_plane_ip}/${var.subnet_mask}", count.index + 11)  # Start at .11, .12 to avoid conflicts
-  subnet_mask      = var.subnet_mask
-  gateway          = var.gateway
-  dns_servers      = var.dns_servers
-  
+  network_bridge  = var.network_bridge
+  network_vlan_id = var.network_vlan_id
+  ip_address      = cidrhost("${var.control_plane_ip}/${var.subnet_mask}", count.index + 11) # Start at .11, .12 to avoid conflicts
+  subnet_mask     = var.subnet_mask
+  gateway         = var.gateway
+  dns_servers     = var.dns_servers
+
   # Talos Configuration
   cluster_name        = var.cluster_name
   environment         = var.environment
   talos_client_config = talos_machine_secrets.cluster.client_configuration
   machine_config      = data.talos_machine_configuration.worker[count.index].machine_configuration
-  
+
   # Tagging
   common_tags = local.common_tags
 }
@@ -269,7 +199,7 @@ module "worker_nodes" {
 # Bootstrap Talos cluster (only on control plane, once)
 resource "talos_machine_bootstrap" "cluster" {
   depends_on = [module.control_plane]
-  
+
   node                 = var.control_plane_ip
   client_configuration = talos_machine_secrets.cluster.client_configuration
 }
@@ -277,7 +207,7 @@ resource "talos_machine_bootstrap" "cluster" {
 # Extract kubeconfig from cluster
 resource "talos_cluster_kubeconfig" "cluster" {
   depends_on = [talos_machine_bootstrap.cluster]
-  
+
   client_configuration = talos_machine_secrets.cluster.client_configuration
   node                 = var.control_plane_ip
 }
@@ -285,23 +215,23 @@ resource "talos_cluster_kubeconfig" "cluster" {
 # Save kubeconfig to local file
 resource "local_file" "kubeconfig" {
   depends_on = [talos_cluster_kubeconfig.cluster]
-  
+
   content  = talos_cluster_kubeconfig.cluster.kubeconfig_raw
   filename = "${path.root}/kubeconfig"
-  
+
   file_permission = "0600"
 }
 
 # Merge the generated kubeconfig with local ~/.kube/config
 resource "null_resource" "kubeconfig_merge" {
   depends_on = [local_file.kubeconfig]
-  
+
   triggers = {
     kubeconfig_content = local_file.kubeconfig.content
     cluster_name       = var.cluster_name
     environment        = var.environment
   }
-  
+
   provisioner "local-exec" {
     command = <<-EOT
       set -e
@@ -356,7 +286,7 @@ resource "null_resource" "kubeconfig_merge" {
       echo "You can now access the cluster with: kubectl config use-context ${var.cluster_name}"
     EOT
   }
-  
+
   # Remove context when destroying
   provisioner "local-exec" {
     when    = destroy
@@ -381,22 +311,22 @@ resource "null_resource" "kubeconfig_merge" {
 
 # Save talosconfig to local file  
 resource "local_file" "talosconfig" {
-  content = jsonencode(talos_machine_secrets.cluster.client_configuration)
+  content  = jsonencode(talos_machine_secrets.cluster.client_configuration)
   filename = "${path.root}/talosconfig"
-  
+
   file_permission = "0600"
 }
 
 # Merge the generated talosconfig with local ~/.talos/config
 resource "null_resource" "talosconfig_merge" {
   depends_on = [local_file.talosconfig]
-  
+
   triggers = {
     talosconfig_content = local_file.talosconfig.content
     cluster_name        = var.cluster_name
     environment         = var.environment
   }
-  
+
   provisioner "local-exec" {
     command = <<-EOT
       set -e
@@ -437,7 +367,7 @@ resource "null_resource" "talosconfig_merge" {
       echo "Check cluster health with: talosctl -n ${var.control_plane_ip} health"
     EOT
   }
-  
+
   # Remove context when destroying
   provisioner "local-exec" {
     when    = destroy
