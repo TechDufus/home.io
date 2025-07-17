@@ -17,7 +17,7 @@ variable "base_ip" {
   type        = string
 
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", var.base_ip))
+    condition     = can(cidrhost("${var.base_ip}/32", 0))
     error_message = "Base IP must be a valid IPv4 address."
   }
 }
@@ -37,7 +37,7 @@ variable "gateway" {
   type        = string
 
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", var.gateway))
+    condition     = can(cidrhost("${var.gateway}/32", 0))
     error_message = "Gateway must be a valid IPv4 address."
   }
 }

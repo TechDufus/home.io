@@ -26,13 +26,13 @@ locals {
   # IP assignments
   control_plane_ip = var.base_ip
 
-  # Calculate the host number of the base IP within its network
-  # Then add offset for each worker
-  base_network  = cidrsubnet("${var.base_ip}/${var.subnet_mask}", 0, 0)
-  base_host_num = parseint(split(".", var.base_ip)[3], 10)
-
+  # Calculate sequential IPs for workers starting from base_ip + 1
+  # This approach works correctly for any subnet size
   worker_ips = [for i in range(var.worker_count) :
-    cidrhost(local.base_network, local.base_host_num + i + 1)
+    cidrhost(
+      format("%s/%d", var.base_ip, var.subnet_mask),
+      i + 1
+    )
   ]
 
   # Storage mapping with fallback to default
