@@ -316,7 +316,7 @@ module "lxc_k8s_node" {
   hostname        = each.value.hostname
   vmid            = each.value.vmid
   nameserver      = var.nameserver
-  ip_address      = "${each.value.ip_address}"
+  ip_address      = each.value.ip_address
   gateway         = var.gateway
   macaddr         = try(each.value.macaddr, "0")
   os_template     = try(each.value.os_template, var.k8s_node_requirements.os_template)
@@ -331,6 +331,6 @@ module "lxc_k8s_node" {
 
   # Mountpoint is dynamic for 0-many extra mounts
   # all the work is done in the tfvars file
-  mountpoints     = try(each.value.mountpoints, [])
+  mountpoints = try(each.value.mountpoints, [])
 }
 

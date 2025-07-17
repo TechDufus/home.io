@@ -17,7 +17,7 @@ terraform {
 locals {
   # Talos versions and download URLs
   talos_version = var.talos_version
-  
+
   # Template name includes version for easy identification
   template_name = "talos-${local.talos_version}-template"
 }
@@ -27,7 +27,7 @@ resource "null_resource" "download_and_decompress_talos" {
   triggers = {
     talos_version = var.talos_version
   }
-  
+
   provisioner "local-exec" {
     command = <<-EOT
       # Create temp directory if it doesn't exist
@@ -57,12 +57,12 @@ resource "null_resource" "download_and_decompress_talos" {
 # Upload and create template via SSH (more reliable for large files)
 resource "null_resource" "create_template" {
   depends_on = [null_resource.download_and_decompress_talos]
-  
+
   triggers = {
     talos_version = var.talos_version
     template_id   = var.template_vm_id
   }
-  
+
   provisioner "local-exec" {
     command = <<-EOT
       # Check if template already exists first

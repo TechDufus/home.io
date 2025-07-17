@@ -219,12 +219,12 @@ variable "agent" {
 
 variable "cloudinit_cdrom_storage" {
   description = "Location of cloudinit cdrom storage"
-  type = string
-  default = "local-lvm"
+  type        = string
+  default     = "local-lvm"
 }
 
 variable "notes_title" {
   description = "Title for the notes snippit in the VM Summary"
-  type = string
-  default = "VM"
+  type        = string
+  default     = "VM"
 }

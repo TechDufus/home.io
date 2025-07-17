@@ -3,7 +3,7 @@ terraform {
 
   required_providers {
     proxmox = {
-      source = "telmate/proxmox"
+      source  = "telmate/proxmox"
       version = "3.0.1-rc1"
     }
   }
@@ -16,32 +16,32 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   clone       = var.vm_template
 
   # Agent needs to 0 for VM to create, 1 to modify: Issue #922
-  agent       = var.agent
-  os_type     = var.os_type
-  cores       = var.cpu_cores
-  sockets     = var.cpu_sockets
-  cpu         = "host"
-  memory      = var.memory
-  scsihw      = var.scsihw
-  onboot      = true
-  sshkeys     = var.ssh_public_keys
-  boot        = "order=scsi0;ide3"
-  bootdisk    = var.bootdisk
+  agent                   = var.agent
+  os_type                 = var.os_type
+  cores                   = var.cpu_cores
+  sockets                 = var.cpu_sockets
+  cpu                     = "host"
+  memory                  = var.memory
+  scsihw                  = var.scsihw
+  onboot                  = true
+  sshkeys                 = var.ssh_public_keys
+  boot                    = "order=scsi0;ide3"
+  bootdisk                = var.bootdisk
   cloudinit_cdrom_storage = var.cloudinit_cdrom_storage
 
-  disks{
+  disks {
     scsi {
       scsi0 {
         disk {
-          size                = var.hdd_size
+          size = var.hdd_size
           # type              = var.hdd_type      # deprecated
-          storage             = var.storage
-          mbps_r_burst        = var.mbps_rd_max
-          mbps_wr_burst       = var.mbps_wr_max
-          mbps_r_concurrent   = var.mbps_rd
-          mbps_wr_concurrent  = var.mbps_wr
-          iothread            = var.iothread
-          discard             = var.discard
+          storage            = var.storage
+          mbps_r_burst       = var.mbps_rd_max
+          mbps_wr_burst      = var.mbps_wr_max
+          mbps_r_concurrent  = var.mbps_rd
+          mbps_wr_concurrent = var.mbps_wr
+          iothread           = var.iothread
+          discard            = var.discard
           # aio         = var.aio
           # ssd         = var.ssd
         }
@@ -50,12 +50,12 @@ resource "proxmox_vm_qemu" "virtual_machines" {
   }
 
   network {
-    model   = var.net_model
-    bridge  = var.net_bridge
+    model  = var.net_model
+    bridge = var.net_bridge
     #mtu     = var.mtu
     #rate    = var.rate
     macaddr = var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
-    tag    = var.vlan_tag
+    tag     = var.vlan_tag
   }
 
   # Terraform will ignore these vm object values if / when they change.
@@ -67,11 +67,11 @@ resource "proxmox_vm_qemu" "virtual_machines" {
     ]
   }
   # Cloud-init config
-  ciuser      = var.username
-  ipconfig0  = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
-  nameserver = var.nameserver
+  ciuser       = var.username
+  ipconfig0    = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
+  nameserver   = var.nameserver
   searchdomain = var.nameserver
-  desc       = <<EOF
+  desc         = <<EOF
   # ${var.notes_title}
   Template: ${var.vm_template}
   - Name: ${var.hostname}

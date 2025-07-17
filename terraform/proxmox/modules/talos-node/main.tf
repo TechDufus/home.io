@@ -60,7 +60,7 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
   operating_system {
     type = "l26"
   }
-  
+
   # Disable agent wait since Talos doesn't run QEMU guest agent
   agent {
     enabled = false
@@ -74,11 +74,11 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
         gateway = var.gateway
       }
     }
-    
+
     dns {
       servers = var.dns_servers
     }
-    
+
     # Disable cloud-init user creation (Talos manages this)
     user_account {
       username = "talos"
@@ -88,15 +88,15 @@ resource "proxmox_virtual_environment_vm" "talos_node" {
 
   # Start VM after creation
   started = true
-  
+
   # VM protection and boot settings
   protection = var.protection
   on_boot    = var.onboot
-  
+
   # Talos doesn't run QEMU guest agent, so don't wait for it
-  timeout_create = 300  # 5 minutes max
+  timeout_create   = 300 # 5 minutes max
   timeout_start_vm = 60  # 1 minute max for startup
-  
+
   # Descriptive notes for Proxmox GUI (markdown format)
   description = <<-EOT
 # Homelab ${title(var.environment)} - ${title(var.node_role)} Node
@@ -146,10 +146,10 @@ EOT
 # Apply Talos machine configuration
 resource "talos_machine_configuration_apply" "node" {
   depends_on = [proxmox_virtual_environment_vm.talos_node]
-  
+
   client_configuration        = var.talos_client_config
   machine_configuration_input = var.machine_config
   node                        = var.ip_address
-  
+
   config_patches = var.config_patches
 }

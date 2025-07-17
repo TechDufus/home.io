@@ -116,47 +116,47 @@ variable "macaddr" {
   type        = string
 }
 
-variable "cpu_units"{
+variable "cpu_units" {
   description = "CPU weight that the container possesses"
   type        = number
   default     = 1024
 }
 
 variable "unprivileged" {
-    description = "Boolean that makes the container run as an unprivileged user"
-    type = bool
-    default = true
+  description = "Boolean that makes the container run as an unprivileged user"
+  type        = bool
+  default     = true
 }
 
 variable "net_name" {
-    description = "Name of the network - like eth0"
-    type = string
-    default = "eth0"
+  description = "Name of the network - like eth0"
+  type        = string
+  default     = "eth0"
 
 }
 
 variable "start" {
   description = "Autostart on creation"
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "swap" {
   description = "Swap space available to container"
-  type = number
-  default = 512
+  type        = number
+  default     = 512
 
 }
 
 
 variable "mountpoints" {
-    description = "List of mount points for container"
-    type = list(object({
-        key = string
-        slot = number
-        storage = string
-        mp = string
-        size = string
-    }))
-    default = []
+  description = "List of mount points for container"
+  type = list(object({
+    key     = string
+    slot    = number
+    storage = string
+    mp      = string
+    size    = string
+  }))
+  default = []
 }

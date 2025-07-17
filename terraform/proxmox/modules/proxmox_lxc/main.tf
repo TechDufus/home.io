@@ -3,36 +3,36 @@ terraform {
 
   required_providers {
     proxmox = {
-      source = "telmate/proxmox"
+      source  = "telmate/proxmox"
       version = "3.0.1-rc1"
     }
   }
 }
 
 resource "proxmox_lxc" "lxc_container" {
-  hostname     = var.hostname
+  hostname    = var.hostname
   vmid        = var.vmid
   target_node = var.target_node
 
   #ostype     = var.os_type # Redundant
   ostemplate = var.os_template
-  cores       = var.cpu_cores
+  cores      = var.cpu_cores
   #cpu_    = var.cpu_units
-  memory      = var.memory
-  swap        = var.swap
-  unprivileged = var.unprivileged
-  onboot      = true
+  memory          = var.memory
+  swap            = var.swap
+  unprivileged    = var.unprivileged
+  onboot          = true
   ssh_public_keys = var.ssh_public_keys
-  start     = var.start
+  start           = var.start
 
   features {
     # A couple of bugs if this is disabled
     nesting = true
   }
 
-  rootfs{
+  rootfs {
     storage = var.storage
-    size = var.rootfs_size
+    size    = var.rootfs_size
   }
 
   #This will create a mountpoint for each mountpoint object defined.
@@ -41,21 +41,21 @@ resource "proxmox_lxc" "lxc_container" {
     for_each = var.mountpoints
 
     content {
-        key = mountpoint.value.key
-        slot = mountpoint.value.slot
-        #Could potentially be volume now
-        storage = mountpoint.value.storage
-        mp = mountpoint.value.mp
-        size = mountpoint.value.size
+      key  = mountpoint.value.key
+      slot = mountpoint.value.slot
+      #Could potentially be volume now
+      storage = mountpoint.value.storage
+      mp      = mountpoint.value.mp
+      size    = mountpoint.value.size
     }
 
   }
 
   network {
-    name = var.net_name
-    bridge  = var.net_bridge
-    ip      = var.ip_address
-    gw      = var.gateway
+    name   = var.net_name
+    bridge = var.net_bridge
+    ip     = var.ip_address
+    gw     = var.gateway
     #mtu     = var.mtu
     #rate    = var.rate
     hwaddr = var.macaddr != "0" ? var.macaddr : null # Conditionally set MAC Address if provided
@@ -76,13 +76,13 @@ resource "proxmox_lxc" "lxc_container" {
   # ipconfig0  = "ip=${var.ip_address}/${var.netmask_cidr},gw=${var.gateway}"
   # nameserver = var.nameserver
   # searchdomain = var.nameserver
-#   desc       = <<EOF
-#   # ${var.notes_title}
-# Template: ${var.vm_template}
-# - Name: ${var.hostname}
-# - IP: ${var.ip_address}
-# - CPUs: ${var.cpu_cores}
-# - Memory: ${var.memory}
-# - Disk: ${var.hdd_size}
-# EOF
+  #   desc       = <<EOF
+  #   # ${var.notes_title}
+  # Template: ${var.vm_template}
+  # - Name: ${var.hostname}
+  # - IP: ${var.ip_address}
+  # - CPUs: ${var.cpu_cores}
+  # - Memory: ${var.memory}
+  # - Disk: ${var.hdd_size}
+  # EOF
 }

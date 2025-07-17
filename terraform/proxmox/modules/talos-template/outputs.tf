@@ -31,7 +31,7 @@ output "usage_instructions" {
   description = "Instructions for using this template"
   value = {
     terraform_reference = "template_vm_id = ${var.template_vm_id}"
-    
+
     manual_clone = <<-EOT
       # Clone this template manually:
       qm clone ${var.template_vm_id} <new-vm-id> --name <vm-name>
@@ -39,7 +39,7 @@ output "usage_instructions" {
       qm resize <new-vm-id> scsi0 +40G
       qm start <new-vm-id>
     EOT
-    
+
     notes = [
       "Talos configures networking via machine config, not cloud-init",
       "No SSH access - management is via Talos API on port 50000",
