@@ -11,7 +11,7 @@ variable "template_vm_id" {
   description = "VM ID for the Talos template"
   type        = number
   default     = 9200
-  
+
   validation {
     condition     = var.template_vm_id >= 9000 && var.template_vm_id <= 9999
     error_message = "Template VM IDs should be between 9000-9999."
@@ -47,7 +47,7 @@ variable "template_disk_size" {
   description = "Disk size for template in GB"
   type        = number
   default     = 10
-  
+
   validation {
     condition     = var.template_disk_size >= 10 && var.template_disk_size <= 100
     error_message = "Template disk size must be between 10GB and 100GB."
@@ -66,11 +66,11 @@ variable "cpu_type" {
   description = "CPU type for template"
   type        = string
   default     = "x86-64-v2-AES"
-  
+
   validation {
     condition = contains([
       "x86-64-v2-AES",
-      "x86-64-v3", 
+      "x86-64-v3",
       "x86-64-v4",
       "host",
       "kvm64"
@@ -83,7 +83,7 @@ variable "bios_type" {
   description = "BIOS type for template (ovmf for UEFI, seabios for legacy)"
   type        = string
   default     = "seabios"
-  
+
   validation {
     condition     = contains(["ovmf", "seabios"], var.bios_type)
     error_message = "BIOS type must be either 'ovmf' (UEFI) or 'seabios' (legacy)."

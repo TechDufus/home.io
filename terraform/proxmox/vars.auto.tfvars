@@ -1,8 +1,8 @@
 #global vars
-nameserver  = "10.0.20.1"
-gateway     = "10.0.20.1"
-vm_template = "ubuntu-server-20.04-template"
-target_node = "proxmox"
+nameserver      = "10.0.20.1"
+gateway         = "10.0.20.1"
+vm_template     = "ubuntu-server-20.04-template"
+target_node     = "proxmox"
 ssh_public_keys = <<EOF
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFiL48RdHXOm+Mo2HboWkrrcUKX2odIg23b/3ondXV5d
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICEqRpZTZomhFqOo2mG4q21JyeKPa4ZgDFQIqPFU05Bn
@@ -231,28 +231,28 @@ generic_vm = {
 # Example Container with rootfs and 2 mounted drives defined.
 lxc_k8s_nodes = {
   "k8s-master0" = {
-    hostname    = "k8s-master0"
-    vmid        = "140"
-    ip_address  = "10.0.20.40/24"
-    storage = "VM-SSD-0"
+    hostname   = "k8s-master0"
+    vmid       = "140"
+    ip_address = "10.0.20.40/24"
+    storage    = "VM-SSD-0"
   }
   "k8s-node0" = {
-    hostname    = "k8s-node0"
-    vmid        = "141"
-    ip_address  = "10.0.20.41/24"
-    storage = "VM-SSD-0"
+    hostname   = "k8s-node0"
+    vmid       = "141"
+    ip_address = "10.0.20.41/24"
+    storage    = "VM-SSD-0"
   }
   "k8s-node1" = {
-    hostname    = "k8s-node1"
-    vmid        = "142"
-    ip_address  = "10.0.20.42/24"
-    storage = "VM-SSD-0"
+    hostname   = "k8s-node1"
+    vmid       = "142"
+    ip_address = "10.0.20.42/24"
+    storage    = "VM-SSD-0"
   }
   "k8s-node2" = {
-    hostname    = "k8s-node2"
-    vmid        = "143"
-    ip_address  = "10.0.20.43/24"
-    storage = "VM-SSD-0"
+    hostname   = "k8s-node2"
+    vmid       = "143"
+    ip_address = "10.0.20.43/24"
+    storage    = "VM-SSD-0"
   }
   # "k8s-node3" = {
   #   hostname    = "k8s-node3"

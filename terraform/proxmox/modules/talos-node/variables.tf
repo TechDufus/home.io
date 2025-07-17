@@ -10,7 +10,7 @@ variable "node_name" {
 variable "node_role" {
   description = "Role of the node: controlplane or worker"
   type        = string
-  
+
   validation {
     condition     = contains(["controlplane", "worker"], var.node_role)
     error_message = "Node role must be either 'controlplane' or 'worker'."
@@ -20,7 +20,7 @@ variable "node_role" {
 variable "vm_id" {
   description = "Unique VM ID for the node"
   type        = number
-  
+
   validation {
     condition     = var.vm_id >= 100 && var.vm_id <= 999999
     error_message = "VM ID must be between 100 and 999999."
@@ -63,7 +63,7 @@ variable "cpu_cores" {
   description = "Number of CPU cores for the node"
   type        = number
   default     = 2
-  
+
   validation {
     condition     = var.cpu_cores >= 2 && var.cpu_cores <= 32
     error_message = "CPU cores must be between 2 and 32 for Kubernetes nodes."
@@ -74,7 +74,7 @@ variable "memory_mb" {
   description = "Memory allocation for the node in MB"
   type        = number
   default     = 4096
-  
+
   validation {
     condition     = var.memory_mb >= 2048
     error_message = "Kubernetes nodes require at least 2048MB of memory."
@@ -85,7 +85,7 @@ variable "disk_size_gb" {
   description = "Disk size for the node in GB"
   type        = number
   default     = 40
-  
+
   validation {
     condition     = var.disk_size_gb >= 20
     error_message = "Kubernetes nodes require at least 20GB disk space."

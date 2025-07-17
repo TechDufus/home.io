@@ -24,8 +24,8 @@ variable "stratus_nodes" {
 
 variable "lxc_cumulus_nodes" {
   description = "The number of LXC Cumulus nodes to create and their values"
-  type = map(any)
-  default = {}
+  type        = map(any)
+  default     = {}
 }
 
 variable "generic_vm" {
@@ -190,8 +190,8 @@ variable "agent" {
 
 variable "notes_title" {
   description = "Title for the notes snippit in the VM Summary"
-  type = string
-  default = "VM"
+  type        = string
+  default     = "VM"
 }
 
 variable "ssh_public_keys" {
@@ -201,8 +201,8 @@ variable "ssh_public_keys" {
 }
 
 variable "flux_cumulus_requirements" {
-  description   = "Requirements for flux Cumulus node"
-  type          = object({
+  description = "Requirements for flux Cumulus node"
+  type = object({
     cpu_cores   = number
     memory      = number
     hdd_size    = number
@@ -225,8 +225,8 @@ variable "flux_cumulus_requirements" {
 }
 
 variable "flux_nimbus_requirements" {
-  description   = "Requirements for a flux Nimbus Node"
-  type          = object({
+  description = "Requirements for a flux Nimbus Node"
+  type = object({
     cpu_cores   = number
     memory      = number
     hdd_size    = number
@@ -249,8 +249,8 @@ variable "flux_nimbus_requirements" {
 }
 
 variable "generic_vm_requirements" {
-  description   = "Requirements for a generic VM"
-  type          = object({
+  description = "Requirements for a generic VM"
+  type = object({
     cpu_cores   = number
     memory      = number
     hdd_size    = number
@@ -273,8 +273,8 @@ variable "generic_vm_requirements" {
 }
 
 variable "flux_stratus_requirements" {
-  description   = "Requirements for a flux Nimbus Node"
-  type          = object({
+  description = "Requirements for a flux Nimbus Node"
+  type = object({
     cpu_cores   = number
     memory      = number
     hdd_size    = number
@@ -297,34 +297,34 @@ variable "flux_stratus_requirements" {
 }
 
 variable "k8s_node_requirements" {
-  description   = "Requirements for a LXC K8s Master Node"
-  type          = object({
-    cpu_cores   = number
-    rootfs_size = string
-    os_type     = string
-    os_template = string
+  description = "Requirements for a LXC K8s Master Node"
+  type = object({
+    cpu_cores    = number
+    rootfs_size  = string
+    os_type      = string
+    os_template  = string
     unprivileged = bool
-    memory      = number
-    hdd_size    = number
-    mbps_rd     = number
-    mbps_rd_max = number
-    mbps_wr     = number
-    mbps_wr_max = number
-    rate        = number
+    memory       = number
+    hdd_size     = number
+    mbps_rd      = number
+    mbps_rd_max  = number
+    mbps_wr      = number
+    mbps_wr_max  = number
+    rate         = number
   })
   default = {
-    cpu_cores   = 4
-    rootfs_size = "40G"
-    os_type     = "debian"
-    os_template = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
+    cpu_cores    = 4
+    rootfs_size  = "40G"
+    os_type      = "debian"
+    os_template  = "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
     unprivileged = false
-    memory      = 4096
-    hdd_size    = 60
-    mbps_rd     = 0
-    mbps_rd_max = 0
-    mbps_wr     = 0
-    mbps_wr_max = 0
-    rate        = 0
+    memory       = 4096
+    hdd_size     = 60
+    mbps_rd      = 0
+    mbps_rd_max  = 0
+    mbps_wr      = 0
+    mbps_wr_max  = 0
+    rate         = 0
   }
 }
 

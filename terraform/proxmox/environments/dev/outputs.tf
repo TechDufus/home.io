@@ -42,7 +42,7 @@ output "cluster_endpoints" {
 
 output "template_info" {
   description = "Template information"
-  value = module.talos_template.template_info
+  value       = module.talos_template.template_info
 }
 
 output "next_steps" {
@@ -52,7 +52,7 @@ output "next_steps" {
     talos_context   = "talosctl config context ${var.cluster_name}"
     cluster_health  = "talosctl -n ${var.control_plane_ip} health"
     node_status     = "kubectl get nodes"
-    
+
     usage_notes = [
       "Kubeconfig and talosconfig have been automatically merged into your local configs",
       "Use 'kubectl config use-context ${var.cluster_name}' to switch to this cluster",

@@ -1,232 +1,82 @@
-# Development Environment - Talos Kubernetes Cluster
+# Development Talos Cluster
 
-This directory contains Terraform configuration for deploying a development Talos Linux Kubernetes cluster on Proxmox VE.
+Terraform configuration for the development Talos Linux Kubernetes cluster on Proxmox VE.
 
-## Overview
+## Architecture
 
-This environment creates a production-grade Kubernetes cluster using:
-- **Talos Linux**: Immutable Kubernetes OS
-- **Proxmox VE**: Virtualization platform
-- **1Password**: Secure credential management
-- **Terraform**: Infrastructure as code
+- **Control Plane**: 1 node (4 CPU, 8GB RAM, 80GB disk)
+- **Workers**: 2 nodes (4 CPU, 12GB RAM, 100GB disk)
+- **Network**: 10.0.20.0/24 with MetalLB pool at .200-.230
+- **CNI**: Flannel (default), configurable for Calico/Cilium
+- **Storage**: Local-path provisioner for development workloads
 
 ## Prerequisites
 
-### Required Tools
-- [Terraform](https://terraform.io) >= 1.0
-- [talosctl](https://www.talos.dev/v1.7/introduction/getting-started/) >= 1.7.6
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) >= 1.28
-- [1Password CLI](https://developer.1password.com/docs/cli/) configured
+- Proxmox VE with API access
+- 1Password CLI configured with "Proxmox Terraform User" item
+- Terraform >= 1.0, talosctl >= 1.7.6, kubectl >= 1.28
 
-### Proxmox Setup
-- Proxmox VE node with API access
-- 1Password item named "Proxmox Terraform User" in "Personal" vault containing:
-  - URL: Proxmox API endpoint (e.g., `https://proxmox.home.io:8006/api2/json`)
-  - Username: Terraform user with VM creation privileges
-  - Password: User password
+## Deployment
 
-## Quick Start
-
-### 1. Configure Variables
 ```bash
-# Copy example variables
-cp terraform.tfvars.example terraform.tfvars
-
-# Edit terraform.tfvars with your environment settings
-vim terraform.tfvars
+terraform init && terraform plan && terraform apply
 ```
 
-### 2. Deploy Infrastructure
+Post-deployment, kubeconfig and talosconfig are automatically merged into your local configs.
+
+## Multi-Machine Access
+
 ```bash
-# Initialize Terraform
-terraform init
+# Store kubeconfig in 1Password
+op item create --category=Document --title="homelab-dev-kubeconfig" --vault="Personal" kubeconfig=@kubeconfig
 
-# Review planned changes
-terraform plan
-
-# Deploy cluster
-terraform apply
-```
-
-### 3. Access Cluster
-After deployment, configurations are automatically merged:
-```bash
-# Switch to cluster context
-kubectl config use-context homelab-dev
-
-# Verify cluster health
-kubectl get nodes
-
-# Or use talosctl directly
-talosctl -n 10.0.20.10 health
-```
-
-## Multi-Machine Access with 1Password
-
-### Save kubeconfig to 1Password (after cluster creation)
-```bash
-# Store the kubeconfig securely in 1Password
-op item create --category=Document \
-  --title="homelab-dev-kubeconfig" \
-  --vault="Personal" \
-  kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
-```
-
-### Access from Another Machine
-```bash
-# Download kubeconfig from 1Password
+# Access from another machine
 op document get "homelab-dev-kubeconfig" --vault="Personal" > ~/.kube/config-homelab-dev
-
-# Option 1: Merge with existing kubeconfig
-KUBECONFIG=~/.kube/config:~/.kube/config-homelab-dev kubectl config view --flatten > ~/.kube/config.tmp
-mv ~/.kube/config.tmp ~/.kube/config
-kubectl config use-context homelab-dev
-
-# Option 2: Use directly
-export KUBECONFIG=~/.kube/config-homelab-dev
-kubectl get nodes
-
-# Option 3: Create an alias for quick access
-alias kdev='kubectl --kubeconfig ~/.kube/config-homelab-dev'
+KUBECONFIG=~/.kube/config:~/.kube/config-homelab-dev kubectl config view --flatten > ~/.kube/config
 ```
 
 ## Configuration
 
-### Required Variables
-Edit `terraform.tfvars` with your specific values:
+Key variables in `terraform.tfvars`:
+- `control_plane_ip`: Static IP for control plane (default: 10.0.20.10)
+- `worker_nodes.count`: Number of workers (default: 2)
+- VM IDs: Template 9200, Control Plane 200, Workers 210+
 
-```hcl
-# Basic Configuration
-environment  = "dev"
-cluster_name = "homelab-dev"
-proxmox_node = "your-proxmox-node"
+## State Management
 
-# Network Configuration (adjust for your network)
-control_plane_ip = "10.0.20.10"
-subnet_mask      = 24
-gateway          = "10.0.20.1"
-dns_servers      = ["10.0.0.99", "1.1.1.1"]
-
-# Hardware Configuration
-control_plane_nodes = {
-  cpu     = 4
-  memory  = 8192
-  disk_gb = 80
-}
-
-worker_nodes = {
-  count   = 2
-  cpu     = 4
-  memory  = 12288
-  disk_gb = 100
-}
+```bash
+# Sync Terraform state with 1Password
+./scripts/tfstate push    # After terraform apply
+./scripts/tfstate pull    # On new machine
+./scripts/tfstate sync    # Smart sync based on timestamps
+./scripts/tfstate status  # Check sync status
 ```
 
-### VM ID Allocation
-Default VM IDs (adjust to avoid conflicts):
-- Template: 9200
-- Control Plane: 200
-- Workers: 210, 211, etc.
+## Operations
 
-## Architecture
-
-### Cluster Components
-- **1 Control Plane Node**: Kubernetes API server, etcd, scheduler
-- **2 Worker Nodes**: Application workload execution
-- **Talos Template**: Shared base image for all nodes
-
-### Network Layout
-- Control Plane: Static IP (configured)
-- Workers: DHCP or calculated IPs (.11, .12, etc.)
-- Pod Network: `10.244.0.0/16` (Flannel)
-- Service Network: `10.96.0.0/12`
-
-### Storage Configuration
-- VM Disks: `local-lvm` (configurable)
-- Templates: `local` (configurable)
-- Linked Clones: Enabled for faster deployment
-
-## Module Dependencies
-
-This environment uses shared modules:
-- `../../modules/talos-template`: Talos image management
-- `../../modules/talos-node`: VM creation and configuration
-
-## Generated Files
-
-After deployment, these files are created:
-- `kubeconfig`: Kubernetes cluster access
-- `talosconfig`: Talos OS management
-- `terraform.tfstate`: Terraform state (local backend)
-
-Configurations are automatically merged into:
-- `~/.kube/config`: Kubernetes contexts
-- `~/.talos/config`: Talos contexts
-
-## Management Commands
-
-### Cluster Operations
 ```bash
-# Scale worker nodes (edit terraform.tfvars, then apply)
+# Scale workers
+vim terraform.tfvars  # Update worker_nodes.count
 terraform apply
 
-# Destroy cluster
-terraform destroy
-
-# View cluster status
+# Access nodes
 kubectl get nodes -o wide
 talosctl -n 10.0.20.10 dashboard
-```
+talosctl -n 10.0.20.10 logs kubelet
 
-### Troubleshooting
-```bash
-# Check Talos logs
-talosctl -n 10.0.20.10 logs controller-manager
-
-# Restart services
-talosctl -n 10.0.20.10 restart
-
-# Reset and reconfigure node
-talosctl -n 10.0.20.10 reset --graceful
+# Destroy
+terraform destroy
 ```
 
 ## Customization
 
-### Adding CNI Plugins
-Edit `main.tf` to configure alternative CNI:
-```hcl
-# In data.talos_machine_configuration.control_plane
-cluster = {
-  network = {
-    cni = {
-      name = "calico"  # or "cilium"
-    }
-  }
-}
-```
+- **CNI**: Edit `clusters.tf` to switch from Flannel to Calico/Cilium
+- **Node count**: Adjust `worker_nodes.count` in `terraform.tfvars`
+- **Machine configs**: Modify patches in `clusters.tf` for specialized configurations
 
-### Additional Nodes
-Increase `worker_nodes.count` in `terraform.tfvars` and apply.
+## Notes
 
-### Custom Machine Configs
-Modify config patches in `main.tf` for specialized node configurations.
-
-## Security Notes
-
-- All credentials managed via 1Password
-- VM access via SSH keys from GitHub
-- Talos provides immutable, minimal attack surface
-- No SSH access to nodes (use `talosctl` for management)
-
-## Next Steps
-
-After cluster deployment:
-1. Install ingress controller (NGINX, Traefik)
-2. Configure persistent storage (Longhorn, local-path)
-3. Deploy monitoring stack (Prometheus, Grafana)
-4. Set up GitOps with ArgoCD or Flux
-
-## Related Documentation
-
-- [Talos Documentation](https://www.talos.dev/v1.7/)
-- [Project Architecture](../../../../README.md)
+- Credentials managed via 1Password
+- No SSH access - use `talosctl` for node management
+- VM access keys pulled from GitHub (configured in module)
+- State synced to 1Password for multi-machine access

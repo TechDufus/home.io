@@ -1,0 +1,588 @@
+#!/usr/bin/env bash
+# Terraform State <-> 1Password Sync Tool
+# A beautiful CLI for managing Terraform state with 1Password
+
+# Catppuccin Mocha color palette
+ROSEWATER='#f5e0dc'
+FLAMINGO='#f2cdcd'
+PINK='#f5c2e7'
+MAUVE='#cba6f7'
+RED='#f38ba8'
+MAROON='#eba0ac'
+PEACH='#fab387'
+YELLOW='#f9e2af'
+GREEN='#a6e3a1'
+TEAL='#94e2d5'
+SKY='#89dceb'
+SAPPHIRE='#74c7ec'
+BLUE='#89b4fa'
+LAVENDER='#b4befe'
+TEXT='#cdd6f4'
+SUBTEXT1='#bac2de'
+SUBTEXT0='#a6adc8'
+OVERLAY2='#9399b2'
+OVERLAY1='#7f849c'
+OVERLAY0='#6c7086'
+SURFACE2='#585b70'
+SURFACE1='#45475a'
+SURFACE0='#313244'
+BASE='#1e1e2e'
+MANTLE='#181825'
+CRUST='#11111b'
+
+# Color functions
+color() { printf "\e[38;2;%d;%d;%dm%s\e[0m" $((16#${1:1:2})) $((16#${1:3:2})) $((16#${1:5:2})) "$2"; }
+bold() { printf "\e[1m%s\e[0m" "$1"; }
+italic() { printf "\e[3m%s\e[0m" "$1"; }
+
+# Styled output functions
+print_header() {
+    echo
+    echo "$(color "$MAUVE" '╭─────────────────────────────────────────────────────────────╮')"
+    echo "$(color "$MAUVE" '│')  $(bold "$(color "$BLUE" '🔐 Terraform State')")$(color "$PINK" ' ⇄  ')$(bold "$(color "$SAPPHIRE" '1Password Sync')")$(color "$MAUVE" '                       │')"
+    echo "$(color "$MAUVE" '│')  $(italic "$(color "$OVERLAY1" 'Secure state management for your infrastructure')")$(color "$MAUVE" '            │')"
+    echo "$(color "$MAUVE" '╰─────────────────────────────────────────────────────────────╯')"
+    echo
+}
+
+print_success() {
+    echo "$(color "$GREEN" ' ✓') $(color "$TEXT" "$1")"
+}
+
+print_error() {
+    echo "$(color "$RED" ' ✗') $(color "$TEXT" "$1")"
+}
+
+print_warning() {
+    echo "$(color "$YELLOW" ' ⚠') $(color "$TEXT" "$1")"
+}
+
+print_info() {
+    echo "$(color "$SAPPHIRE" ' ℹ') $(color "$TEXT" "$1")"
+}
+
+print_step() {
+    echo "$(color "$LAVENDER" ' ▸') $(color "$SUBTEXT1" "$1")"
+}
+
+# Progress spinner
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " $(color "$PINK" '%c')" "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b"
+    done
+    printf "   \b\b\b"
+}
+
+# Get script location and derive the terraform directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TERRAFORM_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Configuration
+VAULT="${TFSTATE_VAULT:-cicd}"
+ITEM_PREFIX="${TFSTATE_PREFIX:-tfstate}"
+STATE_FILE="$TERRAFORM_DIR/terraform.tfstate"
+STATE_BACKUP_FILE="$TERRAFORM_DIR/terraform.tfstate.backup"
+
+# Get environment name from terraform directory (not current directory)
+ENV_NAME=$(basename "$TERRAFORM_DIR")
+ITEM_NAME="${ITEM_PREFIX}-${ENV_NAME}"
+
+# Help function
+show_help() {
+    print_header
+
+    echo "$(bold "$(color "$PEACH" 'USAGE:')")"
+    echo "  $(color "$GREEN" "$(basename "$0")") $(color "$SAPPHIRE" '[COMMAND]') $(color "$OVERLAY1" '[OPTIONS]')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'COMMANDS:')")"
+    echo "  $(color "$GREEN" 'push')             $(color "$TEXT" 'Push local state to 1Password')"
+    echo "  $(color "$GREEN" 'sync')             $(color "$TEXT" 'Smart sync based on timestamps (auto push/pull)')"
+    echo "  $(color "$GREEN" 'pull'), $(color "$GREEN" 'restore')    $(color "$TEXT" 'Pull state from 1Password to local')"
+    echo "  $(color "$GREEN" 'status')           $(color "$TEXT" 'Check sync status and show details')"
+    echo "  $(color "$GREEN" 'list')             $(color "$TEXT" 'List all Terraform states in 1Password')"
+    echo "  $(color "$GREEN" 'delete')           $(color "$TEXT" 'Remove state from 1Password')"
+    echo "  $(color "$GREEN" 'help')             $(color "$TEXT" 'Show this help message')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'OPTIONS:')")"
+    echo "  $(color "$SAPPHIRE" '--vault') $(color "$OVERLAY1" 'VAULT')     $(color "$TEXT" 'Specify 1Password vault (default: Infrastructure)')"
+    echo "  $(color "$SAPPHIRE" '--name') $(color "$OVERLAY1" 'NAME')       $(color "$TEXT" 'Override item name (default: tfstate-<dirname>)')"
+    echo "  $(color "$SAPPHIRE" '--force')           $(color "$TEXT" 'Skip confirmation prompts')"
+    echo "  $(color "$SAPPHIRE" '--backup')          $(color "$TEXT" 'Also sync terraform.tfstate.backup')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'ENVIRONMENT VARIABLES:')")"
+    echo "  $(color "$SAPPHIRE" 'TFSTATE_VAULT')     $(color "$TEXT" 'Default vault name')"
+    echo "  $(color "$SAPPHIRE" 'TFSTATE_PREFIX')    $(color "$TEXT" 'Item name prefix (default: tfstate)')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'EXAMPLES:')")"
+    echo "  $(color "$OVERLAY1" '# Smart sync - automatically push or pull based on timestamps')"
+    echo "  $(color "$GREEN" "$(basename "$0") sync")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Force push state after terraform apply')"
+    echo "  $(color "$GREEN" "$(basename "$0") push")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Pull state on new machine')"
+    echo "  $(color "$GREEN" "$(basename "$0") pull")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Check current sync status')"
+    echo "  $(color "$GREEN" "$(basename "$0") status")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Use different vault')"
+    echo "  $(color "$GREEN" "$(basename "$0") push --vault Personal")"
+    echo
+}
+
+# Parse command line arguments
+COMMAND=""
+FORCE=false
+SYNC_BACKUP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        push|sync|pull|restore|status|list|delete|help)
+            COMMAND="$1"
+            shift
+            ;;
+        --vault)
+            VAULT="$2"
+            shift 2
+            ;;
+        --name)
+            ITEM_NAME="$2"
+            shift 2
+            ;;
+        --force)
+            FORCE=true
+            shift
+            ;;
+        --backup)
+            SYNC_BACKUP=true
+            shift
+            ;;
+        *)
+            print_error "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# Default to help if no command
+if [ -z "$COMMAND" ]; then
+    COMMAND="help"
+fi
+
+# Function to push state to 1Password
+push_state() {
+    print_info "Pushing state to 1Password..."
+    echo
+
+    # Check if state file exists
+    if [ ! -f "$STATE_FILE" ]; then
+        print_error "No state file found at: $STATE_FILE"
+        exit 1
+    fi
+
+    # Get file details
+    local file_size=$(ls -lh "$STATE_FILE" | awk '{print $5}')
+    local file_date=$(date -r "$STATE_FILE" "+%Y-%m-%d %H:%M:%S")
+
+    print_step "State file: $(color "$YELLOW" "$(basename "$STATE_FILE")") ($(color "$OVERLAY1" "$file_size"))"
+    print_step "Modified: $(color "$OVERLAY1" "$file_date")"
+    print_step "Directory: $(color "$OVERLAY1" "$TERRAFORM_DIR")"
+    print_step "Target: $(color "$SAPPHIRE" "$VAULT")/$(color "$GREEN" "$ITEM_NAME")"
+    echo
+
+    # Check if item exists
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        print_warning "State already exists in 1Password"
+
+        if [ "$FORCE" != true ]; then
+            echo -n "$(color "$YELLOW" 'Overwrite? [y/N] ')"
+            read -r response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                print_info "Push cancelled"
+                exit 0
+            fi
+        fi
+
+        # Update existing
+        print_step "Updating existing state..."
+        op document edit "$ITEM_NAME" "$STATE_FILE" --vault "$VAULT" &
+        spinner $!
+
+        if [ $? -eq 0 ]; then
+            print_success "State updated successfully!"
+        else
+            print_error "Failed to update state"
+            exit 1
+        fi
+    else
+        # Create new
+        print_step "Creating new state item..."
+        op document create "$STATE_FILE" \
+            --title "$ITEM_NAME" \
+            --vault "$VAULT" \
+            --tags "terraform,state,$ENV_NAME" &
+        spinner $!
+
+        if [ $? -eq 0 ]; then
+            print_success "State created successfully!"
+        else
+            print_error "Failed to create state"
+            exit 1
+        fi
+    fi
+
+    # Handle backup file if requested
+    if [ "$SYNC_BACKUP" = true ] && [ -f "$STATE_BACKUP_FILE" ]; then
+        echo
+        print_info "Syncing backup file..."
+        print_step "Processing: $(color "$YELLOW" "$STATE_BACKUP_FILE")"
+
+        local backup_item="${ITEM_NAME}-backup"
+        if op item get "$backup_item" --vault "$VAULT" >/dev/null 2>&1; then
+            op document edit "$backup_item" "$STATE_BACKUP_FILE" --vault "$VAULT" &
+        else
+            op document create "$STATE_BACKUP_FILE" \
+                --title "$backup_item" \
+                --vault "$VAULT" \
+                --tags "terraform,state-backup,$ENV_NAME" &
+        fi
+        spinner $!
+
+        print_success "Backup synced!"
+    fi
+}
+
+# Function to pull state from 1Password
+pull_state() {
+    print_info "Pulling state from 1Password..."
+    echo
+
+    print_step "Source: $(color "$SAPPHIRE" "$VAULT")/$(color "$GREEN" "$ITEM_NAME")"
+    print_step "Target: $(color "$YELLOW" "$(basename "$STATE_FILE")")"
+    print_step "Directory: $(color "$OVERLAY1" "$TERRAFORM_DIR")"
+    echo
+
+    # Check if local state exists
+    if [ -f "$STATE_FILE" ] && [ "$FORCE" != true ]; then
+        print_warning "Local state file already exists!"
+
+        local local_size=$(ls -lh "$STATE_FILE" | awk '{print $5}')
+        local local_date=$(date -r "$STATE_FILE" "+%Y-%m-%d %H:%M:%S")
+
+        print_step "Local: $(color "$OVERLAY1" "$local_size") - $(color "$OVERLAY1" "$local_date")"
+        echo
+        echo -n "$(color "$YELLOW" 'Overwrite local state? [y/N] ')"
+        read -r response
+
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Pull cancelled"
+            exit 0
+        fi
+
+        # Backup existing state
+        local backup_name="$STATE_FILE.backup.$(date +%Y%m%d_%H%M%S)"
+        print_step "Backing up to: $(color "$OVERLAY1" "$backup_name")"
+        cp "$STATE_FILE" "$backup_name"
+    fi
+
+    # Pull from 1Password
+    print_step "Downloading state..."
+    if op document get "$ITEM_NAME" --vault "$VAULT" --output "$STATE_FILE" 2>/dev/null; then
+        chmod 600 "$STATE_FILE"
+        print_success "State pulled successfully!"
+
+        local new_size=$(ls -lh "$STATE_FILE" | awk '{print $5}')
+        print_step "Downloaded: $(color "$GREEN" "$new_size")"
+    else
+        print_error "Failed to pull state from 1Password"
+        print_step "Make sure the item exists: $(color "$YELLOW" "op item get '$ITEM_NAME' --vault '$VAULT'")"
+        exit 1
+    fi
+}
+
+# Function to check status
+check_status() {
+    print_info "Checking sync status..."
+    print_step "Directory: $(color "$OVERLAY1" "$TERRAFORM_DIR")"
+    echo
+
+    local local_exists=false
+    local remote_exists=false
+    local in_sync=false
+
+    # Check local state
+    if [ -f "$STATE_FILE" ]; then
+        local_exists=true
+        local local_size=$(ls -lh "$STATE_FILE" | awk '{print $5}')
+        local local_date=$(date -r "$STATE_FILE" "+%Y-%m-%d %H:%M:%S")
+        local local_hash=$(shasum -a 256 "$STATE_FILE" | cut -d' ' -f1)
+
+        print_success "Local state found"
+        print_step "File: $(color "$YELLOW" "$(basename "$STATE_FILE")")"
+        print_step "Size: $(color "$OVERLAY1" "$local_size")"
+        print_step "Modified: $(color "$OVERLAY1" "$local_date")"
+        print_step "SHA256: $(color "$OVERLAY0" "${local_hash:0:16}...")$(color "$OVERLAY0" "${local_hash: -16}")"
+    else
+        print_warning "No local state file"
+    fi
+
+    echo
+
+    # Check remote state
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        remote_exists=true
+
+        # Get item details
+        local item_json=$(op item get "$ITEM_NAME" --vault "$VAULT" --format json)
+        local updated_at=$(echo "$item_json" | jq -r '.updated_at' | xargs -I {} date -d {} "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "Unknown")
+
+        print_success "Remote state found in 1Password"
+        print_step "Vault: $(color "$SAPPHIRE" "$VAULT")"
+        print_step "Item: $(color "$GREEN" "$ITEM_NAME")"
+        print_step "Updated: $(color "$OVERLAY1" "$updated_at")"
+
+        # Compare if both exist
+        if [ "$local_exists" = true ]; then
+            # Download to temp file for comparison
+            local temp_file=$(mktemp -t tfstate-compare.XXXXXX 2>/dev/null)
+            if op document get "$ITEM_NAME" --vault "$VAULT" --output "$temp_file" --force >/dev/null 2>&1; then
+                local remote_hash=$(shasum -a 256 "$temp_file" | cut -d' ' -f1)
+                rm -f "$temp_file"
+
+                if [ "$local_hash" = "$remote_hash" ]; then
+                    in_sync=true
+                fi
+            else
+                # If download fails, clean up temp file
+                rm -f "$temp_file"
+            fi
+        fi
+    else
+        print_warning "No remote state in 1Password"
+    fi
+
+    echo
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+
+    if [ "$local_exists" = true ] && [ "$remote_exists" = true ]; then
+        if [ "$in_sync" = true ]; then
+            echo "$(color "$GREEN" '✓') $(bold "$(color "$GREEN" 'Status: IN SYNC')")"
+        else
+            echo "$(color "$YELLOW" '⚠') $(bold "$(color "$YELLOW" 'Status: OUT OF SYNC')")"
+            echo
+            print_info "Run '$(color "$GREEN" "$(basename "$0") push")' to update 1Password"
+            print_info "Run '$(color "$GREEN" "$(basename "$0") pull")' to update local"
+        fi
+    elif [ "$local_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" 'ℹ') $(bold "$(color "$SAPPHIRE" 'Status: LOCAL ONLY')")"
+        echo
+        print_info "Run '$(color "$GREEN" "$(basename "$0") push")' to sync to 1Password"
+    elif [ "$remote_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" 'ℹ') $(bold "$(color "$SAPPHIRE" 'Status: REMOTE ONLY')")"
+        echo
+        print_info "Run '$(color "$GREEN" "$(basename "$0") pull")' to download from 1Password"
+    else
+        echo "$(color "$RED" '✗') $(bold "$(color "$RED" 'Status: NO STATE FOUND')")"
+    fi
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+}
+
+# Function to list all terraform states
+list_states() {
+    print_info "Listing Terraform states in 1Password..."
+    echo
+
+    print_step "Vault: $(color "$SAPPHIRE" "$VAULT")"
+    print_step "Searching for items with tag: $(color "$OVERLAY1" "terraform")"
+    echo
+
+    # Get all items with terraform tag
+    local items=$(op item list --vault "$VAULT" --tags terraform --format json 2>/dev/null)
+
+    if [ -z "$items" ] || [ "$items" = "[]" ]; then
+        print_warning "No Terraform states found in vault: $VAULT"
+        exit 0
+    fi
+
+    # Parse and display items
+    echo "$items" | jq -r '.[] | [.title, .updated_at, .tags] | @tsv' | while IFS=$'\t' read -r title updated tags; do
+        # Format date
+        local formatted_date=$(date -d "$updated" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "$updated")
+
+        # Highlight current environment
+        if [[ "$title" == *"$ENV_NAME"* ]]; then
+            echo "$(color "$GREEN" '▸') $(bold "$(color "$GREEN" "$title")") $(italic "$(color "$OVERLAY0" "(current environment)")")"
+        else
+            echo "$(color "$LAVENDER" '▸') $(color "$TEXT" "$title")"
+        fi
+
+        print_step "Updated: $(color "$OVERLAY1" "$formatted_date")"
+
+        # Parse tags
+        local tag_list=$(echo "$tags" | jq -r '.[]' | tr '\n' ' ')
+        print_step "Tags: $(color "$OVERLAY0" "$tag_list")"
+        echo
+    done
+}
+
+# Function to delete state from 1Password
+delete_state() {
+    print_warning "Delete state from 1Password"
+    echo
+
+    print_step "Target: $(color "$SAPPHIRE" "$VAULT")/$(color "$RED" "$ITEM_NAME")"
+    echo
+
+    # Check if item exists
+    if ! op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        print_error "State not found in 1Password"
+        exit 1
+    fi
+
+    if [ "$FORCE" != true ]; then
+        echo -n "$(color "$RED" 'Are you sure you want to delete this state? [y/N] ')"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Delete cancelled"
+            exit 0
+        fi
+    fi
+
+    print_step "Deleting state..."
+    if op item delete "$ITEM_NAME" --vault "$VAULT"; then
+        print_success "State deleted from 1Password"
+    else
+        print_error "Failed to delete state"
+        exit 1
+    fi
+}
+
+# Function for smart sync based on timestamps
+smart_sync() {
+    print_info "Performing smart sync based on timestamps..."
+    echo
+
+    local local_exists=false
+    local remote_exists=false
+    local local_time=0
+    local remote_time=0
+
+    # Check local state and get timestamp
+    if [ -f "$STATE_FILE" ]; then
+        local_exists=true
+        local_time=$(stat -f %m "$STATE_FILE" 2>/dev/null || stat -c %Y "$STATE_FILE" 2>/dev/null)
+        local local_date=$(date -r "$local_time" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$local_time" "+%Y-%m-%d %H:%M:%S")
+
+        print_success "Local state found"
+        print_step "Modified: $(color "$OVERLAY1" "$local_date")"
+    else
+        print_warning "No local state file"
+    fi
+
+    # Check remote state and get timestamp
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        remote_exists=true
+
+        # Get item details and parse updated_at timestamp
+        local item_json=$(op item get "$ITEM_NAME" --vault "$VAULT" --format json)
+        local updated_at=$(echo "$item_json" | jq -r '.updated_at')
+
+        # Convert ISO timestamp to epoch (works on both macOS and Linux)
+        if command -v gdate >/dev/null 2>&1; then
+            # macOS with GNU date
+            remote_time=$(gdate -d "$updated_at" +%s 2>/dev/null)
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS native date
+            remote_time=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${updated_at%%.*}" +%s 2>/dev/null)
+        else
+            # Linux
+            remote_time=$(date -d "$updated_at" +%s 2>/dev/null)
+        fi
+
+        local remote_date=$(date -d "$updated_at" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$updated_at")
+
+        print_success "Remote state found in 1Password"
+        print_step "Modified: $(color "$OVERLAY1" "$remote_date")"
+    else
+        print_warning "No remote state in 1Password"
+    fi
+
+    echo
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+
+    # Determine sync direction
+    if [ "$local_exists" = true ] && [ "$remote_exists" = true ]; then
+        if [ "$local_time" -gt "$remote_time" ]; then
+            echo "$(color "$YELLOW" '⬆') $(bold "$(color "$YELLOW" 'Local is newer - pushing to 1Password')")"
+            echo
+            FORCE=true push_state
+        elif [ "$remote_time" -gt "$local_time" ]; then
+            echo "$(color "$SAPPHIRE" '⬇') $(bold "$(color "$SAPPHIRE" '1Password is newer - pulling to local')")"
+            echo
+            # Backup current state before pulling
+            if [ -f "$STATE_FILE" ]; then
+                local backup_name="$STATE_FILE.backup.$(date +%Y%m%d_%H%M%S)"
+                print_step "Backing up current state to: $(color "$OVERLAY1" "$backup_name")"
+                cp "$STATE_FILE" "$backup_name"
+            fi
+            FORCE=true pull_state
+        else
+            echo "$(color "$GREEN" '✓') $(bold "$(color "$GREEN" 'Already in sync - no action needed')")"
+        fi
+    elif [ "$local_exists" = true ]; then
+        echo "$(color "$YELLOW" '⬆') $(bold "$(color "$YELLOW" 'Only local exists - pushing to 1Password')")"
+        echo
+        FORCE=true push_state
+    elif [ "$remote_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" '⬇') $(bold "$(color "$SAPPHIRE" 'Only remote exists - pulling from 1Password')")"
+        echo
+        FORCE=true pull_state
+    else
+        print_error "No state found locally or in 1Password"
+    fi
+
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+}
+
+# Main execution
+case "$COMMAND" in
+    push)
+        push_state
+        ;;
+    sync)
+        smart_sync
+        ;;
+    pull|restore)
+        pull_state
+        ;;
+    status)
+        check_status
+        ;;
+    list)
+        list_states
+        ;;
+    delete)
+        delete_state
+        ;;
+    help)
+        show_help
+        ;;
+    *)
+        print_error "Unknown command: $COMMAND"
+        show_help
+        exit 1
+        ;;
+esac
