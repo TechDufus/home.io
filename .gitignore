@@ -15,3 +15,10 @@ terraform/harvester/creds.auto.tfvars
 
 # ./Terraform backup files
 **.tfstate.backup
+
+# Kubernetes/Talos configs (contain credentials)
+**/kubeconfig
+**/talosconfig
+
+# Terraform plan files
+*.tfplan

@@ -1,9 +1,14 @@
 # Talos Node Module Outputs
 # Information about created Talos nodes
 
-output "node_id" {
+output "vm_id" {
   description = "Proxmox VM ID of the node"
-  value       = proxmox_virtual_environment_vm.talos_node.id
+  value       = var.vm_id
+}
+
+output "name" {
+  description = "Name of the node"
+  value       = var.node_name
 }
 
 output "node_name" {
@@ -37,4 +42,9 @@ output "node_info" {
 output "talos_node_endpoint" {
   description = "Talos API endpoint for this node"
   value       = try(proxmox_virtual_environment_vm.talos_node.ipv4_addresses[0][0], var.ip_address != null ? var.ip_address : "DHCP-assigned")
+}
+
+output "mac_address" {
+  description = "MAC address of the primary network interface"
+  value       = try(proxmox_virtual_environment_vm.talos_node.network_device[0].mac_address, "unknown")
 }

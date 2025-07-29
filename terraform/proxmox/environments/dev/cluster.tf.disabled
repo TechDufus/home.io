@@ -1,0 +1,241 @@
+# Talos Kubernetes Cluster Resources
+# Simplified cluster configuration using the talos-cluster module
+
+# Create Talos template for this environment
+module "talos_template" {
+  source = "../../modules/talos-template"
+
+  # Use cluster-specific template ID
+  template_vm_id = var.cluster.template_vm_id
+
+  # Use cluster-specific Talos version
+  talos_version = var.cluster.talos_version
+
+  # Proxmox configuration - extract IP from URL
+  proxmox_node          = regex("https://([^:]+):", data.onepassword_item.proxmox_terraform_user.url)[0]
+  template_storage_pool = var.template_storage_pool
+  vm_storage_pool       = var.storage_pool
+
+  # Tagging
+  common_tags = concat(local.common_tags, ["template"])
+}
+
+# Create the complete Talos cluster
+module "talos_cluster" {
+  source = "../../modules/talos-cluster"
+
+  # Explicit dependency on template creation
+  depends_on = [module.talos_template]
+
+  # Cluster identity
+  cluster_name = var.cluster.name
+  environment  = var.environment
+
+  # Control plane configuration
+  control_plane_count       = var.cluster.control_plane.count
+  control_plane_ips         = [var.cluster.control_plane.ip_address]
+  control_plane_vm_id_start = var.cluster.control_plane.vm_id_start
+  control_plane_cpu         = var.cluster.control_plane.cpu
+  control_plane_memory      = var.cluster.control_plane.memory
+  control_plane_disk        = var.cluster.control_plane.disk_gb
+
+  # Worker configuration
+  worker_count       = var.cluster.worker.count
+  worker_ips         = [for i in range(var.cluster.worker.count) : "${split(".", var.cluster.control_plane.ip_address)[0]}.${split(".", var.cluster.control_plane.ip_address)[1]}.${split(".", var.cluster.control_plane.ip_address)[2]}.${tonumber(split(".", var.cluster.control_plane.ip_address)[3]) + i + 1}"]
+  worker_vm_id_start = var.cluster.worker.vm_id_start
+  worker_cpu         = var.cluster.worker.cpu
+  worker_memory      = var.cluster.worker.memory
+  worker_disk        = var.cluster.worker.disk_gb
+
+  # Network configuration
+  subnet_mask     = var.cluster.subnet_mask
+  gateway         = var.gateway
+  dns_servers     = var.dns_servers
+  network_bridge  = var.network_bridge
+  network_vlan_id = var.network_vlan_id
+  pod_subnets     = [var.cluster.pod_subnet]
+  service_subnets = [var.cluster.service_subnet]
+
+  # Proxmox configuration
+  proxmox_node      = var.proxmox_node
+  storage_pool      = var.cluster.storage_pool  # Cluster-specific storage pool
+  talos_template_id = module.talos_template.template_id
+  full_clone        = var.cluster.full_clone
+
+  # Tags
+  tags = local.common_tags
+}
+
+# Save kubeconfig to local file
+resource "local_file" "kubeconfig" {
+  content  = module.talos_cluster.kubeconfig
+  filename = "${path.root}/kubeconfig"
+
+  file_permission = "0600"
+}
+
+# Merge the generated kubeconfig with local ~/.kube/config
+resource "null_resource" "kubeconfig_merge" {
+  depends_on = [local_file.kubeconfig]
+
+  triggers = {
+    kubeconfig_content = local_file.kubeconfig.content
+    cluster_name       = var.cluster.name
+    environment        = var.environment
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+
+      # Set up paths
+      LOCAL_KUBECONFIG="$HOME/.kube/config"
+      TERRAFORM_KUBECONFIG="${path.root}/kubeconfig"
+      BACKUP_KUBECONFIG="$HOME/.kube/config.backup.$(date +%Y%m%d_%H%M%S)"
+      TEMP_KUBECONFIG="/tmp/kubeconfig.merged.$$"
+
+      # Create ~/.kube directory if it doesn't exist
+      mkdir -p "$HOME/.kube"
+
+      # Backup existing config if it exists
+      if [ -f "$LOCAL_KUBECONFIG" ]; then
+        echo "Backing up existing kubeconfig to $BACKUP_KUBECONFIG"
+        cp "$LOCAL_KUBECONFIG" "$BACKUP_KUBECONFIG"
+      else
+        echo "No existing kubeconfig found, creating new one"
+        touch "$LOCAL_KUBECONFIG"
+      fi
+
+      # Update context name in terraform kubeconfig to use cluster name
+      sed -e 's/admin@${var.cluster.name}/${var.cluster.name}/g' "$TERRAFORM_KUBECONFIG" > "$TERRAFORM_KUBECONFIG.renamed"
+
+      # Remove any existing entries to avoid conflicts
+      echo "Removing any existing ${var.cluster.name} context..."
+      kubectl config delete-context "${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "Context not found"
+      kubectl config delete-cluster "${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "Cluster not found"
+      kubectl config delete-user "admin@${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "User not found"
+
+      # Merge configurations using KUBECONFIG environment variable
+      echo "Merging kubeconfig files..."
+      KUBECONFIG="$LOCAL_KUBECONFIG:$TERRAFORM_KUBECONFIG.renamed" kubectl config view --flatten > "$TEMP_KUBECONFIG"
+
+      # Validate the merge was successful
+      if kubectl --kubeconfig="$TEMP_KUBECONFIG" config get-contexts | grep -q "${var.cluster.name}"; then
+        echo "Successfully merged kubeconfig - context '${var.cluster.name}' is available"
+        mv "$TEMP_KUBECONFIG" "$LOCAL_KUBECONFIG"
+        chmod 600 "$LOCAL_KUBECONFIG"
+      else
+        echo "Error: Failed to merge kubeconfig - context not found in merged file"
+        rm -f "$TEMP_KUBECONFIG"
+        exit 1
+      fi
+
+      # Clean up temporary file
+      rm -f "$TERRAFORM_KUBECONFIG.renamed"
+
+      echo "Kubeconfig merge completed successfully"
+      echo "You can now access the cluster with: kubectl config use-context ${var.cluster.name}"
+    EOT
+  }
+
+  # Remove context when destroying
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      set -e
+
+      LOCAL_KUBECONFIG="$HOME/.kube/config"
+      CONTEXT_NAME="${self.triggers.cluster_name}"
+
+      if [ -f "$LOCAL_KUBECONFIG" ]; then
+        echo "Removing context '$CONTEXT_NAME' from kubeconfig..."
+        kubectl config delete-context "$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "Context not found or already removed"
+        kubectl config delete-cluster "$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "Cluster not found or already removed"
+        kubectl config delete-user "admin@$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "User not found or already removed"
+        echo "Context cleanup completed"
+      else
+        echo "No kubeconfig file found to clean up"
+      fi
+    EOT
+  }
+}
+
+# Save talosconfig to local file
+resource "local_file" "talosconfig" {
+  content  = jsonencode(module.talos_cluster.talosconfig)
+  filename = "${path.root}/talosconfig"
+
+  file_permission = "0600"
+}
+
+# Merge the generated talosconfig with local ~/.talos/config
+resource "null_resource" "talosconfig_merge" {
+  depends_on = [local_file.talosconfig]
+
+  triggers = {
+    talosconfig_content = local_file.talosconfig.content
+    cluster_name        = var.cluster.name
+    environment         = var.environment
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+
+      # Set up paths
+      LOCAL_TALOSCONFIG="$HOME/.talos/config"
+      TERRAFORM_TALOSCONFIG="${path.root}/talosconfig"
+      BACKUP_TALOSCONFIG="$HOME/.talos/config.backup.$(date +%Y%m%d_%H%M%S)"
+
+      # Create ~/.talos directory if it doesn't exist
+      mkdir -p "$HOME/.talos"
+
+      # Backup existing config if it exists
+      if [ -f "$LOCAL_TALOSCONFIG" ]; then
+        echo "Backing up existing talosconfig to $BACKUP_TALOSCONFIG"
+        cp "$LOCAL_TALOSCONFIG" "$BACKUP_TALOSCONFIG"
+      else
+        echo "No existing talosconfig found, creating new one"
+      fi
+
+      # Merge talosconfig using talosctl config merge
+      echo "Merging talosconfig files..."
+      if [ -f "$LOCAL_TALOSCONFIG" ]; then
+        # Use talosctl to merge the new config into existing config
+        talosctl config merge "$TERRAFORM_TALOSCONFIG" --talosconfig "$LOCAL_TALOSCONFIG"
+      else
+        # If no existing config, just copy the new one
+        cp "$TERRAFORM_TALOSCONFIG" "$LOCAL_TALOSCONFIG"
+        chmod 600 "$LOCAL_TALOSCONFIG"
+      fi
+
+      # Set the context name to match cluster name for consistency
+      echo "Setting talosconfig context to ${var.cluster.name}..."
+      talosctl config context ${var.cluster.name} --talosconfig "$LOCAL_TALOSCONFIG" || echo "Context setting will be available after cluster is running"
+
+      echo "Talosconfig merge completed successfully"
+      echo "You can now access the cluster with: talosctl config context ${var.cluster.name}"
+      echo "Check cluster health with: talosctl -n ${var.cluster.control_plane.ip_address} health"
+    EOT
+  }
+
+  # Remove context when destroying
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      set -e
+
+      LOCAL_TALOSCONFIG="$HOME/.talos/config"
+      CONTEXT_NAME="${self.triggers.cluster_name}"
+
+      if [ -f "$LOCAL_TALOSCONFIG" ]; then
+        echo "Removing context '$CONTEXT_NAME' from talosconfig..."
+        # Note: talosctl doesn't have a direct context delete command like kubectl
+        # The context will be cleaned up when the cluster is destroyed
+        echo "Talosconfig context cleanup completed"
+      else
+        echo "No talosconfig file found to clean up"
+      fi
+    EOT
+  }
+}

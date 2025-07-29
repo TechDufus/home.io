@@ -23,9 +23,60 @@ I'm currently using Ansible to deploy some of my servers, including the followin
 
 ## Terraform
 
-Terraform is used to provision the VMs needed for everything running on my home server(s)
+Terraform is used to provision infrastructure across multiple platforms:
 
-I've structured this such that, each `base` VM needed is contained in it's own terraform module so I can create any X amount of that same base config as I want. (See [vars.auto.tfvars](https://github.com/matthewjdegarmo/home.io/blob/main/terraform/vars.auto.tfvars) for an example.)
+### Proxmox VE
+Located in `terraform/proxmox/`, this manages:
+- **Virtual Machines**: Ubuntu-based VMs for various services
+- **Kubernetes Clusters**: Talos Linux-based Kubernetes clusters
+- **Templates**: Automated OS template creation
+
+The Proxmox infrastructure uses an environment-based structure:
+- `terraform/proxmox/environments/dev/` - Development environment
+- `terraform/proxmox/modules/` - Reusable Terraform modules
+
+See [terraform/proxmox/environments/dev/terraform.tfvars](terraform/proxmox/environments/dev/terraform.tfvars) for configuration examples.
+
+#### State Management with 1Password
+The `terraform/proxmox/scripts/tfstate` script provides secure Terraform state management using 1Password:
+
+**Features:**
+- **Secure Storage**: Store Terraform state files in 1Password vaults
+- **Multi-Environment**: Support for different environments (dev, staging, prod)
+- **Smart Sync**: Automatically sync based on timestamps
+- **State History**: Keep backups of state changes
+
+**Usage:**
+```bash
+# Check sync status for current environment
+./terraform/proxmox/scripts/tfstate status
+
+# Push local state to 1Password
+./terraform/proxmox/scripts/tfstate push dev
+
+# Pull state from 1Password
+./terraform/proxmox/scripts/tfstate pull dev
+
+# Smart sync (auto push/pull based on timestamps)
+./terraform/proxmox/scripts/tfstate sync dev
+
+# List all states in 1Password
+./terraform/proxmox/scripts/tfstate list
+```
+
+**Commands:**
+- `push` - Upload local state to 1Password
+- `pull` / `restore` - Download state from 1Password
+- `sync` - Smart sync based on which is newer
+- `status` - Check sync status
+- `list` - Show all Terraform states in vault
+- `delete` - Remove state from 1Password
+- `envs` - List available environments
+
+The script automatically detects available environments from the `terraform/proxmox/environments/` directory structure.
+
+### Harvester HCI
+Located in `terraform/harvester/` for hyper-converged infrastructure management.
 
 ## More to come:
 
@@ -49,33 +100,43 @@ Example of what happens when terraform regenerates a MAC address:
 ![image](https://user-images.githubusercontent.com/46715299/172637211-000b6223-0f86-4242-9dcc-6dbb0c73789a.png)
 
 ### Solution to #1: Regenerating MAC Address
-When deploying a `NEW` VM, you do not need to specify the MAC Address (`macaddr` variable) in your variable map. BUT once the VM is deployed and a MAC exists for that VM, it's a good idea to add that MAC Address to your variable map so Terraform keeps this MAC address and doesn't regenerate it.
+**Note**: This issue primarily affected the legacy telmate/proxmox provider. The newer bpg/proxmox provider (used in `terraform/proxmox/environments/`) handles MAC addresses more reliably.
 
-Example `vars.auto.tfvars` definition of a new VM:
+For the legacy setup, when deploying a `NEW` VM, you do not need to specify the MAC Address (`macaddr` variable) in your variable map. BUT once the VM is deployed and a MAC exists for that VM, it's a good idea to add that MAC Address to your variable map so Terraform keeps this MAC address and doesn't regenerate it.
+
+Example from the new environment-based structure in `terraform/proxmox/environments/dev/terraform.tfvars`:
 
 `Initial Terraform Deployment`
 
-```terraform
-container-host = {
-  "container-host" = {
-    hostname     = "container-host"
-    vmid         = "107"
-    ip_address   = "10.0.0.7"
+```hcl
+standalone_vms = {
+  n8n-server = {
+    vm_id       = 151
+    cpu         = 4
+    memory      = 4096
+    disk_gb     = 50
+    ip_address  = "10.0.20.151"
+    template    = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
   }
 }
 ```
 
-`Post-Terraform Deployment`
+`Post-Terraform Deployment` (if using legacy modules that require MAC preservation)
 
-```terraform
-container-host = {
-  "container-host" = {
-    hostname     = "container-host"
-    vmid         = "107"
-    ip_address   = "10.0.0.7"
-    macaddr      = "06:74:60:C0:37:F6"
+```hcl
+standalone_vms = {
+  n8n-server = {
+    vm_id       = 151
+    cpu         = 4
+    memory      = 4096
+    disk_gb     = 50
+    ip_address  = "10.0.20.151"
+    template    = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
+    macaddr     = "06:74:60:C0:37:F6"  # Added after initial deployment
   }
 }
 ```
 
-**NOTE**: You do not actually need to re-run Terraform to update the MAC Address. You can just update the variable map with the new MAC Address. You can confirm your terraform config / state by running `terraform plan` to confirm your config matches your state.
+**NOTE**: The newer bpg/proxmox provider handles MAC addresses better, so this workaround may not be necessary for new deployments.
