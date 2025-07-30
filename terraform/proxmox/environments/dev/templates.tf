@@ -50,6 +50,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_24_template" {
   initialization {
     datastore_id = var.storage_pool
   }
+  
 }
 
 # Download Ubuntu 24.04 cloud image
@@ -113,6 +114,7 @@ resource "proxmox_virtual_environment_vm" "ubuntu_22_template" {
   initialization {
     datastore_id = var.storage_pool
   }
+  
 }
 
 # Download Ubuntu 22.04 cloud image

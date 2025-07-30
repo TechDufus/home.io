@@ -39,29 +39,29 @@ proxmox_node = "proxmox"
 
 # Standalone VMs (not part of the cluster)
 standalone_vms = {
-  claude-code = {
-    vm_id       = 150
-    cpu         = 4
-    cpu_sockets = 2
-    memory      = 8192
-    disk_gb     = 150
-    ip_address  = "10.0.20.150"
-    description = <<-EOF
-      Claude Code VM for development and testing.
-      This VM is used for running AI models and development tasks.
-      Ensure it has sufficient resources for optimal performance.
-      EOF
-    template    = "ubuntu-24.04-template"
-    storage_pool = "VM-SSD-2"
-  },
+  # claude-code = {
+  #   vm_id       = 150
+  #   cpu         = 4
+  #   cpu_sockets = 2
+  #   memory      = 8192
+  #   disk_gb     = 150
+  #   ip_address  = "10.0.20.150"
+  #   description = <<-EOF
+  #     Claude Code VM for development and testing.
+  #     This VM is used for running AI models and development tasks.
+  #     Ensure it has sufficient resources for optimal performance.
+  #     EOF
+  #   template    = "ubuntu-24.04-template"
+  #   storage_pool = "VM-SSD-2"
+  # },
 
   n8n-server = {
-    vm_id       = 151
-    cpu         = 4
-    cpu_sockets = 1
-    memory      = 4096
+    vm_id       = 150
+    cpu         = 3
+    cpu_sockets = 2
+    memory      = 8192
     disk_gb     = 50
-    ip_address  = "10.0.20.151"
+    ip_address  = "10.0.20.150"
     description = <<-EOF
       n8n workflow automation server.
       This VM runs n8n for workflow automation and integrations.
