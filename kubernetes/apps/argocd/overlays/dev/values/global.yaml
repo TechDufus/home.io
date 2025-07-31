@@ -1,0 +1,31 @@
+# Dev environment specific global values
+# These override the base values in ../../base/values/global.yaml
+
+# Domain configuration for dev
+domain: home.techdufus.com
+environment: dev
+
+# Storage class for dev environment
+storageClass: local-path
+
+# Dev-specific labels
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: homelab
+  environment: dev
+
+# Resource limits for dev (can be more generous than prod)
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Node selector for dev (if you have specific dev nodes)
+nodeSelector: {}
+  # node-role.kubernetes.io/worker: "true"
+
+# Logging level for dev
+logLevel: debug

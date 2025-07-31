@@ -13,12 +13,48 @@ crash.*.log
 terraform/proxmox/creds.auto.tfvars
 terraform/harvester/creds.auto.tfvars
 
+# Terraform variable files (except examples)
+*.tfvars
+!*.tfvars.example
+
 # ./Terraform backup files
 **.tfstate.backup
 
 # Kubernetes/Talos configs (contain credentials)
-**/kubeconfig
-**/talosconfig
+**/kubeconfig*
+**/talosconfig*
+*.kubeconfig
 
 # Terraform plan files
 *.tfplan
+
+# Secrets and credentials
+*-secret.yaml
+!*-secret.yaml.example
+*-credentials.yaml
+!*-credentials.yaml.example
+credentials.json
+cloudflare-credentials.json
+
+# Certificates
+*.crt
+*.cer
+*.key
+*.p12
+*.pfx
+
+# MacOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Backup files
+*.backup
+*.old
+*.bak
+*~
+
+# Logs
+*.log

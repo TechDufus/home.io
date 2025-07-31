@@ -107,12 +107,16 @@ resource "null_resource" "kubeconfig_merge" {
       fi
 
       # Update context name in terraform kubeconfig to use cluster name
-      sed -e 's/admin@${var.cluster.name}/${var.cluster.name}/g' "$TERRAFORM_KUBECONFIG" > "$TERRAFORM_KUBECONFIG.renamed"
+      # Also update the current-context and user references
+      sed -e "s/admin@${var.cluster.name}/${var.cluster.name}/g" \
+          -e "s/current-context: admin@${var.cluster.name}/current-context: ${var.cluster.name}/g" \
+          "$TERRAFORM_KUBECONFIG" > "$TERRAFORM_KUBECONFIG.renamed"
 
       # Remove any existing entries to avoid conflicts
       echo "Removing any existing ${var.cluster.name} context..."
       kubectl config delete-context "${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "Context not found"
       kubectl config delete-cluster "${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "Cluster not found"
+      kubectl config delete-user "${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "User not found"
       kubectl config delete-user "admin@${var.cluster.name}" --kubeconfig="$LOCAL_KUBECONFIG" 2>/dev/null || echo "User not found"
 
       # Merge configurations using KUBECONFIG environment variable
@@ -151,6 +155,7 @@ resource "null_resource" "kubeconfig_merge" {
         echo "Removing context '$CONTEXT_NAME' from kubeconfig..."
         kubectl config delete-context "$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "Context not found or already removed"
         kubectl config delete-cluster "$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "Cluster not found or already removed"
+        kubectl config delete-user "$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "User not found or already removed"
         kubectl config delete-user "admin@$CONTEXT_NAME" --kubeconfig="$LOCAL_KUBECONFIG" || echo "User not found or already removed"
         echo "Context cleanup completed"
       else

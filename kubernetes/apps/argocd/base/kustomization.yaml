@@ -7,16 +7,16 @@ metadata:
 namespace: argocd
 
 resources:
-  # Core application definitions
+  # Root application (manages all others)
   - apps/root-app.yaml
-  - apps/core-apps.yaml
-  - apps/services-apps.yaml
   
-  # Individual application definitions
+  # Infrastructure applications
   - apps/cloudflared.yaml
-  - apps/n8n.yaml
   - apps/monitoring.yaml
   - apps/cloudnative-pg.yaml
+  
+  # Service applications
+  - apps/n8n.yaml
 
 # Base configuration values for Helm charts
 configMapGenerator:

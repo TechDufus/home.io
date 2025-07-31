@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cloudflare
+
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - configmap.yaml
+  - secret.yaml
+
+commonLabels:
+  app.kubernetes.io/name: cloudflared
+  app.kubernetes.io/component: tunnel
+  app.kubernetes.io/part-of: cloudflare

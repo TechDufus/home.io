@@ -1,0 +1,58 @@
+# Base n8n configuration
+# Environment-specific overrides go in overlays/[env]/values/n8n.yaml
+
+# Number of replicas (n8n doesn't support multiple replicas without queue mode)
+replicaCount: 1
+
+image:
+  repository: n8nio/n8n
+  pullPolicy: IfNotPresent
+  # tag: latest
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 5678
+
+# Basic configuration
+config:
+  generic:
+    timezone: America/New_York
+    
+# Persistence
+persistence:
+  enabled: true
+  size: 10Gi
+  # storageClass: defined in global.yaml
+
+# Resources
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Liveness and readiness probes
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1

@@ -14,7 +14,7 @@ spec:
     helm:
       releaseName: kube-prometheus-stack
       valueFiles:
-        - https://raw.githubusercontent.com/TechDufus/home.io/main/kubernetes/apps/core/monitoring/values-dev.yaml
+        - https://raw.githubusercontent.com/TechDufus/home.io/main/kubernetes/apps/monitoring/values-dev.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

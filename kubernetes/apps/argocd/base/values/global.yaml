@@ -1,0 +1,38 @@
+# Global values shared across all applications
+# These are base values that apply to all environments
+# Environment-specific overrides go in overlays/[env]/values/global.yaml
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: homelab
+
+# Storage class to use for persistent volumes
+storageClass: local-path
+
+# Time zone for applications
+timezone: America/New_York
+
+# Resource defaults (can be overridden per app)
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Security context defaults
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Node selector defaults (if you want to target specific nodes)
+nodeSelector: {}
+
+# Tolerations defaults
+tolerations: []
+
+# Affinity defaults
+affinity: {}
