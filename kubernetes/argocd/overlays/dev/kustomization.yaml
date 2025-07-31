@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: argocd-dev
+
+namespace: argocd
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: global-values-dev
+    files:
+      - global.yaml=values/global.yaml
+  - name: monitoring-values-dev
+    files:
+      - monitoring.yaml=values/monitoring.yaml
+  - name: cloudnative-pg-values-dev
+    files:
+      - cloudnative-pg.yaml=values/cloudnative-pg.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  # Update monitoring to use dev values
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: monitoring
+    patch: |-
+      - op: replace
+        path: /spec/sources/0/helm/valueFiles/0
+        value: $values/argocd/overlays/dev/values/monitoring.yaml
+  
+  # Update cloudnative-pg to use dev values
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: cloudnative-pg
+    patch: |-
+      - op: replace
+        path: /spec/sources/0/helm/valueFiles/0
+        value: $values/argocd/overlays/dev/values/cloudnative-pg.yaml
+
+labels:
+  - includeSelectors: true
+    pairs:
+      environment: dev

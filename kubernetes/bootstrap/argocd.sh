@@ -80,12 +80,43 @@ configure_argocd() {
 
 # Create the bootstrap application
 create_bootstrap_app() {
-    log_info "Creating app-of-apps..."
+    log_info "Creating app-of-apps for ${ENVIRONMENT} environment..."
     
-    # Apply the app-of-apps directly
-    kubectl apply -f https://raw.githubusercontent.com/TechDufus/home.io/${REPO_BRANCH}/kubernetes/argocd-apps/app-of-apps.yaml
+    cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  namespace: ${ARGOCD_NAMESPACE}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: ${REPO_URL}
+    targetRevision: ${REPO_BRANCH}
+    path: kubernetes/argocd/overlays/${ENVIRONMENT}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ${ARGOCD_NAMESPACE}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+EOF
     
-    log_info "App-of-apps created"
+    log_info "App-of-apps created for ${ENVIRONMENT}"
 }
 
 # Get admin password

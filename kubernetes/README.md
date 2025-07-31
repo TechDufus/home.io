@@ -6,17 +6,18 @@ This directory contains all Kubernetes resources managed via GitOps with ArgoCD.
 
 ```
 kubernetes/
-├── apps/                    # Application manifests and Helm values
+├── apps/                    # Application manifests and resources
 │   ├── cloudflared/        # Cloudflare tunnel manifests
-│   ├── cloudnative-pg/     # PostgreSQL operator Helm values
-│   ├── monitoring/         # Prometheus/Grafana Helm values
-│   └── n8n/                # n8n workflow automation
-├── argocd-apps/            # ArgoCD Application definitions
-│   ├── app-of-apps.yaml    # Root application that manages all others
-│   ├── cloudflared.yaml    # Cloudflare tunnel app
-│   ├── monitoring.yaml     # Monitoring stack app
-│   ├── cloudnative-pg.yaml # PostgreSQL operator app
-│   └── n8n.yaml            # n8n app
+│   ├── cloudnative-pg/     # PostgreSQL operator examples
+│   ├── monitoring/         # Monitoring stack docs
+│   └── n8n/                # n8n manifests (future)
+├── argocd/                 # ArgoCD app definitions and values
+│   ├── base/               # Base applications with placeholders
+│   │   ├── apps/           # Application definitions
+│   │   └── values/         # Default values (if any)
+│   └── overlays/           # Environment-specific configurations
+│       └── dev/            # Dev environment
+│           └── values/     # All values for dev environment
 └── bootstrap/              # Bootstrap scripts
     ├── argocd.sh           # Install ArgoCD and create app-of-apps
     └── setup-secrets.sh    # Create secrets from 1Password

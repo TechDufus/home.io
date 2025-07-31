@@ -1,31 +1,27 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cloudnative-pg
+  name: n8n
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: cloudnative-pg
-    repoURL: https://cloudnative-pg.github.io/charts
-    targetRevision: ">=0.22.0"
-    helm:
-      releaseName: cloudnative-pg
-      valueFiles:
-        - https://raw.githubusercontent.com/TechDufus/home.io/main/kubernetes/apps/cloudnative-pg/values-dev.yaml
+    repoURL: https://github.com/TechDufus/home.io
+    targetRevision: main
+    path: kubernetes/apps/n8n
   destination:
     server: https://kubernetes.default.svc
-    namespace: cnpg-system
+    namespace: n8n
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-      allowEmpty: false
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
     retry:
       limit: 5
       backoff:

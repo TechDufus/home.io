@@ -1,19 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: app-of-apps
+  name: monitoring
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://github.com/TechDufus/home.io
-    targetRevision: main
-    path: kubernetes/argocd-apps
+  sources:
+    - chart: kube-prometheus-stack
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: ">=65.0.0"
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/argocd/overlays/ENVIRONMENT_PLACEHOLDER/values/monitoring.yaml
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true
@@ -21,8 +28,7 @@ spec:
       allowEmpty: false
     syncOptions:
       - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
+      - ServerSideApply=true
     retry:
       limit: 5
       backoff:

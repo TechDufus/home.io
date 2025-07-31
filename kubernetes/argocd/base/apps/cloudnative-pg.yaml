@@ -1,23 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: monitoring
+  name: cloudnative-pg
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    chart: kube-prometheus-stack
-    repoURL: https://prometheus-community.github.io/helm-charts
-    targetRevision: ">=65.0.0"
-    helm:
-      releaseName: kube-prometheus-stack
-      valueFiles:
-        - https://raw.githubusercontent.com/TechDufus/home.io/main/kubernetes/apps/monitoring/values-dev.yaml
+  sources:
+    - chart: cloudnative-pg
+      repoURL: https://cloudnative-pg.github.io/charts
+      targetRevision: ">=0.22.0"
+      helm:
+        releaseName: cloudnative-pg
+        valueFiles:
+          - $values/argocd/overlays/ENVIRONMENT_PLACEHOLDER/values/cloudnative-pg.yaml
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: cnpg-system
   syncPolicy:
     automated:
       prune: true

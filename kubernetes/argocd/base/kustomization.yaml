@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: argocd-base
+
+namespace: argocd
+
+resources:
+  # Applications
+  - apps/cloudflared.yaml
+  - apps/monitoring.yaml
+  - apps/cloudnative-pg.yaml
+  - apps/n8n.yaml
+
+# Base values that can be overridden
+configMapGenerator:
+  - name: global-values
+    files:
+      - global.yaml=values/global.yaml
+  - name: monitoring-values
+    files:
+      - monitoring.yaml=values/monitoring.yaml
+  - name: cloudnative-pg-values
+    files:
+      - cloudnative-pg.yaml=values/cloudnative-pg.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: argocd

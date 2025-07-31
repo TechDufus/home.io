@@ -1,0 +1,2 @@
+# Base monitoring values (usually overridden by overlays)
+# This file can be empty as all values are defined in overlays
