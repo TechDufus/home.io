@@ -1,0 +1,91 @@
+# CloudNative-PG operator configuration for homelab
+fullnameOverride: "cloudnative-pg"
+
+# Create CRDs
+crds:
+  create: true
+
+# Image configuration
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  pullPolicy: IfNotPresent
+
+# Resources for the operator
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Monitoring - enable if you have Prometheus
+monitoring:
+  enabled: true
+  podMonitorEnabled: true
+
+# Webhook configuration
+webhook:
+  port: 9443
+  mutating:
+    failurePolicy: Fail
+  validating:
+    failurePolicy: Fail
+
+# Configure operator behavior
+config:
+  data:
+    # Inherit pod resources from cluster spec
+    INHERITED_ANNOTATIONS: "linkerd.io/*, app.kubernetes.io/*"
+    INHERITED_LABELS: "linkerd.io/*, app.kubernetes.io/*"
+    
+    # Enable webhook service reference
+    WEBHOOK_CERT_DIR: "/run/secrets/cnpg-webhook-cert"
+    
+    # Watch all namespaces
+    WATCH_NAMESPACE: ""
+    
+    # Set log level
+    LOG_LEVEL: "info"
+
+# Security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  capabilities:
+    drop:
+      - ALL
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+  fsGroup: 10001
+
+# Service account
+serviceAccount:
+  create: true
+
+# Additional environment variables
+env: []
+
+# Node selector for operator pod
+nodeSelector: {}
+
+# Tolerations for operator pod
+tolerations: []
+
+# Affinity rules for operator pod
+affinity: {}
+
+# Priority class name
+priorityClassName: ""
+
+# Additional volumes
+additionalVolumes: []
+
+# Additional volume mounts
+additionalVolumeMounts: []

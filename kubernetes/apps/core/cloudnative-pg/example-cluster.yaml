@@ -1,0 +1,120 @@
+# Example PostgreSQL cluster using CloudNative-PG
+# This is not deployed by default - copy and modify as needed
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-cluster
+  namespace: default  # Change to your desired namespace
+spec:
+  # Number of PostgreSQL instances (1 primary + n-1 replicas)
+  instances: 3
+  
+  # PostgreSQL version
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  
+  # Primary configuration
+  primaryUpdateStrategy: unsupervised
+  primaryUpdateMethod: switchover
+  
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "4MB"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+      max_worker_processes: "8"
+      max_parallel_workers_per_gather: "4"
+      max_parallel_workers: "8"
+      max_parallel_maintenance_workers: "4"
+  
+  # Bootstrap configuration - create a new cluster
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      secret:
+        name: postgres-cluster-app-credentials  # Create this secret with username/password
+      dataChecksums: true
+      encoding: "UTF8"
+      localeCollate: "en_US.utf8"
+      localeCType: "en_US.utf8"
+  
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: local-path  # Adjust based on your storage setup
+  
+  # Resources
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  
+  # Monitoring
+  monitoring:
+    enabled: true
+  
+  # Pod disruption budget
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+  
+  # Affinity rules to spread instances across nodes
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: preferred
+    
+---
+# Example secret for PostgreSQL credentials
+# Create this before deploying the cluster
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-cluster-app-credentials
+  namespace: default  # Same namespace as the cluster
+type: kubernetes.io/basic-auth
+stringData:
+  username: app
+  password: "changeme"  # Use a strong password or generate from 1Password
+
+---
+# Example of creating additional users
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-cluster-additional-users
+  namespace: default
+type: Opaque
+stringData:
+  grafana: "grafana-password"  # For Grafana datasource
+  n8n: "n8n-password"           # For n8n workflows
+  
+---
+# Example service for read-only connections (replicas)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-cluster-r
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    cnpg.io/cluster: postgres-cluster
+    cnpg.io/instanceRole: replica
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres

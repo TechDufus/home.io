@@ -1,0 +1,140 @@
+# Development monitoring configuration for kube-prometheus-stack
+fullnameOverride: "kube-prometheus-stack"
+
+# Grafana configuration
+grafana:
+  fullnameOverride: grafana
+  adminPassword: admin  # TODO: Change this to use secret from 1Password
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: local-path  # Adjust based on your storage setup
+  
+  # Resources for Grafana
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  
+  # Enable sidecar for dashboard provisioning
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+      provider:
+        allowUiUpdates: true
+  
+  # Default dashboards
+  defaultDashboardsEnabled: true
+  defaultDashboardsTimezone: America/New_York  # Adjust to your timezone
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    # Service monitor configuration
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    
+    # Retention and storage
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path  # Adjust based on your storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    
+    # Resources for Prometheus
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    
+    # Fix permissions with init container (for Talos compatibility)
+    initContainers:
+    - name: fix-permissions
+      image: busybox:1.35
+      command: ['sh', '-c', 'mkdir -p /prometheus && chown -R 1000:2000 /prometheus']
+      volumeMounts:
+      - name: prometheus-kube-prometheus-stack-prometheus-db
+        mountPath: /prometheus
+        subPath: prometheus-db
+      securityContext:
+        runAsUser: 0
+        runAsNonRoot: false
+    
+    # Security context
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 2000
+      fsGroup: 2000
+      runAsNonRoot: true
+
+# Component names
+prometheus-node-exporter:
+  fullnameOverride: prometheus-node-exporter
+  
+kube-state-metrics:
+  fullnameOverride: kube-state-metrics
+
+# Alertmanager configuration
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path  # Adjust based on your storage
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# Disable components not needed for homelab
+kubeApiServer:
+  enabled: true
+kubeControllerManager:
+  enabled: false  # Usually not accessible in managed k8s
+kubeScheduler:
+  enabled: false  # Usually not accessible in managed k8s
+kubeProxy:
+  enabled: true
+kubeEtcd:
+  enabled: false  # Usually not accessible in managed k8s
+
+# Enable servicemonitors for standard k8s components
+coreDns:
+  enabled: true
+kubeDns:
+  enabled: false  # Use coreDns instead
+kubelet:
+  enabled: true
+
+# Reduce replicas for homelab
+prometheusOperator:
+  admissionWebhooks:
+    enabled: false  # Disable for simpler setup
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

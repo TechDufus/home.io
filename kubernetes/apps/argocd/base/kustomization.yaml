@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: argocd-base
+
+namespace: argocd
+
+resources:
+  # Core application definitions
+  - apps/root-app.yaml
+  - apps/core-apps.yaml
+  - apps/services-apps.yaml
+  
+  # Individual application definitions
+  - apps/cloudflared.yaml
+  - apps/n8n.yaml
+  - apps/monitoring.yaml
+  - apps/cloudnative-pg.yaml
+
+# Base configuration values for Helm charts
+configMapGenerator:
+  - name: global-values
+    files:
+      - global.yaml=values/global.yaml
+  - name: n8n-values
+    files:
+      - n8n.yaml=values/n8n.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: argocd
