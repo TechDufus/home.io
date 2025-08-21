@@ -70,7 +70,7 @@ In Cloudflare Dashboard:
 
 ```bash
 # If not using ArgoCD, apply directly:
-kubectl apply -k kubernetes/apps/core/cloudflared/
+kubectl apply -k kubernetes/argocd/base/manifests/cloudflared/
 ```
 
 ## Configuration

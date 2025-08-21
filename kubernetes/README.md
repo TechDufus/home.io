@@ -6,18 +6,21 @@ This directory contains all Kubernetes resources managed via GitOps with ArgoCD.
 
 ```
 kubernetes/
-├── apps/                    # Application manifests and resources
-│   ├── cloudflared/        # Cloudflare tunnel manifests
-│   ├── cloudnative-pg/     # PostgreSQL operator examples
-│   ├── monitoring/         # Monitoring stack docs
-│   └── n8n/                # n8n manifests (future)
-├── argocd/                 # ArgoCD app definitions and values
-│   ├── base/               # Base applications with placeholders
-│   │   ├── apps/           # Application definitions
-│   │   └── values/         # Default values (if any)
+├── argocd/                 # All ArgoCD-related resources
+│   ├── base/               # Base configuration
+│   │   ├── apps/           # ArgoCD Application definitions
+│   │   ├── charts/         # Local Helm charts (future)
+│   │   ├── manifests/      # Raw Kubernetes manifests
+│   │   │   ├── cloudflared/      # Cloudflare tunnel manifests
+│   │   │   ├── cloudnative-pg/   # PostgreSQL operator examples
+│   │   │   └── monitoring/       # Monitoring stack docs
+│   │   └── kustomization.yaml
 │   └── overlays/           # Environment-specific configurations
 │       └── dev/            # Dev environment
-│           └── values/     # All values for dev environment
+│           ├── kustomization.yaml
+│           ├── patches/    # Environment-specific patches
+│           │   └── cloudflared/  # Patches for cloudflared
+│           └── values/     # Helm values (external & local)
 └── bootstrap/              # Bootstrap scripts
     ├── argocd.sh           # Install ArgoCD and create app-of-apps
     └── setup-secrets.sh    # Create secrets from 1Password
@@ -33,7 +36,7 @@ kubernetes/
 
 ### 1. For Helm Charts
 
-Create ArgoCD Application in `kubernetes/argocd-apps/my-app.yaml`:
+Create ArgoCD Application in `kubernetes/argocd/base/apps/my-app.yaml`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -42,13 +45,16 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    chart: my-chart
-    repoURL: https://charts.example.com
-    targetRevision: "1.0.0"
-    helm:
-      valueFiles:
-        - https://raw.githubusercontent.com/TechDufus/home.io/main/kubernetes/apps/my-app/values.yaml
+  sources:
+    - chart: my-chart
+      repoURL: https://charts.example.com
+      targetRevision: "1.0.0"
+      helm:
+        valueFiles:
+          - $values/argocd/overlays/ENVIRONMENT_PLACEHOLDER/values/my-app.yaml
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: my-namespace
@@ -62,7 +68,8 @@ spec:
 
 ### 2. For Raw Manifests
 
-Create ArgoCD Application in `kubernetes/argocd-apps/my-app.yaml`:
+1. Add manifests to `kubernetes/argocd/base/manifests/my-app/`
+2. Create ArgoCD Application in `kubernetes/argocd/base/apps/my-app.yaml`:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -74,7 +81,7 @@ spec:
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
-    path: kubernetes/apps/my-app
+    path: kubernetes/argocd/overlays/dev  # Point to overlay for patched manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: my-namespace
@@ -85,15 +92,19 @@ spec:
     syncOptions:
       - CreateNamespace=true
 ```
+3. Update `kubernetes/argocd/overlays/dev/kustomization.yaml` to include the manifests
 
-### 3. Update Kustomization
+### 3. Update ArgoCD Configuration
 
-Add your new app to `kubernetes/argocd-apps/kustomization.yaml`:
-```yaml
-resources:
-  - existing-apps.yaml
-  - my-app.yaml  # Add this line
-```
+1. Add to `kubernetes/argocd/base/kustomization.yaml`:
+   ```yaml
+   resources:
+     - apps/my-app.yaml
+   ```
+
+2. Add values to `kubernetes/argocd/overlays/dev/values/my-app.yaml`
+
+3. Update `kubernetes/argocd/overlays/dev/kustomization.yaml` to patch the values path
 
 ## Quick Start
 
@@ -115,13 +126,35 @@ kubectl port-forward svc/argocd-server -n argocd 8080:80
 # Password: (shown in script output)
 ```
 
+## Deployment Patterns
+
+The structure supports three deployment patterns:
+
+### 1. External Helm Charts
+Used for community charts (monitoring, cloudnative-pg). Configure via:
+- ArgoCD app with multi-source in `base/apps/`
+- Values in `overlays/dev/values/`
+
+### 2. Local Helm Charts (Future)
+For complex internal applications that need templating:
+- Chart definition in `base/charts/`
+- ArgoCD app with local chart path
+- Values in `overlays/dev/values/`
+
+### 3. Raw Manifests
+For simple applications or when Helm isn't needed:
+- Manifests in `base/manifests/`
+- ArgoCD app points to overlay path
+- Patches in `overlays/dev/patches/`
+
 ## Environment Management
 
 Currently using a single environment (dev). To add more environments:
 
-1. Create environment-specific values in `kubernetes/apps/[app-name]/values-[env].yaml`
-2. Update ArgoCD applications to reference the correct values file
-3. Consider using Kustomize overlays for more complex scenarios
+1. Create new overlay directory: `kubernetes/argocd/overlays/prod/`
+2. Copy and modify values from dev overlay
+3. Update bootstrap script to deploy correct environment
+4. All environment-specific configuration stays in the overlay
 
 ## Secret Management
 

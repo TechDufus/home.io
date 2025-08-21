@@ -5,11 +5,6 @@ namespace: cloudflare
 
 resources:
   - namespace.yaml
-  - deployment.yaml
   - configmap.yaml
   - secret.yaml
-
-commonLabels:
-  app.kubernetes.io/name: cloudflared
-  app.kubernetes.io/component: tunnel
-  app.kubernetes.io/part-of: cloudflare
+  - deployment.yaml

@@ -1,29 +1,23 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-metadata:
-  name: argocd-dev
-
 namespace: argocd
 
 resources:
+  # Import base ArgoCD applications
   - ../../base
+  # Import raw manifests that need patching
+  - ../../base/manifests/cloudflared
 
-configMapGenerator:
-  - name: global-values-dev
-    files:
-      - global.yaml=values/global.yaml
-  - name: monitoring-values-dev
-    files:
-      - monitoring.yaml=values/monitoring.yaml
-  - name: cloudnative-pg-values-dev
-    files:
-      - cloudnative-pg.yaml=values/cloudnative-pg.yaml
-
-generatorOptions:
-  disableNameSuffixHash: true
-
+# Apply environment-specific patches to raw manifests
 patches:
+  # Patch for cloudflared deployment (example)
+  - target:
+      kind: Deployment
+      name: cloudflared
+      namespace: cloudflare
+    path: patches/cloudflared/deployment-patch.yaml
+  
   # Update monitoring to use dev values
   - target:
       group: argoproj.io

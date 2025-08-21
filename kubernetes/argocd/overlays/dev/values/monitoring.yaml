@@ -4,7 +4,8 @@ fullnameOverride: "kube-prometheus-stack"
 # Grafana configuration
 grafana:
   fullnameOverride: grafana
-  adminPassword: admin  # TODO: Change this to use secret from 1Password
+  # adminPassword is not set - Helm will generate a random password
+  # You can retrieve it with: kubectl get secret grafana -n monitoring -o jsonpath="{.data.admin-password}" | base64 -d
   persistence:
     enabled: true
     size: 5Gi
@@ -30,7 +31,7 @@ grafana:
   
   # Default dashboards
   defaultDashboardsEnabled: true
-  defaultDashboardsTimezone: America/New_York  # Adjust to your timezone
+  defaultDashboardsTimezone: America/Chicago
 
 # Prometheus configuration
 prometheus:

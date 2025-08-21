@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
-    path: kubernetes/apps/n8n
+    path: kubernetes/argocd/overlays/dev  # Will use overlay when n8n manifests are added
   destination:
     server: https://kubernetes.default.svc
     namespace: n8n

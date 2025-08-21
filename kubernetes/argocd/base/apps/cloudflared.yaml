@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
-    path: kubernetes/apps/cloudflared
+    path: kubernetes/argocd/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: cloudflare

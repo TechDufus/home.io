@@ -1,29 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-metadata:
-  name: argocd-base
-
 namespace: argocd
 
 resources:
-  # Applications
+  # ArgoCD Applications
   - apps/cloudflared.yaml
   - apps/monitoring.yaml
   - apps/cloudnative-pg.yaml
-  - apps/n8n.yaml
-
-# Base values that can be overridden
-configMapGenerator:
-  - name: global-values
-    files:
-      - global.yaml=values/global.yaml
-  - name: monitoring-values
-    files:
-      - monitoring.yaml=values/monitoring.yaml
-  - name: cloudnative-pg-values
-    files:
-      - cloudnative-pg.yaml=values/cloudnative-pg.yaml
+  # - apps/n8n.yaml  # Future: uncomment when n8n manifests are added
+  # Note: Raw manifests are NOT included here, they're managed by overlays
 
 generatorOptions:
   disableNameSuffixHash: true
