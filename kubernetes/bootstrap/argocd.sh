@@ -9,7 +9,7 @@ ARGOCD_VERSION="${ARGOCD_VERSION:-v2.11.3}"
 ARGOCD_NAMESPACE="argocd"
 REPO_URL="https://github.com/TechDufus/home.io"
 REPO_BRANCH="${REPO_BRANCH:-main}"
-ENVIRONMENT="${1:-dev}"
+# No environment needed - single cluster setup
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -80,13 +80,13 @@ configure_argocd() {
 
 # Create the bootstrap application
 create_bootstrap_app() {
-    log_info "Creating app-of-apps for ${ENVIRONMENT} environment..."
+    log_info "Creating app-of-apps for homelab..."
     
     cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: app-of-apps
+  name: homelab-apps
   namespace: ${ARGOCD_NAMESPACE}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -95,7 +95,7 @@ spec:
   source:
     repoURL: ${REPO_URL}
     targetRevision: ${REPO_BRANCH}
-    path: kubernetes/argocd/overlays/${ENVIRONMENT}
+    path: kubernetes/argocd/apps
   destination:
     server: https://kubernetes.default.svc
     namespace: ${ARGOCD_NAMESPACE}
@@ -114,9 +114,10 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
+  revisionHistoryLimit: 10
 EOF
     
-    log_info "App-of-apps created for ${ENVIRONMENT}"
+    log_info "App-of-apps created"
 }
 
 # Get admin password
@@ -179,20 +180,16 @@ main() {
 
 # Show help
 show_help() {
-    echo "Usage: $0 [environment]"
+    echo "Usage: $0"
     echo ""
     echo "Bootstrap ArgoCD in your Kubernetes cluster"
-    echo ""
-    echo "Arguments:"
-    echo "  environment    The environment to deploy (default: dev)"
     echo ""
     echo "Environment variables:"
     echo "  ARGOCD_VERSION    ArgoCD version to install (default: v2.11.3)"
     echo "  REPO_BRANCH       Git branch to track (default: main)"
     echo ""
-    echo "Examples:"
-    echo "  $0              # Install for dev environment"
-    echo "  $0 prod         # Install for prod environment"
+    echo "Example:"
+    echo "  $0              # Install ArgoCD and app-of-apps"
 }
 
 # Handle command line arguments

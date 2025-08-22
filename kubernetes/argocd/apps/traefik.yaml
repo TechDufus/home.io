@@ -1,22 +1,31 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway-config
+  name: traefik
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://github.com/TechDufus/home.io
-    targetRevision: main
-    path: kubernetes/argocd/base/manifests/gateway
+  sources:
+    - chart: traefik
+      repoURL: https://helm.traefik.io/traefik
+      targetRevision: "33.2.1"  # Latest stable version
+      helm:
+        releaseName: traefik
+        valueFiles:
+          - $values/kubernetes/argocd/values/traefik.yaml
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
+    namespace: traefik
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+      allowEmpty: false
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true

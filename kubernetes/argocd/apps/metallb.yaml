@@ -14,7 +14,7 @@ spec:
       helm:
         releaseName: metallb
         valueFiles:
-          - $values/kubernetes/argocd/overlays/dev/values/metallb.yaml
+          - $values/kubernetes/argocd/values/metallb.yaml
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values

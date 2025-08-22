@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
-    path: kubernetes/argocd/base/manifests/metallb
+    path: kubernetes/argocd/manifests/metallb
   destination:
     server: https://kubernetes.default.svc
     namespace: metallb-system
