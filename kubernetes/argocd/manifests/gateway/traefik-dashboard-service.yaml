@@ -7,7 +7,7 @@ spec:
   type: ClusterIP
   selector:
     app.kubernetes.io/name: traefik
-    app.kubernetes.io/instance: traefik
+    app.kubernetes.io/instance: traefik-traefik
   ports:
     - name: dashboard
       port: 9000
