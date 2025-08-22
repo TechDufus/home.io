@@ -45,7 +45,7 @@ spec:
           urlRewrite:
             path:
               type: ReplacePrefixMatch
-              replacePrefixMatch: /dashboard
+              replacePrefixMatch: /
       backendRefs:
         - name: traefik-dashboard
           namespace: traefik
