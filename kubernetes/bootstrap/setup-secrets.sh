@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 1Password configuration
-OP_VAULT="Homelab" # Update this to your 1Password vault name
+OP_VAULT="Personal" # Update this to your 1Password vault name
 
 echo -e "${BLUE}🏠 Homelab Secrets Setup${NC}"
 echo -e "${BLUE}========================${NC}"
@@ -178,6 +178,10 @@ setup_cloudflare_tunnel_secret() {
     echo ""
     echo -e "${BLUE}🚇 Setting up Cloudflare Tunnel secret...${NC}"
 
+    # Create cloudflare namespace if it doesn't exist
+    echo -e "${YELLOW}→ Ensuring cloudflare namespace exists...${NC}"
+    kubectl create namespace cloudflare --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1
+
     # First try environment variable
     if [ -n "${CLOUDFLARE_TUNNEL_CREDENTIALS_JSON:-}" ]; then
         echo -e "${YELLOW}→ Using Cloudflare credentials from environment variable${NC}"
@@ -185,10 +189,11 @@ setup_cloudflare_tunnel_secret() {
             --namespace=cloudflare \
             --from-file=credentials.json=/dev/stdin \
             --dry-run=client -o yaml | kubectl apply -f - > /dev/null
+        echo -e "${GREEN}✓ Cloudflare Tunnel secret created from environment variable${NC}"
     # Then try 1Password
     elif op item get "Cloudflare Tunnel - Homelab" --vault="$OP_VAULT" &> /dev/null; then
-        local credentials=$(op item get "Cloudflare Tunnel - Homelab" --vault="$OP_VAULT" --fields="credentials.json" --reveal 2>/dev/null || echo "")
-        
+        local credentials=$(op item get "Cloudflare Tunnel - Homelab" --vault="$OP_VAULT" --fields="credential" --reveal 2>/dev/null || echo "")
+
         if [ -n "$credentials" ]; then
             echo "$credentials" | kubectl create secret generic cloudflared-credentials \
                 --namespace=cloudflare \
@@ -196,7 +201,8 @@ setup_cloudflare_tunnel_secret() {
                 --dry-run=client -o yaml | kubectl apply -f - > /dev/null
             echo -e "${GREEN}✓ Cloudflare Tunnel secret created from 1Password${NC}"
         else
-            echo -e "${YELLOW}⚠ Cloudflare Tunnel credentials not found in 1Password${NC}"
+            echo -e "${YELLOW}⚠ Cloudflare Tunnel credentials field not found in 1Password item${NC}"
+            echo -e "${YELLOW}   Ensure the item has a field named 'credentials' with the JSON content${NC}"
         fi
     # Finally try local file
     elif [ -f "$HOME/.cloudflared/credentials.json" ]; then
