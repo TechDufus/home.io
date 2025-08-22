@@ -6,8 +6,6 @@ namespace: argocd
 resources:
   # Import base ArgoCD applications
   - ../../base
-  # Gateway configuration for ArgoCD
-  - gateway/argocd-httproute.yaml
 
 # Apply environment-specific patches to applications
 patches:
