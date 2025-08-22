@@ -35,34 +35,9 @@ spec:
           namespace: argocd
           port: 80
     
-    # Traefik Dashboard - redirect /traefik to /traefik/dashboard/
-    - matches:
-        - path:
-            type: Exact
-            value: /traefik
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            path:
-              type: ReplaceFullPath
-              replaceFullPath: /traefik/dashboard/
-            statusCode: 302
-    
-    # Traefik Dashboard at /traefik/dashboard
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /traefik/
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /
-      backendRefs:
-        - name: traefik-dashboard
-          namespace: traefik
-          port: 9000
+    # Traefik Dashboard - remove this route for now
+    # The dashboard doesn't support base path configuration
+    # Consider exposing on a subdomain instead or using port-forward
     
     # Root path - redirect to ArgoCD
     - matches:
