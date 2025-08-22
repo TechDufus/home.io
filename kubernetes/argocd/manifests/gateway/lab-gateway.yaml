@@ -20,7 +20,9 @@ metadata:
   namespace: traefik
 spec:
   parentRefs:
-    - name: lab-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: lab-gateway
       namespace: traefik
   hostnames:
     - lab.techdufus.com
@@ -31,9 +33,12 @@ spec:
             type: PathPrefix
             value: /argocd
       backendRefs:
-        - name: argocd-server
+        - group: ""
+          kind: Service
+          name: argocd-server
           namespace: argocd
           port: 80
+          weight: 1
     
     # Root path - redirect to ArgoCD
     - matches:
