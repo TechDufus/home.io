@@ -23,11 +23,18 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:2024.12.0
+        env:
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cloudflared-credentials
+              key: credentials.json
         args:
         - tunnel
-        - --config
-        - /etc/cloudflared/config/config.yaml
+        - --no-autoupdate
         - run
+        - --token
+        - $(TUNNEL_TOKEN)
         resources:
           requests:
             cpu: 100m
@@ -55,20 +62,6 @@ spec:
         - name: metrics
           containerPort: 2000
           protocol: TCP
-        volumeMounts:
-        - name: config
-          mountPath: /etc/cloudflared/config
-          readOnly: true
-        - name: creds
-          mountPath: /etc/cloudflared/creds
-          readOnly: true
-      volumes:
-      - name: config
-        configMap:
-          name: cloudflared-config
-      - name: creds
-        secret:
-          secretName: cloudflared-credentials
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
