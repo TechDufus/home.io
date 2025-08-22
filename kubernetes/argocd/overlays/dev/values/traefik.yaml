@@ -9,23 +9,18 @@ deployment:
 service:
   type: LoadBalancer
   annotations:
-    # If using MetalLB, uncomment and set IP
-    # metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
+    metallb.universe.tf/loadBalancerIPs: "10.0.20.200"  # Fixed IP from MetalLB pool
 
-# Enable Gateway API provider
+# Providers configuration - Gateway API and dashboard
 providers:
   kubernetesGateway:
     enabled: true
-    # Gateway API is in GA, no longer experimental
     gateway:
       enabled: true
-
-# Disable providers we don't need
-providers:
   kubernetesCRD:
-    enabled: false
+    enabled: false  # Not using CRDs
   kubernetesIngress:
-    enabled: false
+    enabled: false  # Not using Ingress
 
 # Ports configuration
 ports:
@@ -41,20 +36,18 @@ ports:
     expose:
       default: true
     protocol: TCP
-    # Enable HTTP/3
     http3:
       enabled: false
-  # Traefik dashboard (disabled by default for security)
   traefik:
     port: 9000
     expose:
-      default: false
+      default: false  # Dashboard disabled by default
     protocol: TCP
 
-# Dashboard configuration (for debugging)
+# Dashboard configuration
 ingressRoute:
   dashboard:
-    enabled: false  # We'll expose via Gateway API instead
+    enabled: false  # We'll expose via Gateway API if needed
 
 # Logs
 logs:
@@ -74,9 +67,9 @@ resources:
 
 # Pod disruption budget
 podDisruptionBudget:
-  enabled: false  # Not needed for single replica in dev
+  enabled: false  # Not needed for single replica
 
-# Autoscaling disabled for dev
+# Autoscaling
 autoscaling:
   enabled: false
 
@@ -94,7 +87,7 @@ additionalArguments:
   - "--global.checknewversion=false"
   - "--global.sendanonymoususage=false"
 
-# Create default GatewayClass
+# Create default GatewayClass for Traefik
 gatewayClass:
   enabled: true
   name: traefik

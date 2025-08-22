@@ -1,26 +1,25 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway-resources
+  name: metallb-config
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"  # Deploy after CRDs and Traefik
 spec:
   project: default
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
-    path: kubernetes/argocd/base/manifests/gateway
+    path: kubernetes/argocd/base/manifests/metallb
   destination:
     server: https://kubernetes.default.svc
+    namespace: metallb-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false  # MetalLB app creates namespace
       - ServerSideApply=true
     retry:
       limit: 5

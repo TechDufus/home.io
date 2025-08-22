@@ -4,10 +4,12 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-  # Core infrastructure - Deploy in order via sync waves
-  - apps/gateway-api-crds.yaml  # Wave -10: CRDs first
-  - apps/traefik.yaml           # Wave 0: Gateway controller
-  - apps/gateway-resources.yaml # Wave 10: Gateway and routes
+  # Core infrastructure
+  - apps/gateway-api-crds.yaml  # Gateway API CRDs
+  - apps/metallb.yaml           # LoadBalancer provider
+  - apps/metallb-config.yaml    # MetalLB IP pool configuration
+  - apps/traefik.yaml           # Gateway controller
+  - apps/gateway-config.yaml    # Gateway and HTTPRoutes
 
 generatorOptions:
   disableNameSuffixHash: true

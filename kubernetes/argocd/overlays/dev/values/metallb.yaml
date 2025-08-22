@@ -1,0 +1,36 @@
+# MetalLB Helm Chart Values for Dev Environment
+# Provides LoadBalancer IPs for bare metal Kubernetes
+
+controller:
+  enabled: true
+  image:
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+
+speaker:
+  enabled: true
+  image:
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 50Mi
+    limits:
+      cpu: 100m
+      memory: 100Mi
+  # Use L2 mode (no BGP/FRR needed)
+  frr:
+    enabled: false
+
+# Prometheus metrics
+prometheus:
+  scrapeAnnotations: true
+
+# Create default L2 configuration
+# Note: IPAddressPool and L2Advertisement will be created separately

@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway-api-crds
+  name: gateway-config
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/kubernetes-sigs/gateway-api
-    targetRevision: v1.2.1
-    path: config/crd
+    repoURL: https://github.com/TechDufus/home.io
+    targetRevision: main
+    path: kubernetes/argocd/base/manifests/gateway
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
@@ -18,7 +18,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
       - ServerSideApply=true
     retry:
       limit: 5

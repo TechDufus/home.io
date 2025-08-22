@@ -9,6 +9,17 @@ resources:
 
 # Apply environment-specific patches to applications
 patches:
+  # Update MetalLB to use dev values
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: metallb
+    patch: |-
+      - op: replace
+        path: /spec/sources/0/helm/valueFiles/0
+        value: $values/kubernetes/argocd/overlays/dev/values/metallb.yaml
+  
   # Update Traefik to use dev values
   - target:
       group: argoproj.io
