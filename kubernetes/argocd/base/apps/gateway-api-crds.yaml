@@ -1,27 +1,25 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: n8n
+  name: gateway-api-crds
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/TechDufus/home.io
-    targetRevision: main
-    path: kubernetes/argocd/overlays/dev  # Will use overlay when n8n manifests are added
+    repoURL: https://github.com/kubernetes-sigs/gateway-api
+    targetRevision: v1.2.1
+    path: config/crd
   destination:
     server: https://kubernetes.default.svc
-    namespace: n8n
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
+      - CreateNamespace=false
+      - ServerSideApply=true
     retry:
       limit: 5
       backoff:

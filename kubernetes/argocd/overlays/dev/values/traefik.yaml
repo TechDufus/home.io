@@ -1,0 +1,100 @@
+# Traefik Helm Chart Values for Dev Environment
+# Minimal configuration with Gateway API support
+
+# Deployment configuration
+deployment:
+  replicas: 1  # Single replica for dev
+
+# Service configuration
+service:
+  type: LoadBalancer
+  annotations:
+    # If using MetalLB, uncomment and set IP
+    # metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
+
+# Enable Gateway API provider
+providers:
+  kubernetesGateway:
+    enabled: true
+    # Gateway API is in GA, no longer experimental
+    gateway:
+      enabled: true
+
+# Disable providers we don't need
+providers:
+  kubernetesCRD:
+    enabled: false
+  kubernetesIngress:
+    enabled: false
+
+# Ports configuration
+ports:
+  web:
+    port: 8000
+    exposedPort: 80
+    expose:
+      default: true
+    protocol: TCP
+  websecure:
+    port: 8443
+    exposedPort: 443
+    expose:
+      default: true
+    protocol: TCP
+    # Enable HTTP/3
+    http3:
+      enabled: false
+  # Traefik dashboard (disabled by default for security)
+  traefik:
+    port: 9000
+    expose:
+      default: false
+    protocol: TCP
+
+# Dashboard configuration (for debugging)
+ingressRoute:
+  dashboard:
+    enabled: false  # We'll expose via Gateway API instead
+
+# Logs
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true
+
+# Resources for dev environment
+resources:
+  requests:
+    cpu: 100m
+    memory: 50Mi
+  limits:
+    cpu: 300m
+    memory: 150Mi
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false  # Not needed for single replica in dev
+
+# Autoscaling disabled for dev
+autoscaling:
+  enabled: false
+
+# Security context
+securityContext:
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+
+# Additional arguments
+additionalArguments:
+  - "--global.checknewversion=false"
+  - "--global.sendanonymoususage=false"
+
+# Create default GatewayClass
+gatewayClass:
+  enabled: true
+  name: traefik

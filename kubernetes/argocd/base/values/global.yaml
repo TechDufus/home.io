@@ -1,3 +1,0 @@
-# Global base values (usually overridden by overlays)
-environment: base
-domain: example.com

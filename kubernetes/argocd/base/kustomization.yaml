@@ -4,12 +4,9 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-  # ArgoCD Applications
-  - apps/cloudflared.yaml
-  - apps/monitoring.yaml
-  - apps/cloudnative-pg.yaml
-  # - apps/n8n.yaml  # Future: uncomment when n8n manifests are added
-  # Note: Raw manifests are NOT included here, they're managed by overlays
+  # Core infrastructure - Deploy these first
+  - apps/gateway-api-crds.yaml
+  - apps/traefik.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

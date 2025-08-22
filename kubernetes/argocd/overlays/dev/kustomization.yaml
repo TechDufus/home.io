@@ -6,39 +6,21 @@ namespace: argocd
 resources:
   # Import base ArgoCD applications
   - ../../base
-  # Import raw manifests that need patching
-  - ../../base/manifests/cloudflared
+  # Gateway configuration for ArgoCD
+  - gateway/argocd-httproute.yaml
 
-# Apply environment-specific patches to raw manifests
+# Apply environment-specific patches to applications
 patches:
-  # Patch for cloudflared deployment (example)
-  - target:
-      kind: Deployment
-      name: cloudflared
-      namespace: cloudflare
-    path: patches/cloudflared/deployment-patch.yaml
-  
-  # Update monitoring to use dev values
+  # Update Traefik to use dev values
   - target:
       group: argoproj.io
       version: v1alpha1
       kind: Application
-      name: monitoring
+      name: traefik
     patch: |-
       - op: replace
         path: /spec/sources/0/helm/valueFiles/0
-        value: $values/argocd/overlays/dev/values/monitoring.yaml
-  
-  # Update cloudnative-pg to use dev values
-  - target:
-      group: argoproj.io
-      version: v1alpha1
-      kind: Application
-      name: cloudnative-pg
-    patch: |-
-      - op: replace
-        path: /spec/sources/0/helm/valueFiles/0
-        value: $values/argocd/overlays/dev/values/cloudnative-pg.yaml
+        value: $values/argocd/overlays/dev/values/traefik.yaml
 
 labels:
   - includeSelectors: true
