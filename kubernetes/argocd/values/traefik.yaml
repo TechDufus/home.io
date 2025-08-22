@@ -45,6 +45,10 @@ ports:
     protocol: TCP
 
 # Dashboard configuration
+api:
+  dashboard: true
+  insecure: true  # Safe behind Cloudflare Tunnel
+  
 ingressRoute:
   dashboard:
     enabled: false  # We'll expose via Gateway API if needed
