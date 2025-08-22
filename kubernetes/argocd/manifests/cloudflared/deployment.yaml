@@ -3,6 +3,15 @@ kind: Namespace
 metadata:
   name: cloudflare
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflared-token
+  namespace: cloudflare
+type: Opaque
+stringData:
+  token: "PLACEHOLDER_TOKEN"  # This will be replaced by setup-secrets.sh
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,18 +32,18 @@ spec:
       containers:
       - name: cloudflared
         image: cloudflare/cloudflared:2024.12.0
+        args:
+        - tunnel
+        - --no-autoupdate
+        - --metrics
+        - 0.0.0.0:2000
+        - run
         env:
         - name: TUNNEL_TOKEN
           valueFrom:
             secretKeyRef:
               name: cloudflared-credentials
               key: credentials.json
-        args:
-        - tunnel
-        - --no-autoupdate
-        - run
-        - --token
-        - $(TUNNEL_TOKEN)
         resources:
           requests:
             cpu: 100m
