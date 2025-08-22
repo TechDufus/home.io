@@ -19,7 +19,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=false  # MetalLB app creates namespace
+      - CreateNamespace=true  # Allow namespace management for Pod Security labels
       - ServerSideApply=true
     retry:
       limit: 5
