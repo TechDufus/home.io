@@ -18,7 +18,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/sources/0/helm/valueFiles/0
-        value: $values/argocd/overlays/dev/values/traefik.yaml
+        value: $values/kubernetes/argocd/overlays/dev/values/traefik.yaml
 
 labels:
   - includeSelectors: true
