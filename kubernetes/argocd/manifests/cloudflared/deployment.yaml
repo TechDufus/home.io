@@ -3,15 +3,6 @@ kind: Namespace
 metadata:
   name: cloudflare
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflared-token
-  namespace: cloudflare
-type: Opaque
-stringData:
-  token: "PLACEHOLDER_TOKEN"  # This will be replaced by setup-secrets.sh
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
