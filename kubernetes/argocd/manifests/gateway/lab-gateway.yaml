@@ -35,11 +35,24 @@ spec:
           namespace: argocd
           port: 80
     
-    # Traefik Dashboard at /traefik
+    # Traefik Dashboard - redirect /traefik to /traefik/dashboard/
+    - matches:
+        - path:
+            type: Exact
+            value: /traefik
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /traefik/dashboard/
+            statusCode: 302
+    
+    # Traefik Dashboard at /traefik/dashboard
     - matches:
         - path:
             type: PathPrefix
-            value: /traefik
+            value: /traefik/
       filters:
         - type: URLRewrite
           urlRewrite:
