@@ -35,10 +35,6 @@ spec:
           namespace: argocd
           port: 80
     
-    # Traefik Dashboard - remove this route for now
-    # The dashboard doesn't support base path configuration
-    # Consider exposing on a subdomain instead or using port-forward
-    
     # Root path - redirect to ArgoCD
     - matches:
         - path:

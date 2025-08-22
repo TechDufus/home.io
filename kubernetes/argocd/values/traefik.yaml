@@ -45,13 +45,10 @@ ports:
     protocol: TCP
 
 # Dashboard configuration
-api:
-  dashboard: true
-  insecure: true  # Safe behind Cloudflare Tunnel
-  
+# Dashboard is not exposed externally - use kubectl port-forward if needed
 ingressRoute:
   dashboard:
-    enabled: false  # We'll expose via Gateway API if needed
+    enabled: false
 
 # Logs
 logs:
@@ -90,7 +87,6 @@ securityContext:
 additionalArguments:
   - "--global.checknewversion=false"
   - "--global.sendanonymoususage=false"
-  - "--api.insecure=true"  # Enable insecure dashboard (safe behind Cloudflare Tunnel)
 
 # Create default GatewayClass for Traefik
 gatewayClass:
