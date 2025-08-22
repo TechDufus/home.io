@@ -90,6 +90,7 @@ securityContext:
 additionalArguments:
   - "--global.checknewversion=false"
   - "--global.sendanonymoususage=false"
+  - "--api.insecure=true"  # Enable insecure dashboard (safe behind Cloudflare Tunnel)
 
 # Create default GatewayClass for Traefik
 gatewayClass:
