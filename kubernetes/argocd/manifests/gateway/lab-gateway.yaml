@@ -1,12 +1,27 @@
 apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: lab-gateway
+  namespace: traefik
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All  # Allow routes from all namespaces
+---
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: lab-techdufus-paths
-  namespace: gateway-system
+  namespace: traefik
 spec:
   parentRefs:
-    - name: homelab-gateway
-      namespace: gateway-system
+    - name: lab-gateway
+      namespace: traefik
   hostnames:
     - lab.techdufus.com
   rules:
@@ -26,23 +41,7 @@ spec:
           namespace: argocd
           port: 80
     
-    # Traefik Dashboard at /traefik
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /traefik
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /dashboard
-      backendRefs:
-        - name: traefik
-          namespace: traefik
-          port: 9000
-    
-    # Root path - redirect to ArgoCD or a landing page
+    # Root path - redirect to ArgoCD
     - matches:
         - path:
             type: Exact
@@ -71,3 +70,17 @@ spec:
     #     - name: grafana
     #       namespace: monitoring
     #       port: 3000
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-traefik-routes
+  namespace: argocd
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: traefik
+  to:
+    - group: ""
+      kind: Service
