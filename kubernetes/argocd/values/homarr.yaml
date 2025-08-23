@@ -1,9 +1,9 @@
 # Homarr Helm Chart Values for Dev Environment
-# Dashboard application - configured for subpath routing
+# Dashboard application - configured for root path operation
 
-# Environment variables for proper subpath operation
+# Environment variables for proper root path operation
 env:
-  BASE_URL: "https://lab.techdufus.com/homarr"
+  BASE_URL: "https://lab.techdufus.com"
 
 # Resources for homelab environment
 resources:
