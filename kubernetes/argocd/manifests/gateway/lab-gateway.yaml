@@ -40,54 +40,7 @@ spec:
           port: 80
           weight: 1
     
-    # Homarr at /dashboard
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /dashboard
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: homarr
-          namespace: homarr
-          port: 7575
-          weight: 1
-    
-    # Homarr init and static assets (catch-all for Homarr paths)
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /init
-        - path:
-            type: PathPrefix
-            value: /_next
-        - path:
-            type: PathPrefix
-            value: /api
-        - path:
-            type: PathPrefix
-            value: /favicon.ico
-        - path:
-            type: PathPrefix
-            value: /logo
-        - path:
-            type: PathPrefix
-            value: /manifest.webmanifest
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: homarr
-          namespace: homarr
-          port: 7575
-          weight: 1
-    
-    # Root path - Homarr dashboard
+    # Root path - Homarr dashboard (after setup, no redirect)
     - matches:
         - path:
             type: Exact
