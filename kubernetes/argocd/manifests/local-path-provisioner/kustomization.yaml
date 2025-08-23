@@ -1,18 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Pull upstream local-path-provisioner manifests
+# Use remote kustomization instead of direct YAML
 resources:
-  - namespace.yaml
-  - https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.31/deploy/local-path-storage.yaml
+  - namespace.yaml  # Our custom namespace with Pod Security labels
+  - upstream-manifests.yaml  # Stripped upstream without namespace
 
-# Apply Talos-specific patches
-patchesStrategicMerge:
+# Apply Talos-specific patches  
+patches:
   - configmap-patch.yaml
   - storageclass-patch.yaml
 
-# Ensure resources are deployed in correct order
-# Namespace first, then upstream manifests, then patches
 commonLabels:
   app.kubernetes.io/name: local-path-provisioner
   app.kubernetes.io/version: v0.0.31
