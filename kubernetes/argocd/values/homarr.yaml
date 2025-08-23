@@ -5,6 +5,21 @@
 env:
   BASE_URL: "https://lab.techdufus.com"
 
+# Persistence configuration for database and images
+persistence:
+  homarrDatabase:
+    enabled: true
+    size: 1Gi
+    storageClassName: "local-path"
+    accessMode: "ReadWriteOnce"
+    mountPath: "/appdata/db"
+  homarrImages:
+    enabled: true
+    size: 512Mi
+    storageClassName: "local-path"
+    accessMode: "ReadWriteOnce"
+    mountPath: "/images"
+
 # Resources for homelab environment
 resources:
   requests:
@@ -13,12 +28,3 @@ resources:
   limits:
     cpu: 500m
     memory: 1Gi
-
-# Enable persistence for configuration and SQLite database
-homarrDatabase:
-  enabled: true
-  size: 1Gi
-
-homarrImages:
-  enabled: true
-  size: 512Mi
