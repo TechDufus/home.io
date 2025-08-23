@@ -1,11 +1,6 @@
 # Homarr Helm Chart Values for Dev Environment
 # Dashboard application - minimal overrides
 
-# Service configuration (chart defaults to port 7575, ClusterIP)
-service:
-  type: ClusterIP
-  port: 7575
-
 # Resources for homelab environment
 resources:
   requests:
@@ -19,22 +14,3 @@ resources:
 persistence:
   enabled: true
   size: 1Gi
-  accessModes:
-    - ReadWriteOnce
-
-# Security context
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 65534
-  runAsGroup: 65534
-  fsGroup: 65534
-
-# Container security context
-containerSecurityContext:
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-  readOnlyRootFilesystem: false  # Homarr needs write access for database
-  runAsNonRoot: true
-  runAsUser: 65534

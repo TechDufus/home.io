@@ -9,7 +9,7 @@ spec:
   project: default
   sources:
     - chart: homarr
-      repoURL: https://homarr-labs.github.io/charts
+      repoURL: oci://ghcr.io/homarr-labs/charts
       targetRevision: "5.8.0"  # Latest stable version
       helm:
         releaseName: homarr
