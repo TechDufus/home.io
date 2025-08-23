@@ -8,7 +8,7 @@ spec:
   listeners:
     - name: http
       protocol: HTTP
-      port: 8000
+      port: 80
       allowedRoutes:
         namespaces:
           from: All  # Allow routes from all namespaces
@@ -77,6 +77,20 @@ kind: ReferenceGrant
 metadata:
   name: allow-traefik-routes
   namespace: argocd
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: traefik
+  to:
+    - group: ""
+      kind: Service
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-traefik-routes
+  namespace: homarr
 spec:
   from:
     - group: gateway.networking.k8s.io

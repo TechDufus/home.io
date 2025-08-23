@@ -249,6 +249,42 @@ setup_n8n_secrets() {
     fi
 }
 
+# Setup Homarr secrets
+setup_homarr_secrets() {
+    echo ""
+    echo -e "${BLUE}🏠 Setting up Homarr dashboard secrets...${NC}"
+    
+    # Get encryption key from 1Password or generate
+    local encryption_key=$(op item get "[Homelab] Homarr Database" --vault="$OP_VAULT" --fields="credential" --reveal 2>/dev/null || echo "")
+    
+    if [ -z "$encryption_key" ]; then
+        echo -e "${YELLOW}→ Generating new Homarr encryption key...${NC}"
+        encryption_key=$(openssl rand -hex 32)
+        echo -e "${YELLOW}   Save this key to 1Password:${NC}"
+        echo -e "${YELLOW}   Item Name: [Homelab] Homarr Database${NC}"
+        echo -e "${YELLOW}   Vault: $OP_VAULT${NC}"
+        echo -e "${YELLOW}   Field: credential${NC}"
+        echo -e "${YELLOW}   Value: $encryption_key${NC}"
+    else
+        # Validate the key is exactly 64 hex characters
+        if [[ ${#encryption_key} -ne 64 ]] || [[ ! "$encryption_key" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo -e "${YELLOW}⚠ Existing key is invalid (must be 64 hex characters)${NC}"
+            echo -e "${YELLOW}→ Generating new valid Homarr encryption key...${NC}"
+            encryption_key=$(openssl rand -hex 32)
+            echo -e "${YELLOW}   Update this key in 1Password:${NC}"
+            echo -e "${YELLOW}   Item Name: [Homelab] Homarr Database${NC}"
+            echo -e "${YELLOW}   Vault: $OP_VAULT${NC}"
+            echo -e "${YELLOW}   Field: credential${NC}"
+            echo -e "${YELLOW}   Value: $encryption_key${NC}"
+        else
+            echo -e "${GREEN}✓ Using existing valid Homarr encryption key from 1Password${NC}"
+        fi
+    fi
+    
+    # Create the db-secret that Homarr expects
+    create_k8s_secret "homarr" "db-secret" "db-encryption-key" "$encryption_key"
+}
+
 
 # Environment-specific secret setup
 setup_environment_secrets() {
@@ -278,6 +314,7 @@ show_secret_status() {
     echo ""
     echo -e "${YELLOW}Application Secrets:${NC}"
     kubectl get secrets -n n8n 2>/dev/null | grep -E "(n8n)" || echo "  No N8N secrets found"
+    kubectl get secrets -n homarr 2>/dev/null | grep -E "(db-secret)" || echo "  No Homarr secrets found"
 
 }
 
@@ -290,6 +327,7 @@ main() {
     # Setup all secrets
     setup_cloudflare_tunnel_secret
     setup_n8n_secrets
+    setup_homarr_secrets
 
     # Show final status
     show_secret_status
@@ -324,6 +362,7 @@ case "${1:-}" in
         echo "Required 1Password items:"
         echo "  - 'Cloudflare Tunnel - Homelab' (tunnel credentials)"
         echo "  - 'N8N Homelab [DEV/PROD]' (N8N configuration)"
+        echo "  - '[Homelab] Homarr Database' (database encryption key in 'credential' field)"
         echo ""
         echo "Environment variables (optional):"
         echo "  - CLOUDFLARE_TUNNEL_CREDENTIALS_JSON"
