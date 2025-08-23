@@ -11,8 +11,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"  # Deploy after namespace, before application
 spec:
-  # Use pgvecto.rs image for Immich ML features (v1.119.0 compatibility)
-  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.5-v0.3.0
+  # Use standard pgvector image for Immich ML features (v1.119.0 compatibility)
+  imageName: pgvector/pgvector:pg16
   
   # Single instance for homelab (can scale later)
   instances: 1
@@ -20,7 +20,7 @@ spec:
   # PostgreSQL configuration for Immich
   postgresql:
     shared_preload_libraries:
-      - "vectors.so"
+      - "vector.so"
     parameters:
       # Performance tuning for homelab
       max_connections: "200"
@@ -40,7 +40,7 @@ spec:
       localeCType: "C"
       postInitApplicationSQL:
         # Create extensions required by Immich
-        - "CREATE EXTENSION IF NOT EXISTS \"vectors\";"
+        - "CREATE EXTENSION IF NOT EXISTS \"vector\";"
         - "CREATE EXTENSION IF NOT EXISTS \"cube\" CASCADE;"
         - "CREATE EXTENSION IF NOT EXISTS \"earthdistance\" CASCADE;"
         - "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" CASCADE;"
