@@ -12,3 +12,7 @@ resources:
   limits:
     cpu: 500m
     memory: 512Mi
+
+# API service configuration to prevent sync drift
+apiService:
+  annotations: {}
