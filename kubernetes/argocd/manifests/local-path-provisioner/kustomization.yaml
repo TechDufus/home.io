@@ -1,15 +1,39 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Use remote kustomization instead of direct YAML
 resources:
   - namespace.yaml  # Our custom namespace with Pod Security labels
   - upstream-manifests.yaml  # Stripped upstream without namespace
 
-# Apply Talos-specific patches  
+# Apply Talos-specific patches using JSON patch format
 patches:
-  - configmap-patch.yaml
-  - storageclass-patch.yaml
+  - target:
+      group: ""
+      version: v1
+      kind: ConfigMap
+      name: local-path-config
+    patch: |-
+      - op: replace
+        path: /data/config.json
+        value: |-
+          {
+            "nodePathMap": [
+              {
+                "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                "paths": ["/var/mnt/local-path-provisioner"]
+              }
+            ]
+          }
+  - target:
+      group: storage.k8s.io
+      version: v1
+      kind: StorageClass
+      name: local-path
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          storageclass.kubernetes.io/is-default-class: "true"
 
 commonLabels:
   app.kubernetes.io/name: local-path-provisioner
