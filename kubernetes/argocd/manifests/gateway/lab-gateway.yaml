@@ -59,10 +59,10 @@ spec:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
     
-    # Root redirect to Homarr dashboard
+    # Redirect everything else to /homarr (catch-all)
     - matches:
         - path:
-            type: Exact
+            type: PathPrefix
             value: /
       filters:
         - type: RequestRedirect
@@ -70,8 +70,8 @@ spec:
             scheme: https
             hostname: lab.techdufus.com
             path:
-              type: ReplaceFullPath
-              replaceFullPath: /homarr
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /homarr
             statusCode: 302
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
