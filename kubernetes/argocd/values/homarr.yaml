@@ -5,19 +5,14 @@
 env:
   BASE_URL: "https://lab.techdufus.com"
 
-# Persistence configuration for database and images
+# Persistence configuration for all Homarr data
 # Using default storage class (local-path-provisioner)
 persistence:
   homarrDatabase:
     enabled: true
     size: 1Gi
     accessMode: "ReadWriteOnce"
-    mountPath: "/appdata/db"
-  homarrImages:
-    enabled: true
-    size: 512Mi
-    accessMode: "ReadWriteOnce"
-    mountPath: "/images"
+    mountPath: "/appdata"  # Persists ALL Homarr data (database, images, configs)
 
 # Resources for homelab environment
 resources:
