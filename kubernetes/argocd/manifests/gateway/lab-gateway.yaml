@@ -40,10 +40,10 @@ spec:
           port: 80
           weight: 1
     
-    # Root path - Homarr dashboard (after setup, no redirect)
+    # Everything else goes to Homarr (catch-all for all paths)
     - matches:
         - path:
-            type: Exact
+            type: PathPrefix
             value: /
       backendRefs:
         - group: ""
