@@ -20,10 +20,6 @@ spec:
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values
-    # Manifests source for additional resources (PostgreSQL cluster, PVCs, etc.)
-    - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: main
-      path: kubernetes/argocd/manifests/immich
   destination:
     server: https://kubernetes.default.svc
     namespace: immich
