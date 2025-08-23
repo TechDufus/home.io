@@ -72,6 +72,21 @@ kubectl get svc traefik -n traefik
 kubectl logs deployment/cloudflared -n cloudflare
 ```
 
+### Resource Monitoring
+```bash
+# View node resource usage
+kubectl top nodes
+
+# View pod resource usage (all namespaces)
+kubectl top pods -A
+
+# View pod resource usage (specific namespace)
+kubectl top pods -n <namespace>
+
+# Check metrics-server status
+kubectl get deployment metrics-server -n kube-system
+```
+
 ### Troubleshooting
 ```bash
 # Check ArgoCD sync status
@@ -100,6 +115,7 @@ app-of-apps.yaml (Root)
     ├── metallb-config      # IP pool configuration
     ├── traefik            # Gateway controller
     ├── gateway-config     # Gateway and HTTPRoutes
+    ├── metrics-server     # Resource metrics for kubectl top
     └── cloudflared        # External access tunnel
 ```
 
@@ -153,6 +169,7 @@ kubernetes/
 │   │   ├── metallb.yaml             # MetalLB load balancer
 │   │   ├── metallb-config.yaml      # IP pool configuration
 │   │   ├── gateway-config.yaml      # Gateway and routes
+│   │   ├── metrics-server.yaml      # Resource metrics server
 │   │   └── cloudflared.yaml         # Cloudflare tunnel
 │   ├── manifests/              # Kubernetes resource manifests
 │   │   ├── cloudflared/        # Tunnel deployment
@@ -165,7 +182,8 @@ kubernetes/
 │   │       └── namespace.yaml
 │   └── values/                 # Helm chart values
 │       ├── traefik.yaml        # Traefik configuration
-│       └── metallb.yaml        # MetalLB settings
+│       ├── metallb.yaml        # MetalLB settings
+│       └── metrics-server.yaml # Metrics server configuration
 └── bootstrap/                  # Bootstrap scripts
     ├── argocd.sh              # ArgoCD installation
     └── setup-secrets.sh       # 1Password secret setup
@@ -406,6 +424,11 @@ metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
    - **Check**: `kubectl get ipaddresspool -n metallb-system`
    - **Solution**: Verify MetalLB pool has available IPs
 
+5. **Metrics Server Not Working**
+   - **Symptoms**: `kubectl top` commands fail with "Metrics API not available"
+   - **Check**: `kubectl get pods -n kube-system | grep metrics-server`
+   - **Solution**: Verify metrics-server pod is running and has proper TLS configuration
+
 ### Debugging Tools
 ```bash
 # ArgoCD application issues
@@ -419,6 +442,9 @@ kubectl run debug --image=nicolaka/netshoot -it --rm
 
 # Cloudflare tunnel status
 kubectl logs -n cloudflare deployment/cloudflared --tail=50
+
+# Metrics server status
+kubectl logs -n kube-system deployment/metrics-server --tail=50
 ```
 
 ## Monitoring and Observability
