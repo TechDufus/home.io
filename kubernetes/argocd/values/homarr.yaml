@@ -6,15 +6,16 @@ env:
   BASE_URL: "https://lab.techdufus.com"
 
 # Persistence configuration for database and images
+# NOTE: Disabled until storage provisioner is set up in cluster
 persistence:
   homarrDatabase:
-    enabled: true
+    enabled: false
     size: 1Gi
     storageClassName: "local-path"
     accessMode: "ReadWriteOnce"
     mountPath: "/appdata/db"
   homarrImages:
-    enabled: true
+    enabled: false
     size: 512Mi
     storageClassName: "local-path"
     accessMode: "ReadWriteOnce"
