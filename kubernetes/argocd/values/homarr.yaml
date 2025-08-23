@@ -11,6 +11,10 @@ resources:
     memory: 1Gi
 
 # Enable persistence for configuration and SQLite database
-persistence:
+homarrDatabase:
   enabled: true
   size: 1Gi
+
+homarrImages:
+  enabled: true
+  size: 512Mi
