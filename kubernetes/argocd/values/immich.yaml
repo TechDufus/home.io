@@ -15,7 +15,7 @@ env:
       secretKeyRef:
         name: immich-postgres-secret
         key: password
-  DB_VECTOR_EXTENSION: "vectorchord"
+  DB_VECTOR_EXTENSION: "pgvecto.rs"
   REDIS_HOSTNAME: "immich-redis-master.immich.svc.cluster.local"
 
 # Homelab resource limits

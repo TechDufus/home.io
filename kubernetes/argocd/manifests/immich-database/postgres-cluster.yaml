@@ -11,8 +11,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"  # Deploy after namespace, before application
 spec:
-  # Use VectorChord image for Immich ML features (v1.133.0+ compatibility)
-  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16-0.3.0
+  # Use pgvecto.rs image for Immich ML features (v1.119.0 compatibility)
+  imageName: ghcr.io/tensorchord/cloudnative-pgvecto.rs:16.5-v0.3.0
   
   # Single instance for homelab (can scale later)
   instances: 1
@@ -20,8 +20,8 @@ spec:
   # PostgreSQL configuration for Immich
   postgresql:
     parameters:
-      # Enable VectorChord extension
-      shared_preload_libraries: "vchord.so"
+      # Enable pgvecto.rs extension
+      shared_preload_libraries: "vectors.so"
       # Performance tuning for homelab
       max_connections: "200"
       shared_buffers: "256MB"
@@ -52,8 +52,7 @@ spec:
       localeCType: "C"
       postInitApplicationSQL:
         # Create extensions required by Immich
-        - "CREATE EXTENSION IF NOT EXISTS \"vector\";"
-        - "CREATE EXTENSION IF NOT EXISTS \"vchord\" CASCADE;"
+        - "CREATE EXTENSION IF NOT EXISTS \"vectors\";"
         - "CREATE EXTENSION IF NOT EXISTS \"cube\" CASCADE;"
         - "CREATE EXTENSION IF NOT EXISTS \"earthdistance\" CASCADE;"
         - "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" CASCADE;"
