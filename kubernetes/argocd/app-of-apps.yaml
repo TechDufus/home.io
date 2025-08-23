@@ -7,10 +7,15 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://github.com/TechDufus/home.io
-    targetRevision: main
-    path: kubernetes/argocd/apps
+  sources:
+    # ApplicationSets for organized service management
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/applicationsets
+    # Individual applications not part of platform
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/apps/applications
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
