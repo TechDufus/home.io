@@ -34,7 +34,8 @@ cd kubernetes/bootstrap
 # 3. Bootstrap ArgoCD with App-of-Apps
 ./argocd.sh
 
-# 4. Access ArgoCD UI
+# 4. Access services
+echo "Homarr Dashboard: https://lab.techdufus.com/"
 echo "ArgoCD UI: https://lab.techdufus.com/argocd"
 echo "Username: admin"
 echo "Password: $(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)"
@@ -70,6 +71,10 @@ kubectl get svc traefik -n traefik
 
 # Check Cloudflare tunnel
 kubectl logs deployment/cloudflared -n cloudflare
+
+# Check Homarr dashboard
+kubectl get pods -n homarr
+kubectl logs deployment/homarr -n homarr
 ```
 
 ### Resource Monitoring
@@ -116,6 +121,7 @@ app-of-apps.yaml (Root)
     ├── traefik            # Gateway controller
     ├── gateway-config     # Gateway and HTTPRoutes
     ├── metrics-server     # Resource metrics for kubectl top
+    ├── homarr             # Dashboard application
     └── cloudflared        # External access tunnel
 ```
 
@@ -170,6 +176,7 @@ kubernetes/
 │   │   ├── metallb-config.yaml      # IP pool configuration
 │   │   ├── gateway-config.yaml      # Gateway and routes
 │   │   ├── metrics-server.yaml      # Resource metrics server
+│   │   ├── homarr.yaml              # Dashboard application
 │   │   └── cloudflared.yaml         # Cloudflare tunnel
 │   ├── manifests/              # Kubernetes resource manifests
 │   │   ├── cloudflared/        # Tunnel deployment
@@ -177,13 +184,16 @@ kubernetes/
 │   │   │   └── argocd-config.yaml
 │   │   ├── gateway/            # Gateway API resources
 │   │   │   └── lab-gateway.yaml
+│   │   ├── homarr/             # Dashboard configuration
+│   │   │   └── namespace.yaml
 │   │   └── metallb/            # MetalLB configuration
 │   │       ├── ip-pool.yaml
 │   │       └── namespace.yaml
 │   └── values/                 # Helm chart values
 │       ├── traefik.yaml        # Traefik configuration
 │       ├── metallb.yaml        # MetalLB settings
-│       └── metrics-server.yaml # Metrics server configuration
+│       ├── metrics-server.yaml # Metrics server configuration
+│       └── homarr.yaml         # Dashboard configuration
 └── bootstrap/                  # Bootstrap scripts
     ├── argocd.sh              # ArgoCD installation
     └── setup-secrets.sh       # 1Password secret setup

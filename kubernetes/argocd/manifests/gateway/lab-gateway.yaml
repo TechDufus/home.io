@@ -40,35 +40,37 @@ spec:
           port: 80
           weight: 1
     
-    # Root path - redirect to ArgoCD
+    # Homarr at /dashboard
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /dashboard
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: homarr
+          namespace: homarr
+          port: 7575
+          weight: 1
+    
+    # Root path - Homarr dashboard
     - matches:
         - path:
             type: Exact
             value: /
-      filters:
-        - type: RequestRedirect
-          requestRedirect:
-            path:
-              type: ReplaceFullPath
-              replaceFullPath: /argocd
-            statusCode: 302
-    
-    # Future services can be added here
-    # Example: Grafana at /grafana
-    # - matches:
-    #     - path:
-    #         type: PathPrefix
-    #         value: /grafana
-    #   filters:
-    #     - type: URLRewrite
-    #       urlRewrite:
-    #         path:
-    #           type: ReplacePrefixMatch
-    #           replacePrefixMatch: /
-    #   backendRefs:
-    #     - name: grafana
-    #       namespace: monitoring
-    #       port: 3000
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: homarr
+          namespace: homarr
+          port: 7575
+          weight: 1
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
