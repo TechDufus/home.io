@@ -9,7 +9,7 @@ spec:
   project: default
   sources:
     - chart: homarr
-      repoURL: https://homarr-labs.github.io/charts/helm
+      repoURL: https://homarr-labs.github.io/charts
       targetRevision: "5.8.0"  # Latest stable version
       helm:
         releaseName: homarr
