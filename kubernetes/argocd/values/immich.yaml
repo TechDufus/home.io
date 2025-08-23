@@ -1,15 +1,13 @@
-# Immich Helm Chart Values
-# Configuration for external PostgreSQL (CloudNativePG) and Redis
+# Immich Helm Chart Values - Only Essential Overrides
+# Default chart version: v1.119.0, server+ML enabled, postgresql+redis disabled
 
-# Global image configuration
+# Fix image tag to working version
 image:
-  tag: "v1.125.0"  # Use recent stable version
+  tag: "v1.119.0"
 
-# Environment variables for all components
+# External database configuration (CloudNativePG)
 env:
-  # Database configuration (CloudNativePG cluster)
   DB_HOSTNAME: "immich-postgres-rw.immich.svc.cluster.local"
-  DB_PORT: "5432"
   DB_DATABASE_NAME: "immich"
   DB_USERNAME: "immich"
   DB_PASSWORD:
@@ -17,37 +15,11 @@ env:
       secretKeyRef:
         name: immich-postgres-secret
         key: password
-  
-  # Vector extension configuration for ML features
   DB_VECTOR_EXTENSION: "vectorchord"
-  
-  # Redis configuration (using subchart)
   REDIS_HOSTNAME: "immich-redis-master.immich.svc.cluster.local"
-  REDIS_PORT: "6379"
-  
-  # Machine Learning configuration
-  IMMICH_MACHINE_LEARNING_URL: "http://immich-machine-learning.immich.svc.cluster.local:3003"
-  
-  # Performance and storage
-  IMMICH_WORKERS_INCLUDE: "api"
-  IMMICH_LOG_LEVEL: "log"
 
-# Server configuration
+# Homelab resource limits
 server:
-  enabled: true
-  image:
-    repository: ghcr.io/immich-app/immich-server
-  
-  # Service configuration
-  service:
-    main:
-      type: ClusterIP
-      ports:
-        http:
-          port: 2283
-          targetPort: 3001
-  
-  # Resources for homelab
   resources:
     requests:
       cpu: 200m
@@ -55,31 +27,12 @@ server:
     limits:
       cpu: 1000m
       memory: 1Gi
-  
-  # Security context
-  securityContext:
-    capabilities:
-      drop: [ALL]
-    readOnlyRootFilesystem: false  # Immich needs to write temp files
-    runAsNonRoot: true
-    runAsUser: 65532
-    runAsGroup: 65532
-    allowPrivilegeEscalation: false
 
-# Machine Learning component
 machineLearning:
-  enabled: true
-  image:
-    repository: ghcr.io/immich-app/immich-machine-learning
-  
-  # Persistence for ML models cache
   persistence:
     cache:
       enabled: true
       existingClaim: "immich-ml-cache"
-      mountPath: /cache
-  
-  # Resources for ML workload
   resources:
     requests:
       cpu: 500m
@@ -87,31 +40,19 @@ machineLearning:
     limits:
       cpu: 2000m
       memory: 4Gi
-  
-  # Security context
-  securityContext:
-    capabilities:
-      drop: [ALL]
-    readOnlyRootFilesystem: false  # ML needs to write temp files
-    runAsNonRoot: true
-    runAsUser: 65532
-    runAsGroup: 65532
-    allowPrivilegeEscalation: false
 
-# Persistence configuration
+# Library storage
 immich:
   persistence:
     library:
       enabled: true
       existingClaim: "immich-library"
-      mountPath: /usr/src/app/upload
 
-# Redis subchart configuration
+# Enable Redis subchart with minimal config
 redis:
   enabled: true
-  architecture: standalone
   auth:
-    enabled: false  # Disable auth for simplicity in dev
+    enabled: false
   master:
     persistence:
       enabled: true
@@ -125,15 +66,6 @@ redis:
         cpu: 200m
         memory: 256Mi
 
-# PostgreSQL subchart (disabled - using CloudNativePG)
+# Explicitly disable unused components
 postgresql:
   enabled: false
-
-# Metrics and monitoring (prep for future)
-metrics:
-  enabled: false  # Enable when Prometheus is available
-
-# Ingress (disabled - using Gateway API)
-ingress:
-  main:
-    enabled: false
