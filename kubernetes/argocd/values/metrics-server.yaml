@@ -1,91 +1,14 @@
 # Metrics Server Helm Chart Values for Dev Environment
-# Provides resource metrics for kubectl top and HPA
+# Minimal overrides - only what differs from chart defaults
 
-# Deployment configuration
-replicas: 1  # Single replica for dev
-
-# Arguments for metrics-server
-# Required for Talos with self-signed certificates
+# Talos-specific configuration
 args:
-  - --kubelet-insecure-tls
-  - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-  - --kubelet-use-node-status-port
-  - --metric-resolution=15s
+  - --kubelet-insecure-tls  # Required for Talos self-signed certificates
 
-# Resources for dev environment
+# Lower memory for homelab environment
 resources:
   requests:
-    cpu: 100m
-    memory: 128Mi
+    memory: 128Mi  # Chart default is 200Mi
   limits:
     cpu: 500m
     memory: 512Mi
-
-# Security context
-securityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 65534
-  capabilities:
-    drop:
-      - ALL
-  seccompProfile:
-    type: RuntimeDefault
-
-# Container security context
-containerSecurityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 65534
-  capabilities:
-    drop:
-      - ALL
-  seccompProfile:
-    type: RuntimeDefault
-
-# Service configuration
-service:
-  type: ClusterIP
-  port: 443
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "10250"
-    prometheus.io/path: "/metrics"
-
-# API service configuration
-apiService:
-  create: true
-  annotations:
-    cert-manager.io/inject-ca-from: ""
-  insecureSkipTLSVerify: true  # Required for self-signed certificates
-
-# Pod disruption budget
-podDisruptionBudget:
-  enabled: false  # Not needed for single replica
-
-# Affinity and tolerations
-affinity: {}
-tolerations: []
-nodeSelector: {}
-
-# Service monitor for Prometheus (future use)
-serviceMonitor:
-  enabled: false  # Will enable when Prometheus is deployed
-  namespace: ""
-  interval: 30s
-  scrapeTimeout: 10s
-
-# Additional labels
-commonLabels: {}
-
-# Pod annotations for Prometheus metrics
-podAnnotations:
-  prometheus.io/scrape: "true"
-  prometheus.io/port: "10250"
-
-# Image configuration
-image:
-  repository: registry.k8s.io/metrics-server/metrics-server
-  pullPolicy: IfNotPresent
