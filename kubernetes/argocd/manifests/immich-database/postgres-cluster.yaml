@@ -11,8 +11,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"  # Deploy after namespace, before application
 spec:
-  # Use standard pgvector image for Immich ML features (v1.119.0 compatibility)
-  imageName: pgvector/pgvector:pg16
+  # Use CloudNativePG base image (pgvector will be installed if available)
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.6-3
   
   # Single instance for homelab (can scale later)
   instances: 1
