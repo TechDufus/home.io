@@ -8,11 +8,11 @@ metadata:
 spec:
   project: default
   sources:
-    # ApplicationSets for organized service management
+    # Platform/Infrastructure services
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
-      path: kubernetes/argocd/applicationsets
-    # Individual applications not part of platform
+      path: kubernetes/argocd/apps/platform
+    # User applications 
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       path: kubernetes/argocd/apps/applications
