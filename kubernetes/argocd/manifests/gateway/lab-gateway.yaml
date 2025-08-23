@@ -40,11 +40,11 @@ spec:
           port: 80
           weight: 1
     
-    # Everything else goes to Homarr (catch-all for all paths)
+    # Homarr dashboard at /homarr
     - matches:
         - path:
             type: PathPrefix
-            value: /
+            value: /homarr
       backendRefs:
         - group: ""
           kind: Service
@@ -52,6 +52,27 @@ spec:
           namespace: homarr
           port: 7575
           weight: 1
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+    
+    # Root redirect to Homarr dashboard
+    - matches:
+        - path:
+            type: Exact
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            hostname: lab.techdufus.com
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /homarr
+            statusCode: 302
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
