@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Immich Helm chart from OCI registry
+    - chart: immich
+      repoURL: oci://ghcr.io/immich-app/immich-charts
+      targetRevision: "0.9.3"  # Latest chart version
+      helm:
+        releaseName: immich
+        valueFiles:
+          - $values/kubernetes/argocd/values/immich.yaml
+    # Values source from Git repository
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
+    # Manifests source for additional resources (PostgreSQL cluster, PVCs, etc.)
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/immich
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: immich
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s  # Longer delay for database startup
+        factor: 2
+        maxDuration: 5m
+  revisionHistoryLimit: 3  # Application (fewer revisions than infrastructure)

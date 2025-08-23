@@ -1,0 +1,85 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-postgres
+  namespace: immich
+  labels:
+    app.kubernetes.io/name: immich-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: immich
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"  # Deploy after namespace, before application
+spec:
+  # Use VectorChord image for Immich ML features (v1.133.0+ compatibility)
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:16-0.3.0
+  
+  # Single instance for homelab (can scale later)
+  instances: 1
+  
+  # PostgreSQL configuration for Immich
+  postgresql:
+    parameters:
+      # Enable VectorChord extension
+      shared_preload_libraries: "vchord.so"
+      # Performance tuning for homelab
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      work_mem: "4MB"
+    
+  # Enable superuser access for extensions
+  enableSuperuserAccess: true
+  
+  # Managed roles
+  managed:
+    roles:
+      - name: immich
+        ensure: present
+        login: true
+        superuser: true  # Required for extension management
+        passwordSecret:
+          name: immich-postgres-secret
+          key: password
+  
+  # Bootstrap configuration
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      encoding: "UTF8"
+      localeCollate: "C"
+      localeCType: "C"
+      postInitApplicationSQL:
+        # Create extensions required by Immich
+        - "CREATE EXTENSION IF NOT EXISTS \"vector\";"
+        - "CREATE EXTENSION IF NOT EXISTS \"vchord\" CASCADE;"
+        - "CREATE EXTENSION IF NOT EXISTS \"cube\" CASCADE;"
+        - "CREATE EXTENSION IF NOT EXISTS \"earthdistance\" CASCADE;"
+        - "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" CASCADE;"
+  
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: local-path
+    resizeInUseVolumes: true
+  
+  # Resources for homelab environment
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  # Monitoring (prep for future Prometheus integration)
+  monitoring:
+    enabled: false  # Will enable when Prometheus is available
+  
+  # Backup configuration (basic)
+  backup:
+    retentionPolicy: "7d"  # Keep backups for 7 days
+    barmanObjectStore:
+      # Will configure when object storage is available
+      destinationPath: ""  # Placeholder for future S3/MinIO

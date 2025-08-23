@@ -1,0 +1,66 @@
+# CloudNativePG Operator Helm Chart Values
+# Configuration for PostgreSQL operator deployment
+
+# Deployment configuration
+replicaCount: 1  # Single replica for dev/homelab
+
+# Image configuration (using defaults from chart)
+# Default: ghcr.io/cloudnative-pg/cloudnative-pg
+
+# Configuration
+config:
+  # Keep cluster-wide mode enabled (default: true)
+  # This allows CNPG to manage PostgreSQL clusters across all namespaces
+  clusterWide: true
+  
+  # Webhook configuration (using defaults)
+  # Mutating and validating webhooks for PostgreSQL resources
+
+# Monitoring configuration
+monitoring:
+  # Enable pod monitor for Prometheus integration (prep for future monitoring)
+  podMonitor:
+    enabled: false  # Disabled until Prometheus is deployed
+  
+  # Grafana dashboard (prep for future)
+  grafanaDashboard:
+    enabled: false
+
+# Resource configuration for homelab environment
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Security context (following homelab patterns)
+securityContext:
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001  # Default CNPG user
+  runAsGroup: 10001
+  allowPrivilegeEscalation: false
+
+# Pod disruption budget (disabled for single replica)
+podDisruptionBudget:
+  enabled: false
+
+# Node selector and tolerations (using defaults for now)
+# Can be customized for specific node placement if needed
+
+# Additional environment variables (none needed currently)
+additionalEnv: []
+
+# Webhook configuration
+webhook:
+  port: 9443
+  mutating:
+    enabled: true
+    failurePolicy: Fail
+  validating:
+    enabled: true
+    failurePolicy: Fail
