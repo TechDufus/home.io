@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   sources:
-    # Immich Helm chart from OCI registry
+    # Immich Helm chart from HTTPS repository
     - chart: immich
-      repoURL: oci://ghcr.io/immich-app/immich-charts
+      repoURL: https://immich-app.github.io/immich-charts
       targetRevision: "0.9.3"  # Latest chart version
       helm:
         releaseName: immich
