@@ -3,6 +3,10 @@ kind: Gateway
 metadata:
   name: lab-gateway
   namespace: traefik
+  labels:
+    app.kubernetes.io/name: lab-gateway
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/managed-by: argocd
 spec:
   gatewayClassName: traefik
   listeners:
@@ -12,71 +16,3 @@ spec:
       allowedRoutes:
         namespaces:
           from: All  # Allow routes from all namespaces
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: lab-techdufus-paths
-  namespace: traefik
-spec:
-  parentRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: lab-gateway
-      namespace: traefik
-  hostnames:
-    - lab.techdufus.com
-  rules:
-    # ArgoCD at /argocd
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /argocd
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: argocd-server
-          namespace: argocd
-          port: 80
-          weight: 1
-    
-    # Everything else goes to Homarr (catch-all for dashboard at root)
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - group: ""
-          kind: Service
-          name: homarr
-          namespace: homarr
-          port: 7575
-          weight: 1
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-traefik-routes
-  namespace: argocd
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: traefik
-  to:
-    - group: ""
-      kind: Service
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-traefik-routes
-  namespace: homarr
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: traefik
-  to:
-    - group: ""
-      kind: Service
