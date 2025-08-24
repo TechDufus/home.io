@@ -139,7 +139,7 @@ config:
             siteMonitor: http://10.0.0.99
             widget:
               type: pihole
-              url: http://10.0.0.99
+              url: http://10.0.0.99/admin
               key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
               fields: ["queries", "blocked", "blocked_percent", "gravity"]
         
@@ -195,7 +195,7 @@ config:
             ping: immich-server.immich.svc.cluster.local
             widget:
               type: immich
-              url: http://immich-server.immich.svc.cluster.local:2283
+              url: http://immich-server.immich.svc.cluster.local:3001
               key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
         
         - Homepage:
@@ -272,13 +272,12 @@ config:
     
     # Kubernetes cluster overview
     - kubernetes:
-        cluster:
-          show: true
-          cpu: true
-          memory: true
-          showLabel: true
-          label: "K8s Cluster"
-          nodes: true
+        show: true
+        cpu: true
+        memory: true
+        showLabel: true
+        label: "K8s Cluster"
+        nodes: true
     
     # Date and time
     - datetime:
