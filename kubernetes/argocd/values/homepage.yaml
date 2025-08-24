@@ -195,7 +195,7 @@ config:
             ping: immich-server.immich.svc.cluster.local
             widget:
               type: immich
-              url: http://immich-server.immich.svc.cluster.local:3001
+              url: http://immich-server.immich.svc.cluster.local:2283
               key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
         
         - Homepage:
@@ -206,8 +206,8 @@ config:
         - CloudNativePG:
             icon: postgres.png
             description: PostgreSQL Operator
-            namespace: immich
-            app: immich-postgres
+            namespace: immich-database
+            app: postgres-cluster
     
     - Monitoring:
         
@@ -215,7 +215,7 @@ config:
             icon: metallb.png
             description: Load Balancer
             namespace: metallb-system
-            app: controller
+            app: metallb
         
         - Local Path:
             icon: kubernetes.png
