@@ -1,9 +1,9 @@
 # Immich Helm Chart Values - Only Essential Overrides
 # Default chart version: v1.119.0, server+ML enabled, postgresql+redis disabled
 
-# Fix image tag to working version
+# Update to latest version
 image:
-  tag: "v1.119.0"
+  tag: "v1.139.2"
 
 # External database configuration (CloudNativePG)
 env:
