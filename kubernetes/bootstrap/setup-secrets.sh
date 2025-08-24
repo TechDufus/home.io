@@ -285,6 +285,114 @@ setup_homarr_secrets() {
     create_k8s_secret "homarr" "db-secret" "db-encryption-key" "$encryption_key"
 }
 
+# Setup Homepage secrets
+setup_homepage_secrets() {
+    echo ""
+    echo -e "${BLUE}🏠 Setting up Homepage dashboard secrets...${NC}"
+    
+    # Create namespace if it doesn't exist
+    echo -e "${YELLOW}→ Ensuring homepage namespace exists...${NC}"
+    kubectl create namespace homepage --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1
+    
+    # Initialize the secret data
+    local secret_args=""
+    
+    # Pi-hole API Key
+    local pihole_key=$(op item get "[Homelab] Pi-hole" --vault="$OP_VAULT" --fields="api_key" --reveal 2>/dev/null || echo "")
+    if [ -z "$pihole_key" ]; then
+        echo -e "${YELLOW}⚠ Pi-hole API key not found in 1Password${NC}"
+        echo -e "${YELLOW}   Create item '[Homelab] Pi-hole' with field 'api_key' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}   Get from: Pi-hole Admin → Settings → API → Show API Token${NC}"
+        pihole_key="placeholder_pihole_api_key"
+    else
+        echo -e "${GREEN}✓ Found Pi-hole API key${NC}"
+    fi
+    secret_args="$secret_args --from-literal=PIHOLE_API_KEY=$pihole_key"
+    
+    # Proxmox API Credentials
+    local proxmox_username=$(op item get "[Homelab] Proxmox" --vault="$OP_VAULT" --fields="username" --reveal 2>/dev/null || echo "")
+    local proxmox_password=$(op item get "[Homelab] Proxmox" --vault="$OP_VAULT" --fields="api_token" --reveal 2>/dev/null || echo "")
+    if [ -z "$proxmox_username" ] || [ -z "$proxmox_password" ]; then
+        echo -e "${YELLOW}⚠ Proxmox API credentials not found in 1Password${NC}"
+        echo -e "${YELLOW}   Create item '[Homelab] Proxmox' with fields 'username' and 'api_token' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}   Format username as: username@realm!tokenid (e.g., api@pam!homepage)${NC}"
+        echo -e "${YELLOW}   Create token in: Datacenter → Permissions → API Tokens${NC}"
+        proxmox_username="api@pam!homepage"
+        proxmox_password="placeholder_proxmox_token"
+    else
+        echo -e "${GREEN}✓ Found Proxmox API credentials${NC}"
+    fi
+    secret_args="$secret_args --from-literal=PROXMOX_USERNAME=$proxmox_username"
+    secret_args="$secret_args --from-literal=PROXMOX_PASSWORD=$proxmox_password"
+    
+    # ArgoCD Token
+    local argocd_token=$(op item get "[Homelab] ArgoCD" --vault="$OP_VAULT" --fields="token" --reveal 2>/dev/null || echo "")
+    if [ -z "$argocd_token" ]; then
+        echo -e "${YELLOW}⚠ ArgoCD token not found in 1Password${NC}"
+        echo -e "${YELLOW}   Create item '[Homelab] ArgoCD' with field 'token' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}   Generate with: argocd account generate-token${NC}"
+        argocd_token="placeholder_argocd_token"
+    else
+        echo -e "${GREEN}✓ Found ArgoCD token${NC}"
+    fi
+    secret_args="$secret_args --from-literal=ARGOCD_TOKEN=$argocd_token"
+    
+    # Immich API Key
+    local immich_key=$(op item get "[Homelab] Immich" --vault="$OP_VAULT" --fields="api_key" --reveal 2>/dev/null || echo "")
+    if [ -z "$immich_key" ]; then
+        echo -e "${YELLOW}⚠ Immich API key not found in 1Password${NC}"
+        echo -e "${YELLOW}   Create item '[Homelab] Immich' with field 'api_key' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}   Get from: Immich → User Settings → API Keys${NC}"
+        immich_key="placeholder_immich_api_key"
+    else
+        echo -e "${GREEN}✓ Found Immich API key${NC}"
+    fi
+    secret_args="$secret_args --from-literal=IMMICH_API_KEY=$immich_key"
+    
+    # OpenWeatherMap API Key (optional)
+    local weather_key=$(op item get "[Homelab] OpenWeatherMap" --vault="$OP_VAULT" --fields="api_key" --reveal 2>/dev/null || echo "")
+    if [ -z "$weather_key" ]; then
+        echo -e "${YELLOW}ℹ OpenWeatherMap API key not found (optional)${NC}"
+        echo -e "${YELLOW}   For weather widget: Create item '[Homelab] OpenWeatherMap' with field 'api_key'${NC}"
+        echo -e "${YELLOW}   Get from: https://openweathermap.org/api${NC}"
+        weather_key="placeholder_openweather_api_key"
+    else
+        echo -e "${GREEN}✓ Found OpenWeatherMap API key${NC}"
+    fi
+    secret_args="$secret_args --from-literal=OPENWEATHER_API_KEY=$weather_key"
+    
+    # Cloudflare API Credentials (optional)
+    local cf_account=$(op item get "[Homelab] Cloudflare" --vault="$OP_VAULT" --fields="account_id" --reveal 2>/dev/null || echo "")
+    local cf_tunnel=$(op item get "[Homelab] Cloudflare" --vault="$OP_VAULT" --fields="tunnel_id" --reveal 2>/dev/null || echo "")
+    local cf_key=$(op item get "[Homelab] Cloudflare" --vault="$OP_VAULT" --fields="api_key" --reveal 2>/dev/null || echo "")
+    if [ -z "$cf_account" ] || [ -z "$cf_tunnel" ] || [ -z "$cf_key" ]; then
+        echo -e "${YELLOW}ℹ Cloudflare API credentials not found (optional)${NC}"
+        echo -e "${YELLOW}   For CF widget: Create item '[Homelab] Cloudflare' with fields:${NC}"
+        echo -e "${YELLOW}   - account_id, tunnel_id, api_key${NC}"
+        cf_account="placeholder_cloudflare_account_id"
+        cf_tunnel="placeholder_cloudflare_tunnel_id"
+        cf_key="placeholder_cloudflare_api_key"
+    else
+        echo -e "${GREEN}✓ Found Cloudflare API credentials${NC}"
+    fi
+    secret_args="$secret_args --from-literal=CLOUDFLARE_ACCOUNT_ID=$cf_account"
+    secret_args="$secret_args --from-literal=CLOUDFLARE_TUNNEL_ID=$cf_tunnel"
+    secret_args="$secret_args --from-literal=CLOUDFLARE_API_KEY=$cf_key"
+    
+    # Create the secret
+    echo -e "${YELLOW}→ Creating/updating homepage-secrets in namespace: homepage${NC}"
+    eval "kubectl create secret generic homepage-secrets $secret_args \
+        --namespace=homepage \
+        --dry-run=client -o yaml | kubectl apply -f -" > /dev/null
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}✓ Secret homepage-secrets created/updated successfully${NC}"
+    else
+        echo -e "${RED}✗ Failed to create/update secret homepage-secrets${NC}"
+        return 1
+    fi
+}
+
 
 # Environment-specific secret setup
 setup_environment_secrets() {
@@ -315,6 +423,7 @@ show_secret_status() {
     echo -e "${YELLOW}Application Secrets:${NC}"
     kubectl get secrets -n n8n 2>/dev/null | grep -E "(n8n)" || echo "  No N8N secrets found"
     kubectl get secrets -n homarr 2>/dev/null | grep -E "(db-secret)" || echo "  No Homarr secrets found"
+    kubectl get secrets -n homepage 2>/dev/null | grep -E "(homepage-secrets)" || echo "  No Homepage secrets found"
 
 }
 
@@ -328,6 +437,9 @@ main() {
     setup_cloudflare_tunnel_secret
     setup_n8n_secrets
     setup_homarr_secrets
+
+    # Setup Homepage secrets
+    setup_homepage_secrets
 
     # Show final status
     show_secret_status
@@ -363,6 +475,14 @@ case "${1:-}" in
         echo "  - 'Cloudflare Tunnel - Homelab' (tunnel credentials)"
         echo "  - 'N8N Homelab [DEV/PROD]' (N8N configuration)"
         echo "  - '[Homelab] Homarr Database' (database encryption key in 'credential' field)"
+        echo ""
+        echo "Homepage Dashboard 1Password items (optional but recommended):"
+        echo "  - '[Homelab] Pi-hole' with field 'api_key'"
+        echo "  - '[Homelab] Proxmox' with fields 'username' and 'api_token'"
+        echo "  - '[Homelab] ArgoCD' with field 'token'"
+        echo "  - '[Homelab] Immich' with field 'api_key'"
+        echo "  - '[Homelab] OpenWeatherMap' with field 'api_key' (optional)"
+        echo "  - '[Homelab] Cloudflare' with fields 'account_id', 'tunnel_id', 'api_key' (optional)"
         echo ""
         echo "Environment variables (optional):"
         echo "  - CLOUDFLARE_TUNNEL_CREDENTIALS_JSON"
