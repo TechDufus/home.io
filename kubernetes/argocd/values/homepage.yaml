@@ -5,22 +5,13 @@ image:
   repository: ghcr.io/gethomepage/homepage
   tag: latest
 
-# Environment configuration
+# Environment configuration using standard env array format
 env:
-  # Set allowed hosts for security
-  HOMEPAGE_ALLOWED_HOSTS: "home.techdufus.com"
-  # Enable debug logging for widgets
-  LOG_LEVEL: "info"
-
-# Environment variables from secrets for API keys
-# These will be injected from homepage-secrets
-envFrom:
-  - secretRef:
-      name: homepage-secrets
-      optional: true
-
-# Additional environment variables mapping secrets to HOMEPAGE_VAR format
-extraEnvVars:
+  - name: HOMEPAGE_ALLOWED_HOSTS
+    value: "home.techdufus.com"
+  - name: LOG_LEVEL
+    value: "info"
+  # Map secrets to HOMEPAGE_VAR format for template substitution
   - name: HOMEPAGE_VAR_PIHOLE_KEY
     valueFrom:
       secretKeyRef:
