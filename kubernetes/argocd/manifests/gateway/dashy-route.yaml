@@ -1,0 +1,41 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dashy-route
+  namespace: traefik
+  labels:
+    app.kubernetes.io/name: dashy
+    app.kubernetes.io/component: route
+    app.kubernetes.io/part-of: dashy
+    app.kubernetes.io/managed-by: argocd
+spec:
+  parentRefs:
+    - name: lab-gateway
+      namespace: traefik
+  hostnames:
+    - home.techdufus.com
+  rules:
+    - backendRefs:
+        - name: dashy
+          namespace: dashy
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: dashy-route-grant
+  namespace: dashy
+  labels:
+    app.kubernetes.io/name: dashy
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: dashy
+    app.kubernetes.io/managed-by: argocd
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: traefik
+  to:
+    - group: ""
+      kind: Service
+      name: dashy
