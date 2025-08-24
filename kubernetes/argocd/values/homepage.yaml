@@ -206,7 +206,7 @@ config:
         - CloudNativePG:
             icon: postgres.png
             description: PostgreSQL Operator
-            namespace: immich-database
+            namespace: immich
             app: postgres-cluster
     
     - Monitoring:
