@@ -12,7 +12,7 @@ data:
     # Dashy Configuration for TechDufus Homelab
     pageInfo:
       title: TechDufus Homelab
-      description: Homelab Dashboard
+      description: Welcome to the Homelab!
       navLinks:
         - title: GitHub
           path: https://github.com/TechDufus/home.io
@@ -21,12 +21,13 @@ data:
       footerText: ''
     
     appConfig:
-      theme: cyberpunk
+      theme: colorful
       layout: auto
       iconSize: medium
       language: en
       statusCheck: true
-      statusCheckInterval: 60
+      statusCheckInterval: 30
+      defaultOpeningMethod: newtab
       webSearch:
         searchEngine: google
         openingMethod: newtab
@@ -43,147 +44,178 @@ data:
         enableGuestAccess: true
       
     sections:
-      - name: Network & Security
-        icon: fas fa-shield-alt
+      # System Monitoring Widgets
+      - name: System Resources
+        icon: fas fa-tachometer-alt
         displayData:
-          sortBy: default
-          rows: 1
-          cols: 3
           collapsed: false
-          hideForGuests: false
-        items:
-          - title: Pi-hole
-            description: Network-wide Ad Blocking
-            url: http://10.0.0.99/admin
-            icon: favicon
-            target: newtab
-            statusCheck: true
-            statusCheckUrl: http://10.0.0.99
-            
-          - title: Cloudflare
-            description: DNS & Tunnel Management
-            url: https://dash.cloudflare.com
-            icon: favicon
-            target: newtab
-            
-          - title: Traefik
-            description: Gateway Controller
-            url: http://traefik.traefik.svc.cluster.local:9000
-            icon: favicon
-            target: newtab
-            statusCheck: false
-            
+          cols: 2
+        widgets:
+          - type: clock
+            options:
+              timeZone: America/Chicago
+              format: en-US
+              hideDate: false
+          - type: weather
+            options:
+              apiKey: ''
+              city: Chicago
+              units: imperial
+              hideDetails: false
+      
+      # Pi-hole Statistics
+      - name: Pi-hole Statistics
+        icon: hl-pihole
+        displayData:
+          collapsed: false
+          cols: 1
+        widgets:
+          - type: pi-hole-stats
+            updateInterval: 30
+            options:
+              hostname: http://10.0.0.99
+              useProxy: true
+              hideInfo: false
+              hideChart: false
+              hideStatus: false
+      
+      # Core Services
       - name: Infrastructure
         icon: fas fa-server
         displayData:
           sortBy: default
-          rows: 1
+          rows: 2
           cols: 3
           collapsed: false
-          hideForGuests: false
         items:
-          - title: Proxmox
+          - title: Proxmox VE
             description: Virtualization Platform
-            url: https://10.0.20.3:8006
-            icon: favicon
+            url: https://10.0.20.3:8006/
+            icon: hl-proxmox
             target: newtab
             statusCheck: true
             statusCheckUrl: https://10.0.20.3:8006
+            statusCheckAllowInsecure: true
             statusCheckAcceptCodes: '401,200'
             
-          - title: Kubernetes
-            description: Container Orchestration
-            icon: si-kubernetes
+          - title: Pi-hole Admin
+            description: Primary DNS Server
+            url: http://10.0.0.99/admin
+            icon: hl-pihole
             target: newtab
+            statusCheck: true
+            statusCheckUrl: http://10.0.0.99
+            
+          - title: Home Gateway
+            description: Router / Gateway
+            url: http://10.0.0.1/
+            icon: hl-router
+            target: newtab
+            statusCheck: true
             
           - title: ArgoCD
             description: GitOps Deployment
             url: https://argocd.techdufus.com
-            icon: favicon
+            icon: hl-argocd
             target: newtab
             statusCheck: true
             
+          - title: Traefik
+            description: Gateway Controller
+            url: http://traefik.traefik.svc.cluster.local:9000
+            icon: hl-traefik
+            target: newtab
+            statusCheck: false
+      
+      # Applications
       - name: Applications
         icon: fas fa-rocket
         displayData:
           sortBy: default
-          rows: 1
+          rows: 2
           cols: 3
           collapsed: false
-          hideForGuests: false
         items:
           - title: Immich
             description: Photo Management
             url: https://photos.techdufus.com
-            icon: favicon
+            icon: hl-immich
             target: newtab
             statusCheck: true
             
           - title: Dashy
             description: This Dashboard
             url: https://home.techdufus.com
-            icon: favicon
+            icon: hl-dashy
             target: sametab
             
-          - title: CloudNativePG
-            description: PostgreSQL Operator
-            icon: si-postgresql
+          - title: Cloudflare
+            description: DNS & Tunnel Management
+            url: https://dash.cloudflare.com
+            icon: hl-cloudflare
             target: newtab
             
-      - name: Monitoring
-        icon: fas fa-chart-line
+          - title: GitHub
+            description: Code Repository
+            url: https://github.com/TechDufus/home.io
+            icon: hl-github
+            target: newtab
+            
+          - title: 1Password
+            description: Password Manager
+            url: https://my.1password.com
+            icon: hl-onepassword
+            target: newtab
+      
+      # Kubernetes Resources
+      - name: Kubernetes
+        icon: hl-kubernetes
         displayData:
           sortBy: default
           rows: 1
-          cols: 2
+          cols: 3
           collapsed: false
-          hideForGuests: false
         items:
           - title: MetalLB
             description: Load Balancer
-            icon: mdi-load-balancer
+            icon: hl-metallb
+            target: newtab
+            
+          - title: CloudNativePG
+            description: PostgreSQL Operator
+            icon: hl-postgres
             target: newtab
             
           - title: Local Path Storage
             description: Storage Provider
-            icon: mdi-harddisk
+            icon: fas fa-hdd
             target: newtab
-            
-      - name: Quick Links
-        icon: fas fa-bookmark
+      
+      # Quick Links / Documentation
+      - name: Documentation
+        icon: fas fa-book
         displayData:
           sortBy: default
           rows: 1
           cols: 4
-          collapsed: false
-          hideForGuests: false
+          collapsed: true
         items:
-          - title: GitHub Repo
-            url: https://github.com/TechDufus/home.io
-            icon: fab fa-github
-            target: newtab
-            
-          - title: Homepage Docs
-            url: https://gethomepage.dev
-            icon: fas fa-book
-            target: newtab
-            
           - title: Proxmox Forum
             url: https://forum.proxmox.com
-            icon: fas fa-comments
+            icon: hl-proxmox
             target: newtab
             
           - title: Pi-hole Docs
             url: https://docs.pi-hole.net
-            icon: fas fa-book-open
+            icon: hl-pihole
             target: newtab
             
-          - title: Cloudflare Dash
-            url: https://dash.cloudflare.com
-            icon: fas fa-cloud
+          - title: Kubernetes Docs
+            url: https://kubernetes.io/docs
+            icon: hl-kubernetes
             target: newtab
             
-          - title: 1Password
-            url: https://my.1password.com
-            icon: fas fa-key
+          - title: Dashy Docs
+            url: https://dashy.to/docs
+            icon: hl-dashy
             target: newtab
