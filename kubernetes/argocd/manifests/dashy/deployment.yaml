@@ -30,6 +30,10 @@ spec:
         env:
         - name: NODE_ENV
           value: production
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=3072"
+        - name: VUE_APP_DOMAIN
+          value: "home.techdufus.com"
         volumeMounts:
         - name: config
           mountPath: /app/user-data/conf.yml
@@ -37,27 +41,27 @@ spec:
           readOnly: false
         resources:
           requests:
-            cpu: 200m
-            memory: 512Mi
+            cpu: 500m
+            memory: 1Gi
           limits:
-            cpu: 1000m
-            memory: 2Gi
+            cpu: 2000m
+            memory: 4Gi
         livenessProbe:
           httpGet:
             path: /
             port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          initialDelaySeconds: 300
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
         readinessProbe:
           httpGet:
             path: /
             port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+          initialDelaySeconds: 180
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 10
         securityContext:
           runAsNonRoot: false
           runAsUser: 0
