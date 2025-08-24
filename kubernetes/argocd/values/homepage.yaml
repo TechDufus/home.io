@@ -1,5 +1,5 @@
-# Homepage Dashboard Values - Static, Database-Free Configuration
-# Simple YAML-based dashboard with Kubernetes integration
+# Homepage Dashboard Values - Enhanced Homelab Command Center
+# Feature-rich dashboard with comprehensive monitoring and sexy visuals
 
 image:
   repository: ghcr.io/gethomepage/homepage
@@ -9,6 +9,8 @@ image:
 env:
   # Set allowed hosts for security
   HOMEPAGE_ALLOWED_HOSTS: "home.techdufus.com"
+  # Enable debug logging for widgets
+  LOG_LEVEL: "info"
 
 # Service configuration
 service:
@@ -17,16 +19,16 @@ service:
       http:
         port: 3000
 
-# Resources for homelab
+# Resources for homelab - increased for more widgets
 resources:
   requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
-    cpu: 200m
+    cpu: 100m
     memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
 
-# Enable Kubernetes integration
+# Enable Kubernetes integration with extended permissions
 enableRbac: true
 serviceAccount:
   create: true
@@ -38,88 +40,259 @@ config:
   kubernetes:
     mode: cluster
   
-  # Settings configuration
+  # Settings configuration - Enhanced visuals
   settings:
-    title: Home Lab Dashboard
+    title: TechDufus Homelab
+    favicon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/homepage.png
     background: 
-      image: https://images.unsplash.com/photo-1518770660439-4636190af475
+      image: https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=3072
       blur: sm
-      brightness: 50
+      saturate: 100
+      brightness: 60
+      opacity: 100
     theme: dark
-    color: slate
+    color: cyan
+    target: _blank
+    language: en
+    hideVersion: false
+    statusStyle: "dot"
     layout:
-      - Services:
+      - Network & Security:
           style: row
           columns: 4
       - Infrastructure:
           style: row
           columns: 4
+      - Applications:
+          style: row
+          columns: 4
+      - Monitoring:
+          style: row
+          columns: 4
+    cardBlur: md
+    disableCollapse: false
+    hideErrors: false
+    showStats: true
   
-  # Services configuration - links to our services
+  # Enhanced services configuration with widgets
   services:
-    - Services:
-        - ArgoCD:
-            icon: argocd.png
-            href: https://argocd.techdufus.com
-            description: GitOps Continuous Delivery
-            siteMonitor: https://argocd.techdufus.com
+    - Network & Security:
+        - Pi-hole:
+            icon: pi-hole.png
+            href: http://10.0.0.99/admin
+            description: Network-wide Ad Blocking
+            siteMonitor: http://10.0.0.99
             widget:
-              type: argocd
-              url: http://argocd-server.argocd.svc.cluster.local
-        - Immich:
-            icon: immich.png
-            href: https://photos.techdufus.com
-            description: Photo Management
-            siteMonitor: https://photos.techdufus.com
-    
-    - Infrastructure:
+              type: pihole
+              url: http://10.0.0.99
+              # Note: Add your Pi-hole API key here after getting it from Pi-hole settings
+              # key: your_pihole_api_key
+              fields: ["queries", "blocked", "blocked_percent", "gravity"]
+        
+        - Cloudflare:
+            icon: cloudflare.png
+            href: https://dash.cloudflare.com
+            description: DNS & Tunnel Management
+            widget:
+              type: cloudflared
+              accountId: your_account_id  # Add your Cloudflare account ID
+              tunnelId: your_tunnel_id    # Add your tunnel ID
+              key: your_api_key           # Add your API key
+        
         - Traefik:
             icon: traefik.png
             href: http://traefik.traefik.svc.cluster.local:9000
             description: Gateway Controller
+            ping: traefik.traefik.svc.cluster.local
             widget:
               type: traefik
               url: http://traefik.traefik.svc.cluster.local:9000
+    
+    - Infrastructure:
+        - Proxmox:
+            icon: proxmox.png
+            href: https://10.0.20.3:8006
+            description: Virtualization Platform
+            siteMonitor: https://10.0.20.3:8006
+            widget:
+              type: proxmox
+              url: https://10.0.20.3:8006
+              # Note: Create API token in Proxmox (Datacenter -> API Tokens)
+              # username: api@pam!homepage
+              # password: your_api_token_secret
+              node: proxmox  # Your node name
+              fields: ["vms", "lxc", "resources.cpu", "resources.mem"]
+        
+        - Kubernetes:
+            icon: kubernetes.png
+            description: Container Orchestration
+            namespace: kube-system
+            app: metrics-server
+            widget:
+              type: kubernetes
+              cluster:
+                show: true
+                cpu: true
+                memory: true
+                showLabel: true
+                label: "homelab-dev"
+              nodes:
+                show: true
+                cpu: true
+                memory: true
+                showLabel: true
+        
+        - ArgoCD:
+            icon: argocd.png
+            href: https://argocd.techdufus.com
+            description: GitOps Deployment
+            ping: argocd-server.argocd.svc.cluster.local
+            widget:
+              type: argocd
+              url: http://argocd-server.argocd.svc.cluster.local
+    
+    - Applications:
+        - Immich:
+            icon: immich.png
+            href: https://photos.techdufus.com
+            description: Photo Management (v1.119.0)
+            ping: immich-server.immich.svc.cluster.local
+            widget:
+              type: immich
+              url: http://immich-server.immich.svc.cluster.local:2283
+              # Add your Immich API key from settings
+              # key: your_immich_api_key
+        
+        - Homepage:
+            icon: homepage.png
+            href: https://home.techdufus.com
+            description: This Dashboard
+            widget:
+              type: customapi
+              url: http://homepage.homepage.svc.cluster.local:3000/api/stats
+        
         - CloudNativePG:
             icon: postgres.png
             description: PostgreSQL Operator
             namespace: immich
             app: immich-postgres
+    
+    - Monitoring:
+        - System Resources:
+            widget:
+              type: glances
+              url: http://glances.monitoring.svc.cluster.local:61208
+              version: 4
+              metric: info
+              chart: false
+        
+        - MetalLB:
+            icon: metallb.png
+            description: Load Balancer
+            namespace: metallb-system
+            app: controller
+        
+        - Local Path:
+            icon: kubernetes.png
+            description: Storage Provider
+            namespace: local-path-storage
+            app: local-path-provisioner
   
-  # Bookmarks for quick access
+  # Bookmarks with icons
   bookmarks:
     - Developer:
-        - GitHub:
+        - GitHub Repo:
             - icon: github.png
               href: https://github.com/TechDufus/home.io
+              abbr: GH
+        - Homepage Docs:
+            - icon: homepage.png
+              href: https://gethomepage.dev
+              abbr: HP
+    
+    - Infrastructure:
+        - Proxmox Forum:
+            - icon: proxmox.png
+              href: https://forum.proxmox.com
+              abbr: PF
+        - Pi-hole Docs:
+            - icon: pi-hole.png
+              href: https://docs.pi-hole.net
+              abbr: PH
+    
+    - Cloud Services:
         - Cloudflare:
             - icon: cloudflare.png
               href: https://dash.cloudflare.com
-    - Documentation:
-        - Kubernetes:
-            - icon: kubernetes.png
-              href: https://kubernetes.io/docs
-        - ArgoCD:
-            - icon: argocd.png
-              href: https://argo-cd.readthedocs.io
+              abbr: CF
+        - 1Password:
+            - icon: onepassword.png
+              href: https://my.1password.com
+              abbr: 1P
   
-  # Widgets configuration
+  # Enhanced widgets configuration
   widgets:
+    # Greeting with custom text
+    - greeting:
+        text_size: 3xl
+        text: "Welcome to TechDufus Homelab! 🚀"
+    
+    # Resources monitor (if you mount host paths)
+    - resources:
+        backend: kubernetes
+        cpu: true
+        memory: true
+        expanded: true
+        label: "Cluster"
+    
+    # Kubernetes cluster overview
     - kubernetes:
         cluster:
           show: true
           cpu: true
           memory: true
           showLabel: true
-          label: "homelab-dev"
+          label: "K8s Cluster"
+          nodes: true
+    
+    # Date and time
     - datetime:
         text_size: xl
+        locale: en
         format:
           dateStyle: long
           timeStyle: short
+          hour12: true
+    
+    # Weather (configure your location)
+    - openweathermap:
+        label: "Weather"
+        latitude: 40.7128  # Replace with your latitude
+        longitude: -74.0060  # Replace with your longitude
+        units: imperial
+        # Get API key from openweathermap.org (free)
+        # apiKey: your_openweather_api_key
+        cache: 5
+    
+    # Search bar
     - search:
         provider: google
+        focus: false
+        showSearchSuggestions: true
         target: _blank
+    
+    # System logs/events (optional)
+    - logs:
+        service: Homepage
+        lines: 5
+
+# Custom CSS for extra styling (optional)
+customCSS: |
+  /* Add custom styles here if needed */
+  .service-card:hover {
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+  }
 
 # No persistence needed - everything is in ConfigMaps
 persistence:
