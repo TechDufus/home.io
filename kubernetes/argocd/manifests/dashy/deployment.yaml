@@ -59,9 +59,9 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 3
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 1000
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
           capabilities:
@@ -74,5 +74,3 @@ spec:
           items:
           - key: conf.yml
             path: conf.yml
-      securityContext:
-        fsGroup: 1000
