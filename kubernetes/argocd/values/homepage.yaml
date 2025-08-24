@@ -1,0 +1,127 @@
+# Homepage Dashboard Values - Static, Database-Free Configuration
+# Simple YAML-based dashboard with Kubernetes integration
+
+image:
+  repository: ghcr.io/gethomepage/homepage
+  tag: latest
+
+# Environment configuration
+env:
+  # Set allowed hosts for security
+  HOMEPAGE_ALLOWED_HOSTS: "home.techdufus.com"
+
+# Service configuration
+service:
+  main:
+    ports:
+      http:
+        port: 3000
+
+# Resources for homelab
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Enable Kubernetes integration
+enableRbac: true
+serviceAccount:
+  create: true
+  name: homepage
+
+# Homepage configuration via ConfigMap
+config:
+  # Kubernetes integration settings
+  kubernetes:
+    mode: cluster
+  
+  # Settings configuration
+  settings:
+    title: Home Lab Dashboard
+    background: 
+      image: https://images.unsplash.com/photo-1518770660439-4636190af475
+      blur: sm
+      brightness: 50
+    theme: dark
+    color: slate
+    layout:
+      - Services:
+          style: row
+          columns: 4
+      - Infrastructure:
+          style: row
+          columns: 4
+  
+  # Services configuration - links to our services
+  services:
+    - Services:
+        - ArgoCD:
+            icon: argocd.png
+            href: https://argocd.techdufus.com
+            description: GitOps Continuous Delivery
+            siteMonitor: https://argocd.techdufus.com
+            widget:
+              type: argocd
+              url: http://argocd-server.argocd.svc.cluster.local
+        - Immich:
+            icon: immich.png
+            href: https://photos.techdufus.com
+            description: Photo Management
+            siteMonitor: https://photos.techdufus.com
+    
+    - Infrastructure:
+        - Traefik:
+            icon: traefik.png
+            href: http://traefik.traefik.svc.cluster.local:9000
+            description: Gateway Controller
+            widget:
+              type: traefik
+              url: http://traefik.traefik.svc.cluster.local:9000
+        - CloudNativePG:
+            icon: postgres.png
+            description: PostgreSQL Operator
+            namespace: immich
+            app: immich-postgres
+  
+  # Bookmarks for quick access
+  bookmarks:
+    - Developer:
+        - GitHub:
+            - icon: github.png
+              href: https://github.com/TechDufus/home.io
+        - Cloudflare:
+            - icon: cloudflare.png
+              href: https://dash.cloudflare.com
+    - Documentation:
+        - Kubernetes:
+            - icon: kubernetes.png
+              href: https://kubernetes.io/docs
+        - ArgoCD:
+            - icon: argocd.png
+              href: https://argo-cd.readthedocs.io
+  
+  # Widgets configuration
+  widgets:
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "homelab-dev"
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: long
+          timeStyle: short
+    - search:
+        provider: google
+        target: _blank
+
+# No persistence needed - everything is in ConfigMaps
+persistence:
+  config:
+    enabled: false

@@ -1,32 +1,34 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homarr
+  name: homepage
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
-    - chart: homarr
-      repoURL: ghcr.io/homarr-labs/charts
-      targetRevision: "5.8.0"  # Latest stable version
+    # Homepage Helm chart
+    - chart: homepage
+      repoURL: https://jameswynn.github.io/helm-charts
+      targetRevision: "1.2.3"  # Latest stable version
       helm:
-        releaseName: homarr
+        releaseName: homepage
         valueFiles:
-          - $values/kubernetes/argocd/values/homarr.yaml
+          - $values/kubernetes/argocd/values/homepage.yaml
+    # Values source from Git repository
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: homarr
+    namespace: homepage
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
       - ServerSideApply=true
     retry:
       limit: 5
