@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: argocd
 data:
   # URL for subdomain-based access
-  url: "https://argocd.lab.techdufus.com"
+  url: "https://argocd.techdufus.com"
   
   # Application configuration
   application.instanceLabelKey: argocd.argoproj.io/instance
