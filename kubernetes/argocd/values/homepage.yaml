@@ -12,6 +12,70 @@ env:
   # Enable debug logging for widgets
   LOG_LEVEL: "info"
 
+# Environment variables from secrets for API keys
+# These will be injected from homepage-secrets
+envFrom:
+  - secretRef:
+      name: homepage-secrets
+      optional: true
+
+# Additional environment variables mapping secrets to HOMEPAGE_VAR format
+extraEnvVars:
+  - name: HOMEPAGE_VAR_PIHOLE_KEY
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: PIHOLE_API_KEY
+        optional: true
+  - name: HOMEPAGE_VAR_PROXMOX_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: PROXMOX_USERNAME
+        optional: true
+  - name: HOMEPAGE_VAR_PROXMOX_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: PROXMOX_PASSWORD
+        optional: true
+  - name: HOMEPAGE_VAR_ARGOCD_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: ARGOCD_TOKEN
+        optional: true
+  - name: HOMEPAGE_VAR_IMMICH_KEY
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: IMMICH_API_KEY
+        optional: true
+  - name: HOMEPAGE_VAR_WEATHER_KEY
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: OPENWEATHER_API_KEY
+        optional: true
+  - name: HOMEPAGE_VAR_CF_ACCOUNT
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: CLOUDFLARE_ACCOUNT_ID
+        optional: true
+  - name: HOMEPAGE_VAR_CF_TUNNEL
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: CLOUDFLARE_TUNNEL_ID
+        optional: true
+  - name: HOMEPAGE_VAR_CF_KEY
+    valueFrom:
+      secretKeyRef:
+        name: homepage-secrets
+        key: CLOUDFLARE_API_KEY
+        optional: true
+
 # Service configuration
 service:
   main:
@@ -82,12 +146,11 @@ config:
             href: http://10.0.0.99/admin
             description: Network-wide Ad Blocking
             siteMonitor: http://10.0.0.99
-            # Widget disabled until API key is configured
-            # widget:
-            #   type: pihole
-            #   url: http://10.0.0.99
-            #   key: your_pihole_api_key
-            #   fields: ["queries", "blocked", "blocked_percent", "gravity"]
+            widget:
+              type: pihole
+              url: http://10.0.0.99
+              key: "{{HOMEPAGE_VAR_PIHOLE_KEY}}"
+              fields: ["queries", "blocked", "blocked_percent", "gravity"]
         
         - Cloudflare:
             icon: cloudflare.png
@@ -109,14 +172,13 @@ config:
             href: https://10.0.20.3:8006
             description: Virtualization Platform
             siteMonitor: https://10.0.20.3:8006
-            # Widget disabled until API token is configured
-            # widget:
-            #   type: proxmox
-            #   url: https://10.0.20.3:8006
-            #   username: api@pam!homepage
-            #   password: your_api_token_secret
-            #   node: proxmox
-            #   fields: ["vms", "lxc", "resources.cpu", "resources.mem"]
+            widget:
+              type: proxmox
+              url: https://10.0.20.3:8006
+              username: "{{HOMEPAGE_VAR_PROXMOX_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_PROXMOX_PASSWORD}}"
+              node: proxmox
+              fields: ["vms", "lxc", "resources.cpu", "resources.mem"]
         
         - Kubernetes:
             icon: kubernetes.png
@@ -129,11 +191,10 @@ config:
             href: https://argocd.techdufus.com
             description: GitOps Deployment
             ping: argocd-server.argocd.svc.cluster.local
-            # Widget needs authentication configuration
-            # widget:
-            #   type: argocd
-            #   url: http://argocd-server.argocd.svc.cluster.local
-            #   token: your_argocd_token
+            widget:
+              type: argocd
+              url: http://argocd-server.argocd.svc.cluster.local
+              token: "{{HOMEPAGE_VAR_ARGOCD_TOKEN}}"
     
     - Applications:
         - Immich:
@@ -141,11 +202,10 @@ config:
             href: https://photos.techdufus.com
             description: Photo Management (v1.119.0)
             ping: immich-server.immich.svc.cluster.local
-            # Widget disabled until API key is configured
-            # widget:
-            #   type: immich
-            #   url: http://immich-server.immich.svc.cluster.local:2283
-            #   key: your_immich_api_key
+            widget:
+              type: immich
+              url: http://immich-server.immich.svc.cluster.local:2283
+              key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
         
         - Homepage:
             icon: homepage.png
@@ -238,14 +298,14 @@ config:
           timeStyle: short
           hour12: true
     
-    # Weather widget disabled until API key is configured
-    # - openweathermap:
-    #     label: "Weather"
-    #     latitude: 40.7128  # Replace with your latitude
-    #     longitude: -74.0060  # Replace with your longitude
-    #     units: imperial
-    #     apiKey: your_openweather_api_key  # Get from openweathermap.org
-    #     cache: 5
+    # Weather widget (configure your location)
+    - openweathermap:
+        label: "Weather"
+        latitude: 40.7128  # Replace with your latitude
+        longitude: -74.0060  # Replace with your longitude
+        units: imperial
+        apiKey: "{{HOMEPAGE_VAR_WEATHER_KEY}}"
+        cache: 5
     
     # Search bar
     - search:
