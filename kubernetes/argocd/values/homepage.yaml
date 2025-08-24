@@ -82,22 +82,17 @@ config:
             href: http://10.0.0.99/admin
             description: Network-wide Ad Blocking
             siteMonitor: http://10.0.0.99
-            widget:
-              type: pihole
-              url: http://10.0.0.99
-              # Note: Add your Pi-hole API key here after getting it from Pi-hole settings
-              # key: your_pihole_api_key
-              fields: ["queries", "blocked", "blocked_percent", "gravity"]
+            # Widget disabled until API key is configured
+            # widget:
+            #   type: pihole
+            #   url: http://10.0.0.99
+            #   key: your_pihole_api_key
+            #   fields: ["queries", "blocked", "blocked_percent", "gravity"]
         
         - Cloudflare:
             icon: cloudflare.png
             href: https://dash.cloudflare.com
             description: DNS & Tunnel Management
-            widget:
-              type: cloudflared
-              accountId: your_account_id  # Add your Cloudflare account ID
-              tunnelId: your_tunnel_id    # Add your tunnel ID
-              key: your_api_key           # Add your API key
         
         - Traefik:
             icon: traefik.png
@@ -114,42 +109,31 @@ config:
             href: https://10.0.20.3:8006
             description: Virtualization Platform
             siteMonitor: https://10.0.20.3:8006
-            widget:
-              type: proxmox
-              url: https://10.0.20.3:8006
-              # Note: Create API token in Proxmox (Datacenter -> API Tokens)
-              # username: api@pam!homepage
-              # password: your_api_token_secret
-              node: proxmox  # Your node name
-              fields: ["vms", "lxc", "resources.cpu", "resources.mem"]
+            # Widget disabled until API token is configured
+            # widget:
+            #   type: proxmox
+            #   url: https://10.0.20.3:8006
+            #   username: api@pam!homepage
+            #   password: your_api_token_secret
+            #   node: proxmox
+            #   fields: ["vms", "lxc", "resources.cpu", "resources.mem"]
         
         - Kubernetes:
             icon: kubernetes.png
             description: Container Orchestration
             namespace: kube-system
             app: metrics-server
-            widget:
-              type: kubernetes
-              cluster:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
-                label: "homelab-dev"
-              nodes:
-                show: true
-                cpu: true
-                memory: true
-                showLabel: true
         
         - ArgoCD:
             icon: argocd.png
             href: https://argocd.techdufus.com
             description: GitOps Deployment
             ping: argocd-server.argocd.svc.cluster.local
-            widget:
-              type: argocd
-              url: http://argocd-server.argocd.svc.cluster.local
+            # Widget needs authentication configuration
+            # widget:
+            #   type: argocd
+            #   url: http://argocd-server.argocd.svc.cluster.local
+            #   token: your_argocd_token
     
     - Applications:
         - Immich:
@@ -157,19 +141,16 @@ config:
             href: https://photos.techdufus.com
             description: Photo Management (v1.119.0)
             ping: immich-server.immich.svc.cluster.local
-            widget:
-              type: immich
-              url: http://immich-server.immich.svc.cluster.local:2283
-              # Add your Immich API key from settings
-              # key: your_immich_api_key
+            # Widget disabled until API key is configured
+            # widget:
+            #   type: immich
+            #   url: http://immich-server.immich.svc.cluster.local:2283
+            #   key: your_immich_api_key
         
         - Homepage:
             icon: homepage.png
             href: https://home.techdufus.com
             description: This Dashboard
-            widget:
-              type: customapi
-              url: http://homepage.homepage.svc.cluster.local:3000/api/stats
         
         - CloudNativePG:
             icon: postgres.png
@@ -178,13 +159,6 @@ config:
             app: immich-postgres
     
     - Monitoring:
-        - System Resources:
-            widget:
-              type: glances
-              url: http://glances.monitoring.svc.cluster.local:61208
-              version: 4
-              metric: info
-              chart: false
         
         - MetalLB:
             icon: metallb.png
@@ -264,15 +238,14 @@ config:
           timeStyle: short
           hour12: true
     
-    # Weather (configure your location)
-    - openweathermap:
-        label: "Weather"
-        latitude: 40.7128  # Replace with your latitude
-        longitude: -74.0060  # Replace with your longitude
-        units: imperial
-        # Get API key from openweathermap.org (free)
-        # apiKey: your_openweather_api_key
-        cache: 5
+    # Weather widget disabled until API key is configured
+    # - openweathermap:
+    #     label: "Weather"
+    #     latitude: 40.7128  # Replace with your latitude
+    #     longitude: -74.0060  # Replace with your longitude
+    #     units: imperial
+    #     apiKey: your_openweather_api_key  # Get from openweathermap.org
+    #     cache: 5
     
     # Search bar
     - search:
@@ -281,10 +254,6 @@ config:
         showSearchSuggestions: true
         target: _blank
     
-    # System logs/events (optional)
-    - logs:
-        service: Homepage
-        lines: 5
 
 # Custom CSS for extra styling (optional)
 customCSS: |
