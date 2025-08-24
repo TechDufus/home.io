@@ -21,8 +21,8 @@ spec:
     spec:
       containers:
       - name: dashy
-        image: lissy93/dashy:latest
-        imagePullPolicy: Always
+        image: lissy93/dashy:3.1.1
+        imagePullPolicy: IfNotPresent
         ports:
         - name: http
           containerPort: 8080
