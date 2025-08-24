@@ -10,8 +10,17 @@ data:
   # URL for subdomain-based access
   url: "https://argocd.lab.techdufus.com"
   
-  # Enable insecure mode since TLS is handled by Cloudflare
-  server.insecure: "true"
-  
   # Application configuration
   application.instanceLabelKey: argocd.argoproj.io/instance
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmd-params-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cmd-params-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Enable insecure mode since TLS is handled by Cloudflare
+  server.insecure: "true"
