@@ -45,62 +45,79 @@ data:
         enableGuestAccess: true
     
     sections:
-      # Time Widget
-      - name: System
-        icon: fas fa-clock
-        displayData:
-          collapsed: false
-          cols: 1
+      # Proxmox CPU Monitoring
+      - name: ProxMox Current CPU
+        icon: hl-proxmox
+        layout: grid
         widgets:
-          - type: clock
+          - type: gl-current-cpu
             options:
-              timeZone: America/Chicago
-              format: en-US
-              hideDate: false
+              hostname: http://10.0.20.3:61208
       
-      # Core Infrastructure
-      - name: Infrastructure
-        icon: fas fa-server
+      # Proxmox RAM Monitoring  
+      - name: ProxMox Current RAM
+        icon: hl-proxmox
+        layout: grid
+        widgets:
+          - type: gl-current-mem
+            options:
+              hostname: http://10.0.20.3:61208
+      
+      # Core Services
+      - name: Services
+        icon: hl-wetty
         displayData:
-          sortBy: default
           rows: 2
-          cols: 3
-          collapsed: false
         items:
-          - title: Proxmox VE
-            description: Virtualization Platform
+          - title: ProxMox
+            description: ProxMox VE node
             url: https://10.0.20.3:8006/
             icon: hl-proxmox
             target: newtab
-            statusCheck: false
+            statusCheckAllowInsecure: true
             
-          - title: Pi-hole Admin
-            description: Primary DNS Server
+          - title: Pihole-Primary
+            description: Primary Pi-Hole DNS server
             url: http://10.0.0.99/admin
             icon: hl-pihole
             target: newtab
-            statusCheck: false
             
           - title: Home Gateway
-            description: Router / Gateway
+            description: Router / Gateway for my Home
             url: http://10.0.0.1/
             icon: hl-router
             target: newtab
-            statusCheck: false
             
           - title: ArgoCD
             description: GitOps Deployment
             url: https://lab.techdufus.com/argocd
             icon: hl-argocd
             target: newtab
-            statusCheck: false
             
           - title: Traefik
             description: Gateway Controller
             url: http://traefik.traefik.svc.cluster.local:9000
             icon: hl-traefik
             target: newtab
-            statusCheck: false
+      
+      # Proxmox Statistics History
+      - name: ProxMox Stat History
+        icon: hl-proxmox
+        layout: grid
+        displayData:
+          itemSize: small
+          sectionLayout: grid
+          cols: 2
+          rows: 3
+        widgets:
+          - type: gl-cpu-history
+            options:
+              hostname: http://10.0.20.3:61208
+              limit: 400
+          - type: gl-mem-history
+            options:
+              hostname: http://10.0.20.3:61208
+              limit: 400
       
       # Applications
       - name: Applications
@@ -202,3 +219,14 @@ data:
             icon: fas fa-file-alt
             target: newtab
             statusCheck: false
+      
+      # Local Time Display
+      - name: Local Time
+        displayData:
+          collapsed: false
+        widgets:
+          - type: clock
+            options:
+              timeZone: America/Chicago
+              format: en-US
+              hideDate: false
