@@ -25,7 +25,7 @@ data:
       layout: auto
       iconSize: medium
       language: en
-      statusCheck: true
+      statusCheck: false
       statusCheckInterval: 30
       defaultOpeningMethod: newtab
       webSearch:
@@ -42,6 +42,7 @@ data:
         hideFooter: false
       auth:
         enableGuestAccess: true
+      customCss: ''
       
     sections:
       # System Monitoring Widgets
@@ -49,35 +50,13 @@ data:
         icon: fas fa-tachometer-alt
         displayData:
           collapsed: false
-          cols: 2
+          cols: 1
         widgets:
           - type: clock
             options:
               timeZone: America/Chicago
               format: en-US
               hideDate: false
-          - type: weather
-            options:
-              apiKey: ''
-              city: Chicago
-              units: imperial
-              hideDetails: false
-      
-      # Pi-hole Statistics
-      - name: Pi-hole Statistics
-        icon: hl-pihole
-        displayData:
-          collapsed: false
-          cols: 1
-        widgets:
-          - type: pi-hole-stats
-            updateInterval: 30
-            options:
-              hostname: http://10.0.0.99
-              useProxy: true
-              hideInfo: false
-              hideChart: false
-              hideStatus: false
       
       # Core Services
       - name: Infrastructure
@@ -91,41 +70,32 @@ data:
           - title: Proxmox VE
             description: Virtualization Platform
             url: https://10.0.20.3:8006/
-            icon: hl-proxmox
+            icon: si-proxmox
             target: newtab
-            statusCheck: true
-            statusCheckUrl: https://10.0.20.3:8006
-            statusCheckAllowInsecure: true
-            statusCheckAcceptCodes: '401,200'
             
           - title: Pi-hole Admin
             description: Primary DNS Server
             url: http://10.0.0.99/admin
-            icon: hl-pihole
+            icon: si-pihole
             target: newtab
-            statusCheck: true
-            statusCheckUrl: http://10.0.0.99
             
           - title: Home Gateway
             description: Router / Gateway
             url: http://10.0.0.1/
-            icon: hl-router
+            icon: fas fa-network-wired
             target: newtab
-            statusCheck: true
             
           - title: ArgoCD
             description: GitOps Deployment
             url: https://argocd.techdufus.com
-            icon: hl-argocd
+            icon: si-argo
             target: newtab
-            statusCheck: true
             
           - title: Traefik
             description: Gateway Controller
             url: http://traefik.traefik.svc.cluster.local:9000
-            icon: hl-traefik
+            icon: si-traefikmesh
             target: newtab
-            statusCheck: false
       
       # Applications
       - name: Applications
@@ -139,37 +109,36 @@ data:
           - title: Immich
             description: Photo Management
             url: https://photos.techdufus.com
-            icon: hl-immich
+            icon: fas fa-images
             target: newtab
-            statusCheck: true
             
           - title: Dashy
             description: This Dashboard
             url: https://home.techdufus.com
-            icon: hl-dashy
+            icon: fas fa-tachometer-alt
             target: sametab
             
           - title: Cloudflare
             description: DNS & Tunnel Management
             url: https://dash.cloudflare.com
-            icon: hl-cloudflare
+            icon: si-cloudflare
             target: newtab
             
           - title: GitHub
             description: Code Repository
             url: https://github.com/TechDufus/home.io
-            icon: hl-github
+            icon: si-github
             target: newtab
             
           - title: 1Password
             description: Password Manager
             url: https://my.1password.com
-            icon: hl-onepassword
+            icon: si-onepassword
             target: newtab
       
       # Kubernetes Resources
       - name: Kubernetes
-        icon: hl-kubernetes
+        icon: si-kubernetes
         displayData:
           sortBy: default
           rows: 1
@@ -178,12 +147,12 @@ data:
         items:
           - title: MetalLB
             description: Load Balancer
-            icon: hl-metallb
+            icon: fas fa-balance-scale
             target: newtab
             
           - title: CloudNativePG
             description: PostgreSQL Operator
-            icon: hl-postgres
+            icon: si-postgresql
             target: newtab
             
           - title: Local Path Storage
@@ -202,20 +171,20 @@ data:
         items:
           - title: Proxmox Forum
             url: https://forum.proxmox.com
-            icon: hl-proxmox
+            icon: si-proxmox
             target: newtab
             
           - title: Pi-hole Docs
             url: https://docs.pi-hole.net
-            icon: hl-pihole
+            icon: si-pihole
             target: newtab
             
           - title: Kubernetes Docs
             url: https://kubernetes.io/docs
-            icon: hl-kubernetes
+            icon: si-kubernetes
             target: newtab
             
           - title: Dashy Docs
             url: https://dashy.to/docs
-            icon: hl-dashy
+            icon: fas fa-tachometer-alt
             target: newtab
