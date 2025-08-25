@@ -18,7 +18,7 @@ data:
           path: https://github.com/TechDufus/home.io
         - title: Documentation
           path: https://dashy.to/docs
-    
+
     appConfig:
       theme: colorful
       layout: auto
@@ -43,7 +43,7 @@ data:
         hideFooter: false
       auth:
         enableGuestAccess: true
-    
+
     sections:
       # Proxmox CPU Monitoring
       - name: ProxMox Current CPU
@@ -53,8 +53,8 @@ data:
           - type: gl-current-cpu
             options:
               hostname: http://10.0.20.3:61208
-      
-      # Proxmox RAM Monitoring  
+
+      # Proxmox RAM Monitoring
       - name: ProxMox Current RAM
         icon: hl-proxmox
         layout: grid
@@ -62,7 +62,7 @@ data:
           - type: gl-current-mem
             options:
               hostname: http://10.0.20.3:61208
-      
+
       # Core Services
       - name: Services
         icon: hl-wetty
@@ -75,31 +75,31 @@ data:
             icon: hl-proxmox
             target: newtab
             statusCheckAllowInsecure: true
-            
+
           - title: Pihole-Primary
             description: Primary Pi-Hole DNS server
             url: http://10.0.0.99/admin
             icon: hl-pihole
             target: newtab
-            
+
           - title: Home Gateway
             description: Router / Gateway for my Home
             url: http://10.0.0.1/
             icon: hl-router
             target: newtab
-            
+
           - title: ArgoCD
             description: GitOps Deployment
-            url: https://lab.techdufus.com/argocd
+            url: https://argecd.techdufus.com
             icon: hl-argocd
             target: newtab
-            
+
           - title: Traefik
             description: Gateway Controller
             url: http://traefik.traefik.svc.cluster.local:9000
             icon: hl-traefik
             target: newtab
-      
+
       # Proxmox Statistics History
       - name: ProxMox Stat History
         icon: hl-proxmox
@@ -118,7 +118,7 @@ data:
             options:
               hostname: http://10.0.20.3:61208
               limit: 400
-      
+
       # Applications
       - name: Applications
         icon: fas fa-rocket
@@ -134,35 +134,35 @@ data:
             icon: fas fa-images
             target: newtab
             statusCheck: false
-            
+
           - title: Dashy
             description: This Dashboard
-            url: https://lab.techdufus.com
+            url: https://home.techdufus.com
             icon: fas fa-tachometer-alt
             target: sametab
             statusCheck: false
-            
+
           - title: Cloudflare
             description: DNS & Tunnel Management
             url: https://dash.cloudflare.com
             icon: fas fa-cloud
             target: newtab
             statusCheck: false
-            
+
           - title: GitHub
             description: Code Repository
             url: https://github.com/TechDufus/home.io
             icon: fab fa-github
             target: newtab
             statusCheck: false
-            
+
           - title: 1Password
             description: Password Manager
             url: https://my.1password.com
             icon: fas fa-key
             target: newtab
             statusCheck: false
-      
+
       # Kubernetes Resources
       - name: Kubernetes
         icon: hl-kubernetes
@@ -176,17 +176,17 @@ data:
             description: Load Balancer
             icon: fas fa-balance-scale
             statusCheck: false
-            
+
           - title: CloudNativePG
             description: PostgreSQL Operator
             icon: hl-postgres
             statusCheck: false
-            
+
           - title: Local Path Storage
             description: Storage Provider
             icon: fas fa-hdd
             statusCheck: false
-      
+
       # Documentation Links
       - name: Documentation
         icon: fas fa-book
@@ -201,25 +201,25 @@ data:
             icon: hl-proxmox
             target: newtab
             statusCheck: false
-            
+
           - title: Pi-hole Docs
             url: https://docs.pi-hole.net
             icon: hl-pihole
             target: newtab
             statusCheck: false
-            
+
           - title: Kubernetes Docs
             url: https://kubernetes.io/docs
             icon: hl-kubernetes
             target: newtab
             statusCheck: false
-            
+
           - title: Dashy Docs
             url: https://dashy.to/docs
             icon: fas fa-file-alt
             target: newtab
             statusCheck: false
-      
+
       # Local Time Display
       - name: Local Time
         displayData:
