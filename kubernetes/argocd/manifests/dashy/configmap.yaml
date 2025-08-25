@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: argocd
 data:
   conf.yml: |
-    # Dashy Configuration for TechDufus Homelab
+    # Dashy Configuration for TechDufus Homelab - Clean Version
     pageInfo:
       title: TechDufus Homelab
       description: Welcome to the Homelab!
@@ -18,7 +18,6 @@ data:
           path: https://github.com/TechDufus/home.io
         - title: Documentation
           path: https://dashy.to/docs
-      footerText: ''
     
     appConfig:
       theme: colorful
@@ -26,28 +25,29 @@ data:
       iconSize: medium
       language: en
       statusCheck: false
-      statusCheckInterval: 30
+      statusCheckInterval: 0
+      disableUpdateChecks: true
+      disableContextMenu: false
       defaultOpeningMethod: newtab
-      webSearch:
-        searchEngine: google
-        openingMethod: newtab
       preventWriteToDisk: false
       disableConfiguration: false
       allowConfigEdit: true
       enableErrorReporting: false
       enableFontAwesome: true
       enableMaterialDesignIcons: true
+      webSearch:
+        searchEngine: google
+        openingMethod: newtab
       hideComponents:
         hideSettings: false
         hideFooter: false
       auth:
         enableGuestAccess: true
-      customCss: ''
-      
+    
     sections:
-      # System Monitoring Widgets
-      - name: System Resources
-        icon: fas fa-tachometer-alt
+      # Time Widget
+      - name: System
+        icon: fas fa-clock
         displayData:
           collapsed: false
           cols: 1
@@ -58,7 +58,7 @@ data:
               format: en-US
               hideDate: false
       
-      # Core Services
+      # Core Infrastructure
       - name: Infrastructure
         icon: fas fa-server
         displayData:
@@ -70,32 +70,37 @@ data:
           - title: Proxmox VE
             description: Virtualization Platform
             url: https://10.0.20.3:8006/
-            icon: si-proxmox
+            icon: hl-proxmox
             target: newtab
+            statusCheck: false
             
           - title: Pi-hole Admin
             description: Primary DNS Server
             url: http://10.0.0.99/admin
-            icon: si-pihole
+            icon: hl-pihole
             target: newtab
+            statusCheck: false
             
           - title: Home Gateway
             description: Router / Gateway
             url: http://10.0.0.1/
-            icon: fas fa-network-wired
+            icon: hl-router
             target: newtab
+            statusCheck: false
             
           - title: ArgoCD
             description: GitOps Deployment
-            url: https://argocd.techdufus.com
-            icon: si-argo
+            url: https://lab.techdufus.com/argocd
+            icon: hl-argocd
             target: newtab
+            statusCheck: false
             
           - title: Traefik
             description: Gateway Controller
             url: http://traefik.traefik.svc.cluster.local:9000
-            icon: si-traefikmesh
+            icon: hl-traefik
             target: newtab
+            statusCheck: false
       
       # Applications
       - name: Applications
@@ -111,34 +116,39 @@ data:
             url: https://photos.techdufus.com
             icon: fas fa-images
             target: newtab
+            statusCheck: false
             
           - title: Dashy
             description: This Dashboard
-            url: https://home.techdufus.com
+            url: https://lab.techdufus.com
             icon: fas fa-tachometer-alt
             target: sametab
+            statusCheck: false
             
           - title: Cloudflare
             description: DNS & Tunnel Management
             url: https://dash.cloudflare.com
-            icon: si-cloudflare
+            icon: fas fa-cloud
             target: newtab
+            statusCheck: false
             
           - title: GitHub
             description: Code Repository
             url: https://github.com/TechDufus/home.io
-            icon: si-github
+            icon: fab fa-github
             target: newtab
+            statusCheck: false
             
           - title: 1Password
             description: Password Manager
             url: https://my.1password.com
-            icon: si-onepassword
+            icon: fas fa-key
             target: newtab
+            statusCheck: false
       
       # Kubernetes Resources
       - name: Kubernetes
-        icon: si-kubernetes
+        icon: hl-kubernetes
         displayData:
           sortBy: default
           rows: 1
@@ -148,19 +158,19 @@ data:
           - title: MetalLB
             description: Load Balancer
             icon: fas fa-balance-scale
-            target: newtab
+            statusCheck: false
             
           - title: CloudNativePG
             description: PostgreSQL Operator
-            icon: si-postgresql
-            target: newtab
+            icon: hl-postgres
+            statusCheck: false
             
           - title: Local Path Storage
             description: Storage Provider
             icon: fas fa-hdd
-            target: newtab
+            statusCheck: false
       
-      # Quick Links / Documentation
+      # Documentation Links
       - name: Documentation
         icon: fas fa-book
         displayData:
@@ -171,20 +181,24 @@ data:
         items:
           - title: Proxmox Forum
             url: https://forum.proxmox.com
-            icon: si-proxmox
+            icon: hl-proxmox
             target: newtab
+            statusCheck: false
             
           - title: Pi-hole Docs
             url: https://docs.pi-hole.net
-            icon: si-pihole
+            icon: hl-pihole
             target: newtab
+            statusCheck: false
             
           - title: Kubernetes Docs
             url: https://kubernetes.io/docs
-            icon: si-kubernetes
+            icon: hl-kubernetes
             target: newtab
+            statusCheck: false
             
           - title: Dashy Docs
             url: https://dashy.to/docs
-            icon: fas fa-tachometer-alt
+            icon: fas fa-file-alt
             target: newtab
+            statusCheck: false
