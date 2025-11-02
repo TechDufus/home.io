@@ -32,6 +32,10 @@ containerMode:
 # Runner pod template
 template:
   spec:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 1000
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner-controller/actions-runner:latest
@@ -43,9 +47,6 @@ template:
             cpu: 2000m
             memory: 4Gi
         securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          fsGroup: 1000
           capabilities:
             drop: [ALL]
           readOnlyRootFilesystem: false
