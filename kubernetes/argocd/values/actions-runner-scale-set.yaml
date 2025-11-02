@@ -16,9 +16,6 @@ runnerScaleSetName: "homelab-runners"
 minRunners: 0
 maxRunners: 1
 
-# Runner labels for workflow targeting
-runnerGroup: "Default"
-
 # Container mode: kubernetes (recommended for security)
 containerMode:
   type: "kubernetes"
