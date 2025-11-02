@@ -11,7 +11,7 @@ spec:
   project: default
   sources:
     - chart: gha-runner-scale-set
-      repoURL: oci://ghcr.io/actions/actions-runner-controller-charts
+      repoURL: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
       targetRevision: "0.13.0"
       helm:
         releaseName: arc-runner-set
