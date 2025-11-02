@@ -249,40 +249,41 @@ setup_n8n_secrets() {
     fi
 }
 
-# Setup Homarr secrets
-setup_homarr_secrets() {
+# Setup GitHub Actions Runner Controller secrets
+setup_github_actions_runner_secrets() {
     echo ""
-    echo -e "${BLUE}🏠 Setting up Homarr dashboard secrets...${NC}"
+    echo -e "${BLUE}🏃 Setting up GitHub Actions Runner Controller secrets...${NC}"
 
-    # Get encryption key from 1Password or generate
-    local encryption_key=$(op item get "[Homelab] Homarr Database" --vault="$OP_VAULT" --fields="credential" --reveal 2>/dev/null || echo "")
+    # Get PAT from 1Password (strip any trailing newlines - critical for authentication)
+    local github_token=$(op item get "Github" --vault="$OP_VAULT" --field label=github-actions-runner-controller-organization --reveal 2>/dev/null | tr -d '\n')
 
-    if [ -z "$encryption_key" ]; then
-        echo -e "${YELLOW}→ Generating new Homarr encryption key...${NC}"
-        encryption_key=$(openssl rand -hex 32)
-        echo -e "${YELLOW}   Save this key to 1Password:${NC}"
-        echo -e "${YELLOW}   Item Name: [Homelab] Homarr Database${NC}"
-        echo -e "${YELLOW}   Vault: $OP_VAULT${NC}"
-        echo -e "${YELLOW}   Field: credential${NC}"
-        echo -e "${YELLOW}   Value: $encryption_key${NC}"
-    else
-        # Validate the key is exactly 64 hex characters
-        if [[ ${#encryption_key} -ne 64 ]] || [[ ! "$encryption_key" =~ ^[0-9a-fA-F]{64}$ ]]; then
-            echo -e "${YELLOW}⚠ Existing key is invalid (must be 64 hex characters)${NC}"
-            echo -e "${YELLOW}→ Generating new valid Homarr encryption key...${NC}"
-            encryption_key=$(openssl rand -hex 32)
-            echo -e "${YELLOW}   Update this key in 1Password:${NC}"
-            echo -e "${YELLOW}   Item Name: [Homelab] Homarr Database${NC}"
-            echo -e "${YELLOW}   Vault: $OP_VAULT${NC}"
-            echo -e "${YELLOW}   Field: credential${NC}"
-            echo -e "${YELLOW}   Value: $encryption_key${NC}"
-        else
-            echo -e "${GREEN}✓ Using existing valid Homarr encryption key from 1Password${NC}"
-        fi
+    if [ -z "$github_token" ]; then
+        echo -e "${RED}✗ GitHub PAT not found in 1Password${NC}"
+        echo -e "${YELLOW}   Location: Personal/Github/github-actions-runner-controller-organization${NC}"
+        echo -e "${YELLOW}   Create PAT (Classic) at: https://github.com/settings/tokens/new${NC}"
+        echo -e "${YELLOW}   Required scope: admin:org (for organization-level runners)${NC}"
+        return 1
     fi
 
-    # Create the db-secret that Homarr expects
-    create_k8s_secret "homarr" "db-secret" "db-encryption-key" "$encryption_key"
+    echo -e "${GREEN}✓ Found GitHub PAT in 1Password${NC}"
+
+    # Create secret
+    create_k8s_secret "actions-runner-system" "github-token" "github_token" "$github_token"
+
+    # Update GitHub username in values file if placeholder exists
+    local values_file="kubernetes/argocd/values/actions-runner-scale-set.yaml"
+    if [ -f "$values_file" ]; then
+        if grep -q "<GITHUB_USERNAME>" "$values_file" 2>/dev/null; then
+            echo -e "${YELLOW}→ Updating GitHub username in values file...${NC}"
+            sed -i.bak "s|<GITHUB_USERNAME>|TechDufus|g" "$values_file"
+            rm -f "${values_file}.bak"
+            echo -e "${GREEN}✓ GitHub username set to: TechDufus${NC}"
+        else
+            echo -e "${GREEN}✓ GitHub username already configured${NC}"
+        fi
+    else
+        echo -e "${YELLOW}ℹ Values file not yet created (will be handled by ArgoCD deployment)${NC}"
+    fi
 }
 
 # Setup Homepage secrets
@@ -422,8 +423,11 @@ show_secret_status() {
     echo ""
     echo -e "${YELLOW}Application Secrets:${NC}"
     kubectl get secrets -n n8n 2>/dev/null | grep -E "(n8n)" || echo "  No N8N secrets found"
-    kubectl get secrets -n homarr 2>/dev/null | grep -E "(db-secret)" || echo "  No Homarr secrets found"
     kubectl get secrets -n homepage 2>/dev/null | grep -E "(homepage-secrets)" || echo "  No Homepage secrets found"
+
+    echo ""
+    echo -e "${YELLOW}Infrastructure Secrets:${NC}"
+    kubectl get secrets -n actions-runner-system 2>/dev/null | grep -E "(github-token)" || echo "  No GitHub Actions Runner secrets found"
 
 }
 
@@ -436,9 +440,7 @@ main() {
     # Setup all secrets
     setup_cloudflare_tunnel_secret
     setup_n8n_secrets
-    setup_homarr_secrets
-
-    # Setup Homepage secrets
+    setup_github_actions_runner_secrets
     setup_homepage_secrets
 
     # Show final status
@@ -474,7 +476,7 @@ case "${1:-}" in
         echo "Required 1Password items:"
         echo "  - 'Cloudflare Tunnel - Homelab' (tunnel credentials)"
         echo "  - 'N8N Homelab [DEV/PROD]' (N8N configuration)"
-        echo "  - '[Homelab] Homarr Database' (database encryption key in 'credential' field)"
+        echo "  - 'Github' with field 'github-actions-runner-controller-organization' (GitHub Actions PAT)"
         echo ""
         echo "Homepage Dashboard 1Password items (optional but recommended):"
         echo "  - '[Homelab] Pi-hole' with field 'api_key'"
