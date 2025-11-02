@@ -22,6 +22,12 @@ runnerGroup: "Default"
 # Container mode: kubernetes (recommended for security)
 containerMode:
   type: "kubernetes"
+  kubernetesModeWorkVolumeClaim:
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: "local-path"
+    resources:
+      requests:
+        storage: 5Gi
 
 # Runner pod template
 template:
