@@ -1,71 +1,23 @@
 # GitHub Actions Runner Scale Set Configuration Template
+# Minimal configuration for ApplicationSet-based multi-repo deployment
 # Reference: https://github.com/actions/actions-runner-controller/blob/master/charts/gha-runner-scale-set/values.yaml
 #
-# This template is used by the ApplicationSet to generate per-repository runner scale sets.
-# The following values are templated by the ApplicationSet:
-# - githubConfigUrl: Set via Helm parameter
-# - runnerScaleSetName: Set via Helm parameter
-# - minRunners: Set via Helm parameter (default: 0)
-# - maxRunners: Set via Helm parameter (varies per repo)
+# Templated values (set by ApplicationSet):
+# - githubConfigUrl, runnerScaleSetName, minRunners, maxRunners
 
-# Authentication via pre-created Kubernetes secret
-# Created by kubernetes/bootstrap/setup-secrets.sh
+# GitHub authentication secret (created by bootstrap script)
 githubConfigSecret: github-token
 
-# Container mode: kubernetes (recommended for security)
+# Kubernetes container mode with persistent workspace storage
 containerMode:
   type: "kubernetes"
   kubernetesModeWorkVolumeClaim:
-    accessModes: ["ReadWriteOnce"]
     storageClassName: "local-path"
     resources:
       requests:
         storage: 5Gi
 
-# Runner pod template
-template:
-  spec:
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      fsGroup: 1000
-    containers:
-      - name: runner
-        image: ghcr.io/actions/actions-runner-controller/actions-runner:latest
-        resources:
-          requests:
-            cpu: 2000m
-            memory: 4Gi
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-        securityContext:
-          capabilities:
-            drop: [ALL]
-          readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: false
-
-# Controller namespace reference (must match controller deployment)
+# Controller service account reference
 controllerServiceAccount:
   namespace: actions-runner-system
   name: arc-controller-gha-runner-scale-set-controller
-
-# Listener pod resources (minimal)
-listenerTemplate:
-  spec:
-    containers:
-      - name: listener
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 65532
-          capabilities:
-            drop: [ALL]
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false

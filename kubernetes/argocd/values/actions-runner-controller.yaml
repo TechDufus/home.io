@@ -1,22 +1,10 @@
 # GitHub Actions Runner Controller (Scale Set Controller) Configuration
+# Minimal configuration for ArgoCD compatibility
 # Reference: https://github.com/actions/actions-runner-controller/blob/master/charts/gha-runner-scale-set-controller/values.yaml
 
-# Replica count (leader election enabled automatically if >1)
-replicaCount: 1
-
-# Image configuration
-image:
-  repository: ghcr.io/actions/gha-runner-scale-set-controller
-  pullPolicy: IfNotPresent
-  # Tag defaults to chart appVersion
-
-# Controller flags
+# Critical: Exclude ArgoCD labels from propagating to runner pods
+# This prevents ArgoCD tracking conflicts with dynamically created resources
 flags:
-  logLevel: "info"
-  logFormat: "text"
-  runnerMaxConcurrentReconciles: 2
-  updateStrategy: "immediate"
-  # Exclude ArgoCD labels from propagating to runner pods (prevents tracking conflicts)
   excludeLabelPropagationPrefixes:
     - "argocd.argoproj.io/instance"
     - "app.kubernetes.io/component"
@@ -25,31 +13,3 @@ flags:
     - "app.kubernetes.io/name"
     - "app.kubernetes.io/part-of"
     - "app.kubernetes.io/version"
-
-# Resource limits
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
-
-# Security context
-securityContext:
-  capabilities:
-    drop: [ALL]
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 65532
-  runAsGroup: 65532
-  allowPrivilegeEscalation: false
-
-podSecurityContext:
-  runAsNonRoot: true
-  fsGroup: 65532
-
-# Service account (auto-created)
-serviceAccount:
-  create: true
-  annotations: {}

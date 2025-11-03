@@ -1,0 +1,22 @@
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - name: Show runner info
+        run: |
+          echo "Runner is working!"
+          echo "Hostname: $(hostname)"
+          echo "Kernel: $(uname -a)"
+          echo "CPU: $(nproc) cores"
+          echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: List repository files
+        run: ls -la

@@ -58,3 +58,5 @@ cloudflare-credentials.json
 
 # Logs
 *.log
+PRPs/
+validation/
