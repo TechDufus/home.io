@@ -8,15 +8,9 @@
 # GitHub authentication secret (created by bootstrap script)
 githubConfigSecret: github-token
 
-# Kubernetes container mode with persistent workspace storage
+# Docker-in-Docker mode for standard GitHub Actions compatibility
 containerMode:
-  type: "kubernetes"
-  kubernetesModeWorkVolumeClaim:
-    accessModes: ["ReadWriteOnce"]
-    storageClassName: "local-path"
-    resources:
-      requests:
-        storage: 5Gi
+  type: "dind"
 
 # Controller service account reference
 controllerServiceAccount:
