@@ -12,6 +12,13 @@ githubConfigSecret: github-token
 # Requires workflows to specify 'container:' for containerized steps
 containerMode:
   type: "kubernetes"
+  # Work volume for kubernetes mode (creates separate pods for containerized steps)
+  kubernetesModeWorkVolumeClaim:
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: "local-path"
+    resources:
+      requests:
+        storage: 5Gi
 
 # Controller service account reference
 controllerServiceAccount:
