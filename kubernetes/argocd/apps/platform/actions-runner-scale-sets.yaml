@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: actions-runner-scale-sets
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - list:
+        elements:
+          - repo: home.io
+            maxRunners: "2"
+          - repo: dotfiles
+            maxRunners: "1"
+          # Add more repos here as needed:
+          # - repo: your-repo-name
+          #   maxRunners: "1"
+  template:
+    metadata:
+      name: actions-runner-{{ .repo }}
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    spec:
+      project: default
+      sources:
+        - chart: gha-runner-scale-set
+          repoURL: ghcr.io/actions/actions-runner-controller-charts
+          targetRevision: "0.13.0"
+          helm:
+            releaseName: arc-runner-{{ .repo }}
+            parameters:
+              - name: githubConfigUrl
+                value: "https://github.com/TechDufus/{{ .repo }}"
+              - name: runnerScaleSetName
+                value: "{{ .repo }}-runners"
+              - name: minRunners
+                value: "0"
+              - name: maxRunners
+                value: "{{ .maxRunners }}"
+            valueFiles:
+              - $values/kubernetes/argocd/values/actions-runner-scale-set-template.yaml
+        - repoURL: https://github.com/TechDufus/home.io
+          targetRevision: main
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: actions-runner-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+      revisionHistoryLimit: 10
