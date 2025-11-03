@@ -77,6 +77,23 @@ kubectl get pods -n homarr
 kubectl logs deployment/homarr -n homarr
 ```
 
+### GitHub Actions Runners
+```bash
+# Check runner status
+kubectl get autoscalingrunnerset -n actions-runner-system
+kubectl get pods -n actions-runner-system
+
+# View runner logs
+kubectl logs -n actions-runner-system -l app.kubernetes.io/component=runner-scale-set-listener
+kubectl logs -n actions-runner-system deployment/arc-controller-gha-rs-controller
+
+# Watch runner scaling in real-time
+watch -n 5 'kubectl get pods -n actions-runner-system | grep runner'
+
+# Check RBAC permissions
+kubectl describe clusterrole arc-controller-gha-rs-controller
+```
+
 ### Resource Monitoring
 ```bash
 # View node resource usage
@@ -115,14 +132,15 @@ The infrastructure follows an **App-of-Apps pattern** where a single root ArgoCD
 
 ```
 app-of-apps.yaml (Root)
-    ├── gateway-api-crds    # Gateway API CRDs (deployed first)
-    ├── metallb             # Load balancer for bare metal
-    ├── metallb-config      # IP pool configuration
-    ├── traefik            # Gateway controller
-    ├── gateway-config     # Gateway and HTTPRoutes
-    ├── metrics-server     # Resource metrics for kubectl top
-    ├── homarr             # Dashboard application
-    └── cloudflared        # External access tunnel
+    ├── gateway-api-crds           # Gateway API CRDs (deployed first)
+    ├── metallb                    # Load balancer for bare metal
+    ├── metallb-config             # IP pool configuration
+    ├── traefik                   # Gateway controller
+    ├── gateway-config            # Gateway and HTTPRoutes
+    ├── metrics-server            # Resource metrics for kubectl top
+    ├── homarr                    # Dashboard application
+    ├── cloudflared               # External access tunnel
+    └── actions-runner-controller # GitHub Actions self-hosted runners
 ```
 
 ### Network Architecture
@@ -150,6 +168,69 @@ GatewayClass: traefik (controller)
 ```
 
 **Cross-namespace routing** enabled via ReferenceGrant for service access.
+
+### GitHub Actions Runner Controller
+
+Self-hosted GitHub Actions runners deployed with **scale-to-zero architecture** using the official Actions Runner Controller (ARC).
+
+**Architecture**:
+```
+Controller (cluster-wide)
+    └── ApplicationSet (generates runner sets per-repo)
+        ├── AutoscalingRunnerSet (home.io)
+        │   └── Listener Pod → EphemeralRunner (created on-demand)
+        └── AutoscalingRunnerSet (dotfiles)
+            └── Listener Pod → EphemeralRunner (created on-demand)
+```
+
+**Key Configuration Requirements**:
+
+1. **Container Mode**: Use `dind` (Docker-in-Docker) for standard GitHub Actions compatibility
+   - `kubernetes` mode requires all workflows to specify `container:` which breaks most standard actions
+   - dind mode allows workflows to run unmodified
+
+2. **PodSecurity**: Namespace must allow **privileged** containers for dind
+   ```yaml
+   pod-security.kubernetes.io/enforce: privileged
+   ```
+
+3. **ArgoCD Tracking**: Must use **annotation-based** tracking (not label-based)
+   - Label tracking causes listener pod restart loops
+   - Configure via: `application.resourceTrackingMethod: annotation` in argocd-cm
+   - Exclude ArgoCD labels from propagating to runner pods in controller values
+
+4. **RBAC Permissions**: Upstream chart missing critical permissions
+   - Controller needs `create/delete` for roles/rolebindings (chart only grants list/watch/patch)
+   - Fixed via separate ClusterRole manifest as additional ArgoCD source
+   - Also needs `list/get` for secrets (cleanup operations)
+
+**Multi-Repository Pattern**:
+
+Uses ApplicationSet to generate runner scale sets per repository:
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: actions-runner-scale-sets
+spec:
+  generators:
+    - list:
+        elements:
+          - repo: home.io
+            runnerScaleSetName: home.io-runners
+            minRunners: "0"
+            maxRunners: "2"
+  template:
+    # Generates Application per repository
+```
+
+**Configuration Files**:
+- `apps/platform/actions-runner-controller.yaml` - Controller Application
+- `apps/platform/actions-runner-scale-sets.yaml` - ApplicationSet for runners
+- `values/actions-runner-controller.yaml` - Controller config (15 lines)
+- `values/actions-runner-scale-set-template.yaml` - Runner template (23 lines)
+- `manifests/actions-runner-controller/clusterrole-patch.yaml` - RBAC fix
+- `manifests/actions-runner-controller/namespace.yaml` - PodSecurity config
 
 ### Secret Management
 
@@ -186,14 +267,19 @@ kubernetes/
 │   │   │   └── lab-gateway.yaml
 │   │   ├── homarr/             # Dashboard configuration
 │   │   │   └── namespace.yaml
-│   │   └── metallb/            # MetalLB configuration
-│   │       ├── ip-pool.yaml
-│   │       └── namespace.yaml
+│   │   ├── metallb/            # MetalLB configuration
+│   │   │   ├── ip-pool.yaml
+│   │   │   └── namespace.yaml
+│   │   └── actions-runner-controller/ # GitHub Actions runners
+│   │       ├── namespace.yaml         # PodSecurity privileged config
+│   │       └── clusterrole-patch.yaml # RBAC permissions fix
 │   └── values/                 # Helm chart values
 │       ├── traefik.yaml        # Traefik configuration
 │       ├── metallb.yaml        # MetalLB settings
 │       ├── metrics-server.yaml # Metrics server configuration
-│       └── homarr.yaml         # Dashboard configuration
+│       ├── homarr.yaml         # Dashboard configuration
+│       ├── actions-runner-controller.yaml # ARC controller config
+│       └── actions-runner-scale-set-template.yaml # Runner template
 └── bootstrap/                  # Bootstrap scripts
     ├── argocd.sh              # ArgoCD installation
     └── setup-secrets.sh       # 1Password secret setup
@@ -410,6 +496,12 @@ metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
 - Gateway API requires explicit ReferenceGrant
 - More complex than traditional Ingress but more secure
 
+**GitHub Actions Runner Controller**:
+- Upstream chart v0.13.0 has RBAC bugs (GitHub issue #3160)
+- ArgoCD label tracking conflicts with listener pods (use annotation tracking)
+- Kubernetes container mode breaks standard workflows (use dind mode)
+- dind mode requires privileged PodSecurity (not baseline/restricted)
+
 ## Debugging Guide
 
 ### Common Issues
@@ -439,6 +531,17 @@ metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
    - **Check**: `kubectl get pods -n kube-system | grep metrics-server`
    - **Solution**: Verify metrics-server pod is running and has proper TLS configuration
 
+6. **GitHub Actions Runners Not Scaling**
+   - **Symptoms**: Workflow jobs stay queued, no runners created
+   - **Check**: `kubectl get autoscalingrunnerset -n actions-runner-system`
+   - **Check**: `kubectl logs -n actions-runner-system -l app.kubernetes.io/component=runner-scale-set-listener`
+   - **Solution**: Verify listener pods running and check controller logs for RBAC errors
+
+7. **Runner Pods Restarting Continuously**
+   - **Symptoms**: Listener pods restart every 10-30 seconds
+   - **Check**: `kubectl describe configmap argocd-cm -n argocd | grep resourceTrackingMethod`
+   - **Solution**: Set `application.resourceTrackingMethod: annotation` in argocd-cm ConfigMap
+
 ### Debugging Tools
 ```bash
 # ArgoCD application issues
@@ -455,6 +558,15 @@ kubectl logs -n cloudflare deployment/cloudflared --tail=50
 
 # Metrics server status
 kubectl logs -n kube-system deployment/metrics-server --tail=50
+
+# GitHub Actions runner status
+kubectl get autoscalingrunnerset -n actions-runner-system
+kubectl get pods -n actions-runner-system
+kubectl logs -n actions-runner-system -l app.kubernetes.io/component=runner-scale-set-listener --tail=50
+kubectl logs -n actions-runner-system deployment/arc-controller-gha-rs-controller --tail=50
+
+# Watch runner scaling
+watch -n 5 'kubectl get pods -n actions-runner-system && echo "---" && kubectl get autoscalingrunnerset -n actions-runner-system'
 ```
 
 ## Monitoring and Observability
