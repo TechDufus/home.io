@@ -12,6 +12,7 @@ githubConfigSecret: github-token
 containerMode:
   type: "kubernetes"
   kubernetesModeWorkVolumeClaim:
+    accessModes: ["ReadWriteOnce"]
     storageClassName: "local-path"
     resources:
       requests:
