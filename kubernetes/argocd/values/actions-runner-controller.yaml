@@ -16,6 +16,15 @@ flags:
   logFormat: "text"
   runnerMaxConcurrentReconciles: 2
   updateStrategy: "immediate"
+  # Exclude ArgoCD labels from propagating to runner pods (prevents tracking conflicts)
+  excludeLabelPropagationPrefixes:
+    - "argocd.argoproj.io/instance"
+    - "app.kubernetes.io/component"
+    - "app.kubernetes.io/instance"
+    - "app.kubernetes.io/managed-by"
+    - "app.kubernetes.io/name"
+    - "app.kubernetes.io/part-of"
+    - "app.kubernetes.io/version"
 
 # Resource limits
 resources:
