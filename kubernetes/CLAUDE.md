@@ -499,8 +499,12 @@ metallb.universe.tf/loadBalancerIPs: "10.0.20.200"
 **GitHub Actions Runner Controller**:
 - Upstream chart v0.13.0 has RBAC bugs (GitHub issue #3160)
 - ArgoCD label tracking conflicts with listener pods (use annotation tracking)
-- Kubernetes container mode breaks standard workflows (use dind mode)
+- **Historical Note (2025-11-03)**: Kubernetes mode tested but migrated to dind
+  - Root cause: Toolcache path incompatibility (`/__e/` not accessible in separate pods)
+  - Standard actions (setup-node, setup-python, checkout) require direct filesystem access
+  - Solution: Migrated to dind mode for full GitHub Actions compatibility
 - dind mode requires privileged PodSecurity (not baseline/restricted)
+- Current configuration uses dind mode for unmodified workflow support
 
 ## Debugging Guide
 
