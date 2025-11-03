@@ -8,17 +8,11 @@
 # GitHub authentication secret (created by bootstrap script)
 githubConfigSecret: github-token
 
-# Kubernetes mode for resource efficiency and security (no privileged containers)
-# Requires workflows to specify 'container:' for containerized steps
+# DinD mode for full GitHub Actions compatibility
+# Provides unmodified workflow support including toolcache paths
+# Requires privileged containers (see namespace.yaml)
 containerMode:
-  type: "kubernetes"
-  # Work volume for kubernetes mode (creates separate pods for containerized steps)
-  kubernetesModeWorkVolumeClaim:
-    accessModes: ["ReadWriteOnce"]
-    storageClassName: "local-path"
-    resources:
-      requests:
-        storage: 5Gi
+  type: "dind"
 
 # Controller service account reference
 controllerServiceAccount:
