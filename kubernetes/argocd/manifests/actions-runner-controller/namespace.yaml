@@ -3,7 +3,8 @@ kind: Namespace
 metadata:
   name: actions-runner-system
   labels:
-    # Allow privileged pods for dind runners
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
+    # Kubernetes mode doesn't require privileged containers (more secure)
+    # baseline allows the runner pod, restricting only dangerous capabilities
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline

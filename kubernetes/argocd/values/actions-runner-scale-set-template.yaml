@@ -8,9 +8,10 @@
 # GitHub authentication secret (created by bootstrap script)
 githubConfigSecret: github-token
 
-# Docker-in-Docker mode for standard GitHub Actions compatibility
+# Kubernetes mode for resource efficiency and security (no privileged containers)
+# Requires workflows to specify 'container:' for containerized steps
 containerMode:
-  type: "dind"
+  type: "kubernetes"
 
 # Controller service account reference
 controllerServiceAccount:
