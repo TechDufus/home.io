@@ -36,7 +36,7 @@ spec:
               - name: githubConfigUrl
                 value: "https://github.com/TechDufus/{{ .repo }}"
               - name: runnerScaleSetName
-                value: "{{ .repo }}-runners"
+                value: "self-hosted"
               - name: minRunners
                 value: "0"
               - name: maxRunners
