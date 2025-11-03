@@ -255,13 +255,14 @@ setup_github_actions_runner_secrets() {
     echo -e "${BLUE}🏃 Setting up GitHub Actions Runner Controller secrets...${NC}"
 
     # Get PAT from 1Password (strip any trailing newlines - critical for authentication)
-    local github_token=$(op item get "Github" --vault="$OP_VAULT" --field label=github-actions-runner-controller-organization --reveal 2>/dev/null | tr -d '\n')
+    # Use personal account PAT (not organization PAT)
+    local github_token=$(op item get "Github" --vault="$OP_VAULT" --field label=github-actions-runner-controller-personal --reveal 2>/dev/null | tr -d '\n')
 
     if [ -z "$github_token" ]; then
         echo -e "${RED}✗ GitHub PAT not found in 1Password${NC}"
-        echo -e "${YELLOW}   Location: Personal/Github/github-actions-runner-controller-organization${NC}"
-        echo -e "${YELLOW}   Create PAT (Classic) at: https://github.com/settings/tokens/new${NC}"
-        echo -e "${YELLOW}   Required scope: admin:org (for organization-level runners)${NC}"
+        echo -e "${YELLOW}   Location: Personal/Github/github-actions-runner-controller-personal${NC}"
+        echo -e "${YELLOW}   Create PAT at: https://github.com/settings/tokens/new${NC}"
+        echo -e "${YELLOW}   Required scopes: repo, workflow, write:packages${NC}"
         return 1
     fi
 
