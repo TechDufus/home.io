@@ -22,6 +22,10 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "serviceaccounts"]
     verbs: ["list", "watch"]
+  # FIXED: Add secrets list permission (needed for cleanup)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["list", "get"]
   # FIXED: Add create/delete permissions (missing from upstream chart)
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles", "rolebindings"]
