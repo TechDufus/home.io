@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Test kubernetes mode with container specification
+  # Test kubernetes mode with GitHub Actions runner image
   test-with-container:
     runs-on: home.io-runners
     container:
-      image: ubuntu:22.04
+      image: ghcr.io/actions/actions-runner:latest
     steps:
       - name: Show runner info
         run: |
@@ -18,9 +18,6 @@ jobs:
           echo "CPU: $(nproc) cores"
           echo "Memory: $(free -h | grep Mem | awk '{print $2}')"
           echo "This step runs in a separate pod created by kubernetes mode"
-
-      - name: Install git
-        run: apt-get update && apt-get install -y git
 
       - name: Checkout code
         uses: actions/checkout@v4
