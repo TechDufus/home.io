@@ -15,28 +15,12 @@ spec:
         releaseName: arc-controller
         valueFiles:
           - $values/kubernetes/argocd/values/actions-runner-controller.yaml
-        patches:
-          # Add missing RBAC permissions for controller to create/delete roles
-          # Upstream chart only grants list/watch/patch but controller needs full lifecycle
-          - target:
-              kind: ClusterRole
-              name: arc-controller-gha-rs-controller
-            patch: |
-              - op: add
-                path: /rules/-
-                value:
-                  apiGroups: ["rbac.authorization.k8s.io"]
-                  resources: ["roles"]
-                  verbs: ["create", "delete"]
-              - op: add
-                path: /rules/-
-                value:
-                  apiGroups: ["rbac.authorization.k8s.io"]
-                  resources: ["rolebindings"]
-                  verbs: ["create", "delete"]
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/actions-runner-controller
   destination:
     server: https://kubernetes.default.svc
     namespace: actions-runner-system

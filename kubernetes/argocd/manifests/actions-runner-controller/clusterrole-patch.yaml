@@ -1,0 +1,28 @@
+# RBAC Patch for Actions Runner Controller
+# Adds missing create/delete permissions for roles and rolebindings
+# Upstream chart v0.13.0 only grants list/watch/patch but controller needs full lifecycle
+#
+# This is a workaround for: https://github.com/actions/actions-runner-controller/issues/3160
+# The controller needs these permissions to dynamically create listener roles
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: arc-controller-gha-rs-controller
+rules:
+  # Existing permissions from chart
+  - apiGroups: ["actions.github.com"]
+    resources: ["autoscalingrunnersets", "autoscalinglisteners", "ephemeralrunnersets", "ephemeralrunners"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["actions.github.com"]
+    resources: ["autoscalingrunnersets/status", "autoscalinglisteners/status", "ephemeralrunnersets/status", "ephemeralrunners/status"]
+    verbs: ["get", "patch", "update"]
+  - apiGroups: ["actions.github.com"]
+    resources: ["autoscalingrunnersets/finalizers", "autoscalinglisteners/finalizers", "ephemeralrunnersets/finalizers", "ephemeralrunners/finalizers"]
+    verbs: ["patch", "update"]
+  - apiGroups: [""]
+    resources: ["pods", "serviceaccounts"]
+    verbs: ["list", "watch"]
+  # FIXED: Add create/delete permissions (missing from upstream chart)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["create", "delete", "list", "watch", "patch"]
