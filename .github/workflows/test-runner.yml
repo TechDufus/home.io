@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted  # Uses the 'self-hosted' runner scale set (all repos share this pool)
+    runs-on: home.io-runners
     steps:
       - name: Show runner info
         run: |
