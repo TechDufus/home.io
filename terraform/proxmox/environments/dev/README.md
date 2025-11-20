@@ -63,31 +63,67 @@ talosctl -n 10.0.20.10 health
 
 ## Multi-Machine Access with 1Password
 
-### Save kubeconfig to 1Password (after cluster creation)
+The `kubestate` script provides automated syncing of kubeconfigs to/from 1Password, similar to the `tfstate` script for Terraform state.
+
+### Automated Workflow (Recommended)
+
 ```bash
-# Store the kubeconfig securely in 1Password
-op item create --category=Document \
-  --title="homelab-dev-kubeconfig" \
-  --vault="Personal" \
-  kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
+# From the dev environment directory
+cd terraform/proxmox/environments/dev
+
+# Push kubeconfig to 1Password (after terraform apply)
+../scripts/kubestate push dev
+
+# On another machine: Pull and auto-merge kubeconfig
+../scripts/kubestate pull dev
+
+# Pull to specific file without merging
+../scripts/kubestate pull dev --output ~/Downloads/cluster.yaml
+
+# Extract to terraform directory (makes this machine the new source)
+../scripts/kubestate extract dev
+
+# Smart sync based on timestamps (auto push/pull)
+../scripts/kubestate sync dev
+
+# Check sync status
+../scripts/kubestate status dev
+
+# List all kubeconfigs in 1Password
+../scripts/kubestate list
 ```
 
-### Access from Another Machine
-```bash
-# Download kubeconfig from 1Password
-op document get "homelab-dev-kubeconfig" --vault="Personal" > ~/.kube/config-homelab-dev
+### Key Features
 
-# Option 1: Merge with existing kubeconfig
+- **Intelligent Merging**: `pull` automatically merges with existing `~/.kube/config` preserving other contexts
+- **Smart Sync**: `sync` automatically determines push/pull based on timestamps
+- **Extract to Source**: `extract` downloads to terraform directory (solves "Machine A dies" scenario)
+- **Custom Output**: `pull --output <file>` downloads to specific file without merging
+- **Backup Support**: `--backup` flag creates backups before merging
+- **Force Operations**: `--force` flag skips confirmation prompts
+
+### Configuration
+
+The script uses these defaults (override with environment variables):
+- Vault: `cicd` (set `KUBECONFIG_VAULT` to change)
+- Item prefix: `kubeconfig` (set `KUBECONFIG_PREFIX` to change)
+- Auto-detected environment from directory
+
+### Manual Method (Legacy)
+
+If you prefer manual operations:
+```bash
+# Save to 1Password
+op item create --category=Document \
+  --title="kubeconfig-dev" \
+  --vault="cicd" \
+  kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
+
+# Download and merge manually
+op document get "kubeconfig-dev" --vault="cicd" > ~/.kube/config-homelab-dev
 KUBECONFIG=~/.kube/config:~/.kube/config-homelab-dev kubectl config view --flatten > ~/.kube/config.tmp
 mv ~/.kube/config.tmp ~/.kube/config
 kubectl config use-context homelab-dev
-
-# Option 2: Use directly
-export KUBECONFIG=~/.kube/config-homelab-dev
-kubectl get nodes
-
-# Option 3: Create an alias for quick access
-alias kdev='kubectl --kubeconfig ~/.kube/config-homelab-dev'
 ```
 
 ## Configuration
