@@ -1,0 +1,905 @@
+#!/usr/bin/env bash
+# Kubeconfig <-> 1Password Sync Tool
+# Multi-environment kubeconfig management with intelligent merging
+
+# Catppuccin Mocha color palette
+ROSEWATER='#f5e0dc'
+FLAMINGO='#f2cdcd'
+PINK='#f5c2e7'
+MAUVE='#cba6f7'
+RED='#f38ba8'
+MAROON='#eba0ac'
+PEACH='#fab387'
+YELLOW='#f9e2af'
+GREEN='#a6e3a1'
+TEAL='#94e2d5'
+SKY='#89dceb'
+SAPPHIRE='#74c7ec'
+BLUE='#89b4fa'
+LAVENDER='#b4befe'
+TEXT='#cdd6f4'
+SUBTEXT1='#bac2de'
+SUBTEXT0='#a6adc8'
+OVERLAY2='#9399b2'
+OVERLAY1='#7f849c'
+OVERLAY0='#6c7086'
+SURFACE2='#585b70'
+SURFACE1='#45475a'
+SURFACE0='#313244'
+BASE='#1e1e2e'
+MANTLE='#181825'
+CRUST='#11111b'
+
+# Color functions
+color() { printf "\e[38;2;%d;%d;%dm%s\e[0m" $((16#${1:1:2})) $((16#${1:3:2})) $((16#${1:5:2})) "$2"; }
+bold() { printf "\e[1m%s\e[0m" "$1"; }
+italic() { printf "\e[3m%s\e[0m" "$1"; }
+
+# Styled output functions
+print_header() {
+    echo
+    echo "$(color "$MAUVE" '╭─────────────────────────────────────────────────────────────╮')"
+    echo "$(color "$MAUVE" '│')  $(bold "$(color "$BLUE" '☸️  Kubeconfig')")$(color "$PINK" ' ⇄  ')$(bold "$(color "$SAPPHIRE" '1Password Sync')")$(color "$MAUVE" '                           │')"
+    echo "$(color "$MAUVE" '│')  $(italic "$(color "$OVERLAY1" 'Secure kubeconfig management for your clusters')")$(color "$MAUVE" '             │')"
+    echo "$(color "$MAUVE" '╰─────────────────────────────────────────────────────────────╯')"
+    echo
+}
+
+print_success() {
+    echo "$(color "$GREEN" ' ✓') $(color "$TEXT" "$1")"
+}
+
+print_error() {
+    echo "$(color "$RED" ' ✗') $(color "$TEXT" "$1")"
+}
+
+print_warning() {
+    echo "$(color "$YELLOW" ' ⚠') $(color "$TEXT" "$1")"
+}
+
+print_info() {
+    echo "$(color "$SAPPHIRE" ' ℹ') $(color "$TEXT" "$1")"
+}
+
+print_step() {
+    echo "$(color "$LAVENDER" ' ▸') $(color "$SUBTEXT1" "$1")"
+}
+
+# Progress spinner
+spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " $(color "$PINK" '%c')" "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b"
+    done
+    printf "   \b\b\b"
+}
+
+# Get script directory to find environments
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TERRAFORM_ROOT="$(dirname "$SCRIPT_DIR")"
+ENVIRONMENTS_DIR="$TERRAFORM_ROOT/environments"
+
+# Configuration
+VAULT="${KUBECONFIG_VAULT:-cicd}"
+ITEM_PREFIX="${KUBECONFIG_PREFIX:-kubeconfig}"
+KUBECONFIG_FILE="kubeconfig"
+LOCAL_KUBE_DIR="${HOME}/.kube"
+LOCAL_KUBE_CONFIG="${LOCAL_KUBE_DIR}/config"
+
+# Default environment
+DEFAULT_ENV="dev"
+
+# Function to check for required dependencies
+check_dependencies() {
+    local missing_deps=()
+
+    if ! command -v op >/dev/null 2>&1; then
+        missing_deps+=("1Password CLI (op)")
+    fi
+
+    if ! command -v kubectl >/dev/null 2>&1; then
+        missing_deps+=("kubectl")
+    fi
+
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        print_error "Missing required dependencies:"
+        for dep in "${missing_deps[@]}"; do
+            print_step "$dep"
+        done
+        echo
+        print_info "Install missing dependencies and try again"
+        exit 1
+    fi
+}
+
+# Function to list available environments
+list_environments() {
+    if [ -d "$ENVIRONMENTS_DIR" ]; then
+        find "$ENVIRONMENTS_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort
+    fi
+}
+
+# Function to validate environment exists
+validate_environment() {
+    local env="$1"
+    local env_dir="$ENVIRONMENTS_DIR/$env"
+
+    if [ ! -d "$env_dir" ]; then
+        print_error "Environment '$env' not found!"
+        echo
+        print_info "Available environments:"
+        list_environments | while read -r e; do
+            print_step "$e"
+        done
+        return 1
+    fi
+
+    return 0
+}
+
+# Help function
+show_help() {
+    print_header
+
+    echo "$(bold "$(color "$PEACH" 'USAGE:')")"
+    echo "  $(color "$GREEN" "$(basename "$0")") $(color "$SAPPHIRE" '[COMMAND]') $(color "$YELLOW" '[ENVIRONMENT]') $(color "$OVERLAY1" '[OPTIONS]')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'COMMANDS:')")"
+    echo "  $(color "$GREEN" 'push')             $(color "$TEXT" 'Push local kubeconfig to 1Password')"
+    echo "  $(color "$GREEN" 'sync')             $(color "$TEXT" 'Smart sync based on timestamps (auto push/pull)')"
+    echo "  $(color "$GREEN" 'pull'), $(color "$GREEN" 'restore')    $(color "$TEXT" 'Pull and merge kubeconfig from 1Password')"
+    echo "  $(color "$GREEN" 'extract')          $(color "$TEXT" 'Download kubeconfig to terraform directory')"
+    echo "  $(color "$GREEN" 'status')           $(color "$TEXT" 'Check sync status and show details')"
+    echo "  $(color "$GREEN" 'list')             $(color "$TEXT" 'List all kubeconfigs in 1Password')"
+    echo "  $(color "$GREEN" 'delete')           $(color "$TEXT" 'Remove kubeconfig from 1Password')"
+    echo "  $(color "$GREEN" 'envs')             $(color "$TEXT" 'List available environments')"
+    echo "  $(color "$GREEN" 'help')             $(color "$TEXT" 'Show this help message')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'ENVIRONMENT:')")"
+    echo "  The environment name corresponds to directories in:"
+    echo "  $(color "$OVERLAY1" "$ENVIRONMENTS_DIR")"
+    echo "  If not specified, defaults to: $(color "$YELLOW" "$DEFAULT_ENV")"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'OPTIONS:')")"
+    echo "  $(color "$SAPPHIRE" '--vault') $(color "$OVERLAY1" 'VAULT')     $(color "$TEXT" 'Specify 1Password vault (default: cicd)')"
+    echo "  $(color "$SAPPHIRE" '--force')           $(color "$TEXT" 'Skip confirmation prompts')"
+    echo "  $(color "$SAPPHIRE" '--backup')          $(color "$TEXT" 'Create backup before merging')"
+    echo "  $(color "$SAPPHIRE" '--output') $(color "$OVERLAY1" 'FILE')     $(color "$TEXT" 'Download to specific file (pull only)')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'ENVIRONMENT VARIABLES:')")"
+    echo "  $(color "$SAPPHIRE" 'KUBECONFIG_VAULT')     $(color "$TEXT" 'Default vault name')"
+    echo "  $(color "$SAPPHIRE" 'KUBECONFIG_PREFIX')    $(color "$TEXT" 'Item name prefix (default: kubeconfig)')"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'EXAMPLES:')")"
+    echo "  $(color "$OVERLAY1" '# List available environments')"
+    echo "  $(color "$GREEN" "$(basename "$0") envs")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Check status for dev environment (default)')"
+    echo "  $(color "$GREEN" "$(basename "$0") status")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Push prod environment kubeconfig')"
+    echo "  $(color "$GREEN" "$(basename "$0") push prod")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Smart sync for staging environment')"
+    echo "  $(color "$GREEN" "$(basename "$0") sync staging")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Pull and merge kubeconfig')"
+    echo "  $(color "$GREEN" "$(basename "$0") pull production")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Pull to specific file without merging')"
+    echo "  $(color "$GREEN" "$(basename "$0") pull dev --output ~/Downloads/cluster.yaml")"
+    echo
+    echo "  $(color "$OVERLAY1" '# Extract to terraform directory (reverse of push)')"
+    echo "  $(color "$GREEN" "$(basename "$0") extract dev")"
+    echo
+
+    echo "$(bold "$(color "$PEACH" 'AVAILABLE ENVIRONMENTS:')")"
+    list_environments | while read -r env; do
+        if [ "$env" = "$DEFAULT_ENV" ]; then
+            echo "  $(color "$GREEN" "$env") $(italic "$(color "$OVERLAY0" "(default)")")"
+        else
+            echo "  $(color "$LAVENDER" "$env")"
+        fi
+    done
+    echo
+}
+
+# Parse command line arguments
+COMMAND=""
+ENV_NAME=""
+FORCE=false
+CREATE_BACKUP=false
+OUTPUT_FILE=""
+CUSTOM_VAULT=false
+
+# First, identify the command
+for arg in "$@"; do
+    case $arg in
+        push|sync|pull|restore|extract|status|list|delete|envs|help)
+            COMMAND="$arg"
+            break
+            ;;
+    esac
+done
+
+# If no command found, default to help
+if [ -z "$COMMAND" ]; then
+    COMMAND="help"
+fi
+
+# Now parse remaining arguments
+shift_count=0
+for arg in "$@"; do
+    shift_count=$((shift_count + 1))
+
+    if [ "$arg" = "$COMMAND" ]; then
+        continue
+    fi
+
+    case $arg in
+        --vault)
+            # Next argument should be vault name
+            shift_count=$((shift_count + 1))
+            eval "vault_arg=\${$shift_count}"
+            VAULT="$vault_arg"
+            CUSTOM_VAULT=true
+            ;;
+        --force)
+            FORCE=true
+            ;;
+        --backup)
+            CREATE_BACKUP=true
+            ;;
+        --output)
+            # Next argument should be output file path
+            shift_count=$((shift_count + 1))
+            eval "output_arg=\${$shift_count}"
+            OUTPUT_FILE="$output_arg"
+            ;;
+        --*)
+            print_error "Unknown option: $arg"
+            show_help
+            exit 1
+            ;;
+        *)
+            # If not an option and ENV_NAME not set, this is the environment
+            if [ -z "$ENV_NAME" ] && [ "$arg" != "$COMMAND" ]; then
+                ENV_NAME="$arg"
+            fi
+            ;;
+    esac
+done
+
+# Check dependencies (except for help command)
+if [ "$COMMAND" != "help" ]; then
+    check_dependencies
+fi
+
+# Special handling for 'envs' command
+if [ "$COMMAND" = "envs" ]; then
+    print_info "Available environments:"
+    echo
+    list_environments | while read -r env; do
+        env_dir="$ENVIRONMENTS_DIR/$env"
+        if [ -f "$env_dir/$KUBECONFIG_FILE" ]; then
+            config_size=$(ls -lh "$env_dir/$KUBECONFIG_FILE" 2>/dev/null | awk '{print $5}')
+            print_success "$env $(color "$OVERLAY0" "($config_size kubeconfig)")"
+        else
+            print_step "$env $(color "$OVERLAY0" "(no kubeconfig)")"
+        fi
+    done
+    exit 0
+fi
+
+# Use default environment if not specified
+if [ -z "$ENV_NAME" ]; then
+    ENV_NAME="$DEFAULT_ENV"
+fi
+
+# Validate environment exists (except for help command)
+if [ "$COMMAND" != "help" ]; then
+    if ! validate_environment "$ENV_NAME"; then
+        exit 1
+    fi
+fi
+
+# Set up paths based on environment
+ENV_DIR="$ENVIRONMENTS_DIR/$ENV_NAME"
+SOURCE_CONFIG="$ENV_DIR/$KUBECONFIG_FILE"
+ITEM_NAME="${ITEM_PREFIX}-${ENV_NAME}"
+
+# Show environment info for commands that use it
+if [ "$COMMAND" != "help" ] && [ "$COMMAND" != "list" ]; then
+    print_info "Environment: $(color "$YELLOW" "$ENV_NAME")"
+    print_step "Directory: $(color "$OVERLAY1" "$ENV_DIR")"
+    echo
+fi
+
+# Function to get cluster name from kubeconfig
+get_cluster_name() {
+    local config_file="$1"
+    if [ -f "$config_file" ]; then
+        kubectl config view --kubeconfig="$config_file" --minify -o jsonpath='{.clusters[0].name}' 2>/dev/null
+    fi
+}
+
+# Function to backup kubeconfig
+backup_kubeconfig() {
+    if [ -f "$LOCAL_KUBE_CONFIG" ]; then
+        local backup_name="${LOCAL_KUBE_CONFIG}.backup.$(date +%Y%m%d_%H%M%S)"
+        print_step "Creating backup: $(color "$OVERLAY1" "$(basename "$backup_name")")"
+        cp "$LOCAL_KUBE_CONFIG" "$backup_name"
+        print_success "Backup created"
+    fi
+}
+
+# Function to merge kubeconfig intelligently
+merge_kubeconfig() {
+    local source="$1"
+
+    if [ ! -f "$source" ]; then
+        print_error "Source kubeconfig not found: $source"
+        return 1
+    fi
+
+    # Ensure .kube directory exists
+    mkdir -p "$LOCAL_KUBE_DIR"
+
+    # Get cluster name from source config
+    local cluster_name=$(get_cluster_name "$source")
+
+    if [ -z "$cluster_name" ]; then
+        print_error "Could not determine cluster name from kubeconfig"
+        return 1
+    fi
+
+    print_step "Cluster: $(color "$YELLOW" "$cluster_name")"
+
+    # If local config doesn't exist, just copy
+    if [ ! -f "$LOCAL_KUBE_CONFIG" ]; then
+        print_step "No existing kubeconfig - creating new one"
+        cp "$source" "$LOCAL_KUBE_CONFIG"
+        chmod 600 "$LOCAL_KUBE_CONFIG"
+        print_success "Kubeconfig created"
+        return 0
+    fi
+
+    # Create backup if requested
+    if [ "$CREATE_BACKUP" = true ]; then
+        backup_kubeconfig
+    fi
+
+    # Remove existing entries for this cluster to avoid duplicates
+    print_step "Removing old entries for cluster: $(color "$OVERLAY1" "$cluster_name")"
+
+    # Create temp file for cleaned config
+    local temp_cleaned=$(mktemp -t kubeconfig-cleaned.XXXXXX)
+
+    # Use kubectl to remove old cluster/context/user entries
+    KUBECONFIG="$LOCAL_KUBE_CONFIG" kubectl config delete-cluster "$cluster_name" >/dev/null 2>&1 || true
+    KUBECONFIG="$LOCAL_KUBE_CONFIG" kubectl config delete-context "$cluster_name" >/dev/null 2>&1 || true
+    KUBECONFIG="$LOCAL_KUBE_CONFIG" kubectl config delete-user "admin@${cluster_name}" >/dev/null 2>&1 || true
+
+    # Merge the new config
+    print_step "Merging new configuration..."
+    local temp_merged=$(mktemp -t kubeconfig-merged.XXXXXX)
+
+    KUBECONFIG="$LOCAL_KUBE_CONFIG:$source" kubectl config view --flatten > "$temp_merged" 2>/dev/null
+
+    if [ $? -eq 0 ]; then
+        mv "$temp_merged" "$LOCAL_KUBE_CONFIG"
+        chmod 600 "$LOCAL_KUBE_CONFIG"
+        print_success "Kubeconfig merged successfully"
+
+        # Show merged contexts
+        print_step "Available contexts:"
+        kubectl config get-contexts --no-headers 2>/dev/null | while read -r line; do
+            local ctx_name=$(echo "$line" | awk '{print $2}')
+            if [[ "$ctx_name" == *"$cluster_name"* ]]; then
+                echo "    $(color "$GREEN" "▸ $ctx_name") $(italic "$(color "$OVERLAY0" "(new)")")"
+            else
+                echo "    $(color "$LAVENDER" "▸ $ctx_name")"
+            fi
+        done
+
+        rm -f "$temp_cleaned"
+        return 0
+    else
+        print_error "Failed to merge kubeconfig"
+        rm -f "$temp_merged" "$temp_cleaned"
+        return 1
+    fi
+}
+
+# Function to push kubeconfig to 1Password
+push_kubeconfig() {
+    print_info "Pushing kubeconfig to 1Password..."
+    echo
+
+    # Check if kubeconfig file exists
+    if [ ! -f "$SOURCE_CONFIG" ]; then
+        print_error "No kubeconfig found at: $SOURCE_CONFIG"
+        exit 1
+    fi
+
+    # Get file details
+    local file_size=$(ls -lh "$SOURCE_CONFIG" | awk '{print $5}')
+    local file_date=$(date -r "$SOURCE_CONFIG" "+%Y-%m-%d %H:%M:%S")
+    local cluster_name=$(get_cluster_name "$SOURCE_CONFIG")
+
+    print_step "Kubeconfig: $(color "$YELLOW" "$(basename "$SOURCE_CONFIG")") ($(color "$OVERLAY1" "$file_size"))"
+    print_step "Cluster: $(color "$YELLOW" "$cluster_name")"
+    print_step "Modified: $(color "$OVERLAY1" "$file_date")"
+    print_step "Target: $(color "$SAPPHIRE" "$VAULT")/$(color "$GREEN" "$ITEM_NAME")"
+    echo
+
+    # Check if item exists
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        print_warning "Kubeconfig already exists in 1Password"
+
+        if [ "$FORCE" != true ]; then
+            echo -n "$(color "$YELLOW" 'Overwrite? [y/N] ')"
+            read -r response
+            if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                print_info "Push cancelled"
+                exit 0
+            fi
+        fi
+
+        # Update existing
+        print_step "Updating existing kubeconfig..."
+        op document edit "$ITEM_NAME" "$SOURCE_CONFIG" --vault "$VAULT" &
+        spinner $!
+
+        if [ $? -eq 0 ]; then
+            print_success "Kubeconfig updated successfully!"
+        else
+            print_error "Failed to update kubeconfig"
+            exit 1
+        fi
+    else
+        # Create new
+        print_step "Creating new kubeconfig item..."
+        op document create "$SOURCE_CONFIG" \
+            --title "$ITEM_NAME" \
+            --vault "$VAULT" \
+            --tags "kubeconfig,kubernetes,$ENV_NAME" &
+        spinner $!
+
+        if [ $? -eq 0 ]; then
+            print_success "Kubeconfig created successfully!"
+        else
+            print_error "Failed to create kubeconfig"
+            exit 1
+        fi
+    fi
+}
+
+# Function to pull kubeconfig from 1Password
+pull_kubeconfig() {
+    print_info "Pulling kubeconfig from 1Password..."
+    echo
+
+    # Determine target based on --output flag
+    local target_description
+    if [ -n "$OUTPUT_FILE" ]; then
+        target_description="$OUTPUT_FILE"
+    else
+        target_description="$LOCAL_KUBE_CONFIG (merged)"
+    fi
+
+    print_step "Source: $(color "$SAPPHIRE" "$VAULT")/$(color "$GREEN" "$ITEM_NAME")"
+    print_step "Target: $(color "$YELLOW" "$target_description")"
+    echo
+
+    # Download to temp file first
+    local temp_config=$(mktemp -t kubeconfig-download.XXXXXX)
+
+    print_step "Downloading kubeconfig..."
+    if op document get "$ITEM_NAME" --vault "$VAULT" --output "$temp_config" 2>/dev/null; then
+        chmod 600 "$temp_config"
+
+        local cluster_name=$(get_cluster_name "$temp_config")
+        print_step "Cluster: $(color "$YELLOW" "$cluster_name")"
+        echo
+
+        if [ -n "$OUTPUT_FILE" ]; then
+            # Output to specific file (no merging)
+            print_info "Saving to file without merging"
+
+            # Expand tilde in path
+            OUTPUT_FILE="${OUTPUT_FILE/#\~/$HOME}"
+
+            # Create directory if needed
+            local output_dir=$(dirname "$OUTPUT_FILE")
+            mkdir -p "$output_dir"
+
+            # Check if file exists
+            if [ -f "$OUTPUT_FILE" ] && [ "$FORCE" != true ]; then
+                echo -n "$(color "$YELLOW" "File exists. Overwrite? [y/N] ")"
+                read -r response
+                if [[ ! "$response" =~ ^[Yy]$ ]]; then
+                    print_info "Pull cancelled"
+                    rm -f "$temp_config"
+                    exit 0
+                fi
+            fi
+
+            mv "$temp_config" "$OUTPUT_FILE"
+            chmod 600 "$OUTPUT_FILE"
+            print_success "Kubeconfig saved to: $(color "$GREEN" "$OUTPUT_FILE")"
+        else
+            # Merge mode (default)
+            print_info "Merge mode - preserving existing contexts"
+            echo
+
+            if merge_kubeconfig "$temp_config"; then
+                rm -f "$temp_config"
+            else
+                rm -f "$temp_config"
+                exit 1
+            fi
+
+            # Show current context
+            local current_ctx=$(kubectl config current-context 2>/dev/null)
+            if [ -n "$current_ctx" ]; then
+                echo
+                print_info "Current context: $(color "$GREEN" "$current_ctx")"
+                print_step "Switch with: $(color "$OVERLAY1" "kubectl config use-context $cluster_name")"
+            fi
+        fi
+    else
+        print_error "Failed to pull kubeconfig from 1Password"
+        print_step "Make sure the item exists: $(color "$YELLOW" "op item get '$ITEM_NAME' --vault '$VAULT'")"
+        rm -f "$temp_config"
+        exit 1
+    fi
+}
+
+# Function to extract kubeconfig to terraform directory
+extract_kubeconfig() {
+    print_info "Extracting kubeconfig to terraform directory..."
+    echo
+
+    print_step "Source: $(color "$SAPPHIRE" "$VAULT")/$(color "$GREEN" "$ITEM_NAME")"
+    print_step "Target: $(color "$YELLOW" "$SOURCE_CONFIG")"
+    echo
+
+    # Check if file exists
+    if [ -f "$SOURCE_CONFIG" ] && [ "$FORCE" != true ]; then
+        print_warning "Kubeconfig already exists in terraform directory!"
+
+        local existing_size=$(ls -lh "$SOURCE_CONFIG" | awk '{print $5}')
+        local existing_date=$(date -r "$SOURCE_CONFIG" "+%Y-%m-%d %H:%M:%S")
+
+        print_step "Existing: $(color "$OVERLAY1" "$existing_size") - $(color "$OVERLAY1" "$existing_date")"
+        echo
+        echo -n "$(color "$YELLOW" 'Overwrite? [y/N] ')"
+        read -r response
+
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Extract cancelled"
+            exit 0
+        fi
+
+        # Backup existing file
+        local backup_name="${SOURCE_CONFIG}.backup.$(date +%Y%m%d_%H%M%S)"
+        print_step "Backing up to: $(color "$OVERLAY1" "$(basename "$backup_name")")"
+        cp "$SOURCE_CONFIG" "$backup_name"
+    fi
+
+    # Download from 1Password
+    print_step "Downloading kubeconfig..."
+    if op document get "$ITEM_NAME" --vault "$VAULT" --output "$SOURCE_CONFIG" 2>/dev/null; then
+        chmod 600 "$SOURCE_CONFIG"
+
+        local cluster_name=$(get_cluster_name "$SOURCE_CONFIG")
+        local file_size=$(ls -lh "$SOURCE_CONFIG" | awk '{print $5}')
+
+        print_success "Kubeconfig extracted successfully!"
+        print_step "Cluster: $(color "$YELLOW" "$cluster_name")"
+        print_step "Size: $(color "$GREEN" "$file_size")"
+        print_step "Location: $(color "$OVERLAY1" "$SOURCE_CONFIG")"
+        echo
+        print_info "This machine can now push updates using: $(color "$GREEN" "$(basename "$0") push $ENV_NAME")"
+    else
+        print_error "Failed to extract kubeconfig from 1Password"
+        print_step "Make sure the item exists: $(color "$YELLOW" "op item get '$ITEM_NAME' --vault '$VAULT'")"
+        exit 1
+    fi
+}
+
+# Function to check status
+check_status() {
+    print_info "Checking sync status..."
+    echo
+
+    local local_exists=false
+    local remote_exists=false
+    local in_sync=false
+
+    # Check local source kubeconfig
+    if [ -f "$SOURCE_CONFIG" ]; then
+        local_exists=true
+        local local_size=$(ls -lh "$SOURCE_CONFIG" | awk '{print $5}')
+        local local_date=$(date -r "$SOURCE_CONFIG" "+%Y-%m-%d %H:%M:%S")
+        local local_hash=$(shasum -a 256 "$SOURCE_CONFIG" | cut -d' ' -f1)
+        local cluster_name=$(get_cluster_name "$SOURCE_CONFIG")
+
+        print_success "Local kubeconfig found"
+        print_step "File: $(color "$YELLOW" "$(basename "$SOURCE_CONFIG")")"
+        print_step "Cluster: $(color "$YELLOW" "$cluster_name")"
+        print_step "Size: $(color "$OVERLAY1" "$local_size")"
+        print_step "Modified: $(color "$OVERLAY1" "$local_date")"
+        print_step "SHA256: $(color "$OVERLAY0" "${local_hash:0:16}...")$(color "$OVERLAY0" "${local_hash: -16}")"
+    else
+        print_warning "No local kubeconfig"
+    fi
+
+    echo
+
+    # Check remote kubeconfig
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        remote_exists=true
+
+        # Get item details
+        local item_json=$(op item get "$ITEM_NAME" --vault "$VAULT" --format json)
+        local updated_at=$(echo "$item_json" | jq -r '.updated_at' | xargs -I {} date -d {} "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "Unknown")
+
+        print_success "Remote kubeconfig found in 1Password"
+        print_step "Vault: $(color "$SAPPHIRE" "$VAULT")"
+        print_step "Item: $(color "$GREEN" "$ITEM_NAME")"
+        print_step "Updated: $(color "$OVERLAY1" "$updated_at")"
+
+        # Compare if both exist
+        if [ "$local_exists" = true ]; then
+            # Download to temp file for comparison
+            local temp_file=$(mktemp -t kubeconfig-compare.XXXXXX)
+            if op document get "$ITEM_NAME" --vault "$VAULT" --output "$temp_file" --force >/dev/null 2>&1; then
+                local remote_hash=$(shasum -a 256 "$temp_file" | cut -d' ' -f1)
+                rm -f "$temp_file"
+
+                if [ "$local_hash" = "$remote_hash" ]; then
+                    in_sync=true
+                fi
+            else
+                rm -f "$temp_file"
+            fi
+        fi
+    else
+        print_warning "No remote kubeconfig in 1Password"
+    fi
+
+    echo
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+
+    if [ "$local_exists" = true ] && [ "$remote_exists" = true ]; then
+        if [ "$in_sync" = true ]; then
+            echo "$(color "$GREEN" '✓') $(bold "$(color "$GREEN" 'Status: IN SYNC')")"
+        else
+            echo "$(color "$YELLOW" '⚠') $(bold "$(color "$YELLOW" 'Status: OUT OF SYNC')")"
+            echo
+            print_info "Run '$(color "$GREEN" "$(basename "$0") push $ENV_NAME")' to update 1Password"
+            print_info "Run '$(color "$GREEN" "$(basename "$0") pull $ENV_NAME")' to merge from 1Password"
+        fi
+    elif [ "$local_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" 'ℹ') $(bold "$(color "$SAPPHIRE" 'Status: LOCAL ONLY')")"
+        echo
+        print_info "Run '$(color "$GREEN" "$(basename "$0") push $ENV_NAME")' to sync to 1Password"
+    elif [ "$remote_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" 'ℹ') $(bold "$(color "$SAPPHIRE" 'Status: REMOTE ONLY')")"
+        echo
+        print_info "Run '$(color "$GREEN" "$(basename "$0") pull $ENV_NAME")' to download from 1Password"
+    else
+        echo "$(color "$RED" '✗') $(bold "$(color "$RED" 'Status: NO KUBECONFIG FOUND')")"
+    fi
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+
+    # Show merged config status
+    if [ -f "$LOCAL_KUBE_CONFIG" ]; then
+        echo
+        print_info "System kubeconfig: $(color "$GREEN" "$LOCAL_KUBE_CONFIG")"
+        local contexts=$(kubectl config get-contexts --no-headers 2>/dev/null | wc -l | tr -d ' ')
+        print_step "Total contexts: $(color "$YELLOW" "$contexts")"
+        local current_ctx=$(kubectl config current-context 2>/dev/null)
+        if [ -n "$current_ctx" ]; then
+            print_step "Current: $(color "$GREEN" "$current_ctx")"
+        fi
+    fi
+}
+
+# Function to list all kubeconfigs
+list_kubeconfigs() {
+    print_info "Listing kubeconfigs in 1Password..."
+    echo
+
+    print_step "Vault: $(color "$SAPPHIRE" "$VAULT")"
+    print_step "Searching for items with tag: $(color "$OVERLAY1" "kubeconfig")"
+    echo
+
+    # Get all items with kubeconfig tag
+    local items=$(op item list --vault "$VAULT" --tags kubeconfig --format json 2>/dev/null)
+
+    if [ -z "$items" ] || [ "$items" = "[]" ]; then
+        print_warning "No kubeconfigs found in vault: $VAULT"
+        exit 0
+    fi
+
+    # Parse and display items
+    echo "$items" | jq -r '.[] | [.title, .updated_at, (.tags | join(","))] | @tsv' | while IFS=$'\t' read -r title updated tags; do
+        # Format date
+        local formatted_date=$(date -d "$updated" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "$updated")
+
+        # Extract environment from title
+        local env_from_title=$(echo "$title" | sed "s/^${ITEM_PREFIX}-//")
+
+        # Highlight current environment
+        if [[ "$title" == "$ITEM_NAME" ]]; then
+            echo "$(color "$GREEN" '▸') $(bold "$(color "$GREEN" "$title")") $(italic "$(color "$OVERLAY0" "(current selection)")")"
+        else
+            echo "$(color "$LAVENDER" '▸') $(color "$TEXT" "$title")"
+        fi
+
+        print_step "Environment: $(color "$YELLOW" "$env_from_title")"
+        print_step "Updated: $(color "$OVERLAY1" "$formatted_date")"
+        print_step "Tags: $(color "$OVERLAY0" "$tags")"
+        echo
+    done
+}
+
+# Function to delete kubeconfig from 1Password
+delete_kubeconfig() {
+    print_warning "Delete kubeconfig from 1Password"
+    echo
+
+    print_step "Target: $(color "$SAPPHIRE" "$VAULT")/$(color "$RED" "$ITEM_NAME")"
+    echo
+
+    # Check if item exists
+    if ! op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        print_error "Kubeconfig not found in 1Password"
+        exit 1
+    fi
+
+    if [ "$FORCE" != true ]; then
+        echo -n "$(color "$RED" 'Are you sure you want to delete this kubeconfig? [y/N] ')"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            print_info "Delete cancelled"
+            exit 0
+        fi
+    fi
+
+    print_step "Deleting kubeconfig..."
+    if op item delete "$ITEM_NAME" --vault "$VAULT"; then
+        print_success "Kubeconfig deleted from 1Password"
+    else
+        print_error "Failed to delete kubeconfig"
+        exit 1
+    fi
+}
+
+# Function for smart sync based on timestamps
+smart_sync() {
+    print_info "Performing smart sync based on timestamps..."
+    echo
+
+    local local_exists=false
+    local remote_exists=false
+    local local_time=0
+    local remote_time=0
+
+    # Check local kubeconfig and get timestamp
+    if [ -f "$SOURCE_CONFIG" ]; then
+        local_exists=true
+        local_time=$(stat -f %m "$SOURCE_CONFIG" 2>/dev/null || stat -c %Y "$SOURCE_CONFIG" 2>/dev/null)
+        local local_date=$(date -r "$local_time" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || date -d "@$local_time" "+%Y-%m-%d %H:%M:%S")
+
+        print_success "Local kubeconfig found"
+        print_step "Modified: $(color "$OVERLAY1" "$local_date")"
+    else
+        print_warning "No local kubeconfig"
+    fi
+
+    # Check remote kubeconfig and get timestamp
+    if op item get "$ITEM_NAME" --vault "$VAULT" >/dev/null 2>&1; then
+        remote_exists=true
+
+        # Get item details and parse updated_at timestamp
+        local item_json=$(op item get "$ITEM_NAME" --vault "$VAULT" --format json)
+        local updated_at=$(echo "$item_json" | jq -r '.updated_at')
+
+        # Convert ISO timestamp to epoch (works on both macOS and Linux)
+        if command -v gdate >/dev/null 2>&1; then
+            # macOS with GNU date
+            remote_time=$(gdate -d "$updated_at" +%s 2>/dev/null)
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS native date
+            remote_time=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${updated_at%%.*}" +%s 2>/dev/null)
+        else
+            # Linux
+            remote_time=$(date -d "$updated_at" +%s 2>/dev/null)
+        fi
+
+        local remote_date=$(date -d "$updated_at" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$updated_at")
+
+        print_success "Remote kubeconfig found in 1Password"
+        print_step "Modified: $(color "$OVERLAY1" "$remote_date")"
+    else
+        print_warning "No remote kubeconfig in 1Password"
+    fi
+
+    echo
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+
+    # Determine sync direction
+    if [ "$local_exists" = true ] && [ "$remote_exists" = true ]; then
+        if [ "$local_time" -gt "$remote_time" ]; then
+            echo "$(color "$YELLOW" '⬆') $(bold "$(color "$YELLOW" 'Local is newer - pushing to 1Password')")"
+            echo
+            FORCE=true push_kubeconfig
+        elif [ "$remote_time" -gt "$local_time" ]; then
+            echo "$(color "$SAPPHIRE" '⬇') $(bold "$(color "$SAPPHIRE" '1Password is newer - pulling to local')")"
+            echo
+            CREATE_BACKUP=true pull_kubeconfig
+        else
+            echo "$(color "$GREEN" '✓') $(bold "$(color "$GREEN" 'Already in sync - no action needed')")"
+        fi
+    elif [ "$local_exists" = true ]; then
+        echo "$(color "$YELLOW" '⬆') $(bold "$(color "$YELLOW" 'Only local exists - pushing to 1Password')")"
+        echo
+        FORCE=true push_kubeconfig
+    elif [ "$remote_exists" = true ]; then
+        echo "$(color "$SAPPHIRE" '⬇') $(bold "$(color "$SAPPHIRE" 'Only remote exists - pulling from 1Password')")"
+        echo
+        pull_kubeconfig
+    else
+        print_error "No kubeconfig found locally or in 1Password"
+    fi
+
+    echo "$(color "$MAUVE" '───────────────────────────────────────')"
+}
+
+# Main execution
+case "$COMMAND" in
+    push)
+        push_kubeconfig
+        ;;
+    sync)
+        smart_sync
+        ;;
+    pull|restore)
+        pull_kubeconfig
+        ;;
+    extract)
+        extract_kubeconfig
+        ;;
+    status)
+        check_status
+        ;;
+    list)
+        list_kubeconfigs
+        ;;
+    delete)
+        delete_kubeconfig
+        ;;
+    help)
+        show_help
+        ;;
+    *)
+        print_error "Unknown command: $COMMAND"
+        show_help
+        exit 1
+        ;;
+esac
