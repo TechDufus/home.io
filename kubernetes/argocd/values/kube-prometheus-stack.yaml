@@ -1,0 +1,99 @@
+# Kube-Prometheus-Stack Helm Chart Values
+# Only non-default values specified
+
+# Shorter resource names
+fullnameOverride: prometheus
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    # Retention settings
+    retention: 30d
+    retentionSize: "40GB"
+
+    # Storage configuration
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+    # Resources
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+  # Custom ServiceMonitors
+  additionalServiceMonitors:
+    - name: traefik
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+      namespaceSelector:
+        matchNames:
+          - traefik
+      endpoints:
+        - port: metrics
+          interval: 30s
+          path: /metrics
+
+# Grafana configuration
+grafana:
+  # Persistence
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Alertmanager configuration
+alertmanager:
+  alertmanagerSpec:
+    # Storage
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+    # Resources
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Prometheus Operator
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Default alerting rules - disable etcd monitoring for Talos
+defaultRules:
+  rules:
+    etcd: false
