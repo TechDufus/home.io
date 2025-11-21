@@ -11,6 +11,13 @@ prometheus:
     retention: 30d
     retentionSize: "40GB"
 
+    # Security context for PVC write permissions
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      runAsNonRoot: true
+
     # Storage configuration
     storageSpec:
       volumeClaimTemplate:

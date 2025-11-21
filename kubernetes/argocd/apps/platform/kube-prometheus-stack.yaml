@@ -8,6 +8,11 @@ metadata:
 spec:
   project: default
   sources:
+    # Namespace with privileged PodSecurity (for node-exporter)
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/monitoring
+    # Helm chart
     - chart: kube-prometheus-stack
       repoURL: https://prometheus-community.github.io/helm-charts
       targetRevision: "79.6.1"
@@ -15,6 +20,7 @@ spec:
         releaseName: kube-prometheus-stack
         valueFiles:
           - $values/kubernetes/argocd/values/kube-prometheus-stack.yaml
+    # Values reference
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values
@@ -26,7 +32,6 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
       - ServerSideApply=true
     retry:
       limit: 5
