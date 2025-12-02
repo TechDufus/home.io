@@ -1,0 +1,180 @@
+# Fizzy Helm Chart Values
+# https://github.com/basecamp/fizzy
+
+# -- Number of Fizzy replicas
+replicaCount: 1
+
+image:
+  # -- Image repository (use in-cluster registry or your own)
+  repository: registry.registry.svc.cluster.local:5000/fizzy
+  # -- Image pull policy
+  pullPolicy: Always
+  # -- Image tag (defaults to "latest")
+  tag: "latest"
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+# -- Override the name of the chart
+nameOverride: ""
+# -- Override the full name of the chart
+fullnameOverride: ""
+
+serviceAccount:
+  # -- Create a service account
+  create: false
+  # -- Service account name (auto-generated if not set)
+  name: ""
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Pod security context
+podSecurityContext: {}
+
+securityContext:
+  # -- Run as non-root user (Fizzy runs as uid 1000)
+  runAsNonRoot: false
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 80
+
+# -- Resource requests and limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Tolerations
+tolerations: []
+
+# -- Affinity rules
+affinity: {}
+
+# Fizzy-specific configuration
+fizzy:
+  # -- Rails environment
+  railsEnv: production
+  # -- Log to stdout
+  railsLogToStdout: "true"
+  # -- Serve static files
+  railsServeStaticFiles: "true"
+
+  # Secret configuration
+  secret:
+    # -- Use existing secret for SECRET_KEY_BASE
+    existingSecret: "fizzy-secrets"
+    # -- Key in the secret containing SECRET_KEY_BASE
+    secretKeyBaseKey: "SECRET_KEY_BASE"
+
+# Persistence configuration
+persistence:
+  # -- Enable persistence for SQLite database
+  enabled: true
+  # -- Storage class (leave empty for default)
+  storageClass: ""
+  # -- Access mode
+  accessMode: ReadWriteOnce
+  # -- Storage size
+  size: 5Gi
+  # -- Use existing PVC
+  existingClaim: ""
+
+# Probes configuration
+probes:
+  liveness:
+    # -- Enable liveness probe
+    enabled: true
+    # -- Liveness probe path
+    path: /up
+    # -- Initial delay seconds
+    initialDelaySeconds: 30
+    # -- Period seconds
+    periodSeconds: 30
+    # -- Timeout seconds
+    timeoutSeconds: 5
+    # -- Failure threshold
+    failureThreshold: 3
+  readiness:
+    # -- Enable readiness probe
+    enabled: true
+    # -- Readiness probe path
+    path: /up
+    # -- Initial delay seconds
+    initialDelaySeconds: 10
+    # -- Period seconds
+    periodSeconds: 10
+    # -- Timeout seconds
+    timeoutSeconds: 5
+    # -- Failure threshold
+    failureThreshold: 3
+
+# Image builder configuration (Kaniko)
+imageBuilder:
+  # -- Enable in-cluster image building with Kaniko
+  enabled: true
+
+  # -- Git repository to build from
+  gitRepo: "github.com/basecamp/fizzy.git"
+  # -- Git ref to build (branch, tag, or commit)
+  gitRef: "refs/heads/main"
+
+  # -- Registry to push built images to
+  registry: "registry.registry.svc.cluster.local:5000"
+  # -- Use insecure registry (required for in-cluster registry)
+  insecure: true
+  # -- Enable build caching
+  cache: true
+
+  # CronJob configuration
+  cronJob:
+    # -- Enable scheduled rebuilds
+    enabled: true
+    # -- Cron schedule (default: weekly on Sunday at 3 AM)
+    schedule: "0 3 * * 0"
+
+  # Initial build job
+  initialBuild:
+    # -- Run initial build job on install
+    enabled: true
+
+  # -- Kaniko image
+  image: gcr.io/kaniko-project/executor:v1.23.2
+
+  # -- Resources for build jobs
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+
+# Gateway API HTTPRoute configuration
+httpRoute:
+  # -- Enable HTTPRoute creation
+  enabled: false
+  # -- Hostname for the route
+  hostname: ""
+  # -- Gateway reference name
+  gatewayName: "lab-gateway"
+  # -- Gateway reference namespace
+  gatewayNamespace: "traefik"
+  # -- Create ReferenceGrant for cross-namespace routing
+  createReferenceGrant: true

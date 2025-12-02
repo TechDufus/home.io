@@ -1,0 +1,63 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Fizzy is a Kanban-style tracking app by Basecamp (37signals).
+
+{{- if .Values.imageBuilder.enabled }}
+
+IMAGE BUILDING
+==============
+{{- if .Values.imageBuilder.initialBuild.enabled }}
+An initial build job has been created to build the Fizzy image.
+Watch the build progress:
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=builder -f
+
+The build typically takes 5-10 minutes.
+{{- end }}
+
+{{- if .Values.imageBuilder.cronJob.enabled }}
+A CronJob is configured to rebuild the image on schedule: {{ .Values.imageBuilder.cronJob.schedule }}
+
+To manually trigger a rebuild:
+  kubectl create job {{ include "fizzy.fullname" . }}-build-$(date +%s) \
+    --from=cronjob/{{ include "fizzy.fullname" . }}-builder \
+    -n {{ .Release.Namespace }}
+{{- end }}
+{{- end }}
+
+ACCESSING FIZZY
+===============
+{{- if .Values.httpRoute.enabled }}
+Fizzy is configured to be accessible at: https://{{ .Values.httpRoute.hostname }}
+
+Ensure your DNS and ingress/gateway are properly configured.
+{{- else }}
+Fizzy is not exposed externally. To access it locally:
+  kubectl port-forward svc/{{ include "fizzy.fullname" . }} 8080:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+Then visit: http://localhost:8080
+{{- end }}
+
+SECRETS
+=======
+Fizzy requires a SECRET_KEY_BASE secret. Ensure it exists:
+  kubectl get secret {{ .Values.fizzy.secret.existingSecret }} -n {{ .Release.Namespace }}
+
+If missing, create it with:
+  kubectl create secret generic {{ .Values.fizzy.secret.existingSecret }} \
+    --from-literal={{ .Values.fizzy.secret.secretKeyBaseKey }}=$(openssl rand -hex 64) \
+    -n {{ .Release.Namespace }}
+
+DATA PERSISTENCE
+================
+{{- if .Values.persistence.enabled }}
+SQLite database is persisted to a {{ .Values.persistence.size }} PVC.
+{{- else }}
+WARNING: Persistence is disabled! Data will be lost on pod restart.
+{{- end }}
+
+UPDATING FIZZY
+==============
+After a new image is built, restart the deployment to pick it up:
+  kubectl rollout restart deployment/{{ include "fizzy.fullname" . }} -n {{ .Release.Namespace }}
+
+For more information, visit: https://github.com/basecamp/fizzy

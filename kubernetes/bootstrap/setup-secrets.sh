@@ -396,6 +396,33 @@ setup_homepage_secrets() {
 }
 
 
+# Setup Fizzy (Kanban board) secrets
+setup_fizzy_secrets() {
+    echo ""
+    echo -e "${BLUE}📋 Setting up Fizzy (Kanban) secrets...${NC}"
+
+    # Create namespace if it doesn't exist
+    echo -e "${YELLOW}→ Ensuring fizzy namespace exists...${NC}"
+    kubectl create namespace fizzy --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1
+
+    # Get SECRET_KEY_BASE from 1Password or generate new one
+    local secret_key_base=$(op item get "[Homelab] Fizzy" --vault="$OP_VAULT" --fields="secret_key_base" --reveal 2>/dev/null || echo "")
+
+    if [ -z "$secret_key_base" ]; then
+        echo -e "${YELLOW}→ SECRET_KEY_BASE not found in 1Password, generating new one...${NC}"
+        secret_key_base=$(openssl rand -hex 64)
+        echo -e "${YELLOW}   ⚠ Save this to 1Password item '[Homelab] Fizzy' field 'secret_key_base':${NC}"
+        echo -e "${YELLOW}   $secret_key_base${NC}"
+        echo ""
+        echo -e "${YELLOW}   To save to 1Password:${NC}"
+        echo -e "${YELLOW}   op item create --category=Login --title='[Homelab] Fizzy' --vault='$OP_VAULT' 'secret_key_base=$secret_key_base'${NC}"
+    else
+        echo -e "${GREEN}✓ Found Fizzy SECRET_KEY_BASE in 1Password${NC}"
+    fi
+
+    create_k8s_secret "fizzy" "fizzy-secrets" "SECRET_KEY_BASE" "$secret_key_base"
+}
+
 # Environment-specific secret setup
 setup_environment_secrets() {
     case $ENV in
@@ -425,6 +452,7 @@ show_secret_status() {
     echo -e "${YELLOW}Application Secrets:${NC}"
     kubectl get secrets -n n8n 2>/dev/null | grep -E "(n8n)" || echo "  No N8N secrets found"
     kubectl get secrets -n homepage 2>/dev/null | grep -E "(homepage-secrets)" || echo "  No Homepage secrets found"
+    kubectl get secrets -n fizzy 2>/dev/null | grep -E "(fizzy-secrets)" || echo "  No Fizzy secrets found"
 
     echo ""
     echo -e "${YELLOW}Infrastructure Secrets:${NC}"
@@ -443,6 +471,7 @@ main() {
     setup_n8n_secrets
     setup_github_actions_runner_secrets
     setup_homepage_secrets
+    setup_fizzy_secrets
 
     # Show final status
     show_secret_status
@@ -486,6 +515,9 @@ case "${1:-}" in
         echo "  - '[Homelab] Immich' with field 'api_key'"
         echo "  - '[Homelab] OpenWeatherMap' with field 'api_key' (optional)"
         echo "  - '[Homelab] Cloudflare' with fields 'account_id', 'tunnel_id', 'api_key' (optional)"
+        echo ""
+        echo "Fizzy (Kanban board) 1Password items:"
+        echo "  - '[Homelab] Fizzy' with field 'secret_key_base' (auto-generated if missing)"
         echo ""
         echo "Environment variables (optional):"
         echo "  - CLOUDFLARE_TUNNEL_CREDENTIALS_JSON"

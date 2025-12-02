@@ -1,0 +1,18 @@
+apiVersion: v2
+name: fizzy
+description: A Helm chart for Fizzy - Basecamp's self-hostable Kanban board
+type: application
+version: 0.1.0
+appVersion: "main"
+keywords:
+  - fizzy
+  - kanban
+  - basecamp
+  - project-management
+  - rails
+home: https://github.com/basecamp/fizzy
+sources:
+  - https://github.com/basecamp/fizzy
+maintainers:
+  - name: TechDufus
+    url: https://github.com/TechDufus

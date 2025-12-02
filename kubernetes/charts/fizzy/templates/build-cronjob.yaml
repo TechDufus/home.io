@@ -1,0 +1,95 @@
+{{- if .Values.imageBuilder.enabled }}
+{{- if .Values.imageBuilder.cronJob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fizzy.fullname" . }}-builder
+  labels:
+    {{- include "fizzy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: builder
+spec:
+  schedule: {{ .Values.imageBuilder.cronJob.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            {{- include "fizzy.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: builder
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: kaniko
+              image: {{ .Values.imageBuilder.image }}
+              args:
+                - "--context=git://{{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }}"
+                - "--destination={{ include "fizzy.builderDestination" . }}"
+                {{- if .Values.imageBuilder.insecure }}
+                - "--insecure"
+                {{- end }}
+                {{- if .Values.imageBuilder.cache }}
+                - "--cache=true"
+                - "--cache-repo={{ include "fizzy.builderCacheRepo" . }}"
+                {{- end }}
+              {{- with .Values.imageBuilder.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              securityContext:
+                runAsNonRoot: false
+                runAsUser: 0
+                readOnlyRootFilesystem: false
+                allowPrivilegeEscalation: false
+{{- end }}
+---
+{{- if .Values.imageBuilder.initialBuild.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "fizzy.fullname" . }}-initial-build
+  labels:
+    {{- include "fizzy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: builder
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        {{- include "fizzy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: builder
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kaniko
+          image: {{ .Values.imageBuilder.image }}
+          args:
+            - "--context=git://{{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }}"
+            - "--destination={{ include "fizzy.builderDestination" . }}"
+            {{- if .Values.imageBuilder.insecure }}
+            - "--insecure"
+            {{- end }}
+            {{- if .Values.imageBuilder.cache }}
+            - "--cache=true"
+            - "--cache-repo={{ include "fizzy.builderCacheRepo" . }}"
+            {{- end }}
+          {{- with .Values.imageBuilder.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+{{- end }}
+{{- end }}

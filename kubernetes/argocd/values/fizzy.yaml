@@ -1,0 +1,55 @@
+# Fizzy values for TechDufus homelab deployment
+# Chart: kubernetes/charts/fizzy
+
+# Image configuration - uses in-cluster registry
+image:
+  repository: registry.registry.svc.cluster.local:5000/fizzy
+  pullPolicy: Always
+  tag: "latest"
+
+# Persistence for SQLite database
+persistence:
+  enabled: true
+  storageClass: "local-path"
+  size: 5Gi
+
+# Resource allocation
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# In-cluster image building with Kaniko
+imageBuilder:
+  enabled: true
+  gitRepo: "github.com/basecamp/fizzy.git"
+  gitRef: "refs/heads/main"
+  registry: "registry.registry.svc.cluster.local:5000"
+  insecure: true
+  cache: true
+
+  cronJob:
+    enabled: true
+    schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+
+  initialBuild:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+
+# Gateway API HTTPRoute for external access
+httpRoute:
+  enabled: true
+  hostname: "board.techdufus.com"
+  gatewayName: "lab-gateway"
+  gatewayNamespace: "traefik"
+  createReferenceGrant: true
