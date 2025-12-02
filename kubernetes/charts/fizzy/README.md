@@ -7,7 +7,7 @@ A Helm chart for deploying [Fizzy](https://github.com/basecamp/fizzy) - Basecamp
 Fizzy is a Kanban-style tracking application by 37signals (Basecamp). This chart provides:
 
 - Fizzy deployment with SQLite persistence
-- Optional in-cluster image building via Kaniko (no official Docker image exists)
+- Optional in-cluster image building via BuildKit (no official Docker image exists)
 - Optional Gateway API HTTPRoute for external access
 - Configurable probes, resources, and security contexts
 
@@ -47,13 +47,13 @@ helm install fizzy ./charts/fizzy -n fizzy -f my-values.yaml
 
 ### Option 1: In-Cluster Building (Recommended for Homelab)
 
-This chart includes Kaniko-based image building. Enable it in your values:
+This chart includes BuildKit-based image building. Enable it in your values:
 
 ```yaml
 imageBuilder:
   enabled: true
-  gitRepo: "github.com/basecamp/fizzy.git"
-  gitRef: "refs/heads/main"
+  gitRepo: "https://github.com/basecamp/fizzy.git"
+  gitRef: "main"
   registry: "your-registry.local:5000"
   insecure: true  # For in-cluster registries without TLS
 

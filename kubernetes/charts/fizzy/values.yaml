@@ -125,22 +125,20 @@ probes:
     # -- Failure threshold
     failureThreshold: 3
 
-# Image builder configuration (Kaniko)
+# Image builder configuration (BuildKit)
 imageBuilder:
-  # -- Enable in-cluster image building with Kaniko
+  # -- Enable in-cluster image building with BuildKit
   enabled: true
 
   # -- Git repository to build from
-  gitRepo: "github.com/basecamp/fizzy.git"
+  gitRepo: "https://github.com/basecamp/fizzy.git"
   # -- Git ref to build (branch, tag, or commit)
-  gitRef: "refs/heads/main"
+  gitRef: "main"
 
   # -- Registry to push built images to
   registry: "registry.registry.svc.cluster.local:5000"
   # -- Use insecure registry (required for in-cluster registry)
   insecure: true
-  # -- Enable build caching
-  cache: true
 
   # CronJob configuration
   cronJob:
@@ -154,8 +152,8 @@ imageBuilder:
     # -- Run initial build job on install
     enabled: true
 
-  # -- Kaniko image
-  image: gcr.io/kaniko-project/executor:v1.23.2
+  # -- BuildKit image (rootless for security)
+  image: moby/buildkit:v0.18.2-rootless
 
   # -- Resources for build jobs
   resources:

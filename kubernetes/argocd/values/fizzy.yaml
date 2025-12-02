@@ -22,14 +22,13 @@ resources:
     cpu: 1000m
     memory: 1Gi
 
-# In-cluster image building with Kaniko
+# In-cluster image building with BuildKit
 imageBuilder:
   enabled: true
-  gitRepo: "github.com/basecamp/fizzy.git"
-  gitRef: "refs/heads/main"
+  gitRepo: "https://github.com/basecamp/fizzy.git"
+  gitRef: "main"
   registry: "registry.registry.svc.cluster.local:5000"
   insecure: true
-  cache: true
 
   cronJob:
     enabled: true

@@ -24,27 +24,42 @@ spec:
         spec:
           restartPolicy: Never
           containers:
-            - name: kaniko
+            - name: buildkit
               image: {{ .Values.imageBuilder.image }}
-              args:
-                - "--context=git://{{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }}"
-                - "--destination={{ include "fizzy.builderDestination" . }}"
-                {{- if .Values.imageBuilder.insecure }}
-                - "--insecure"
-                {{- end }}
-                {{- if .Values.imageBuilder.cache }}
-                - "--cache=true"
-                - "--cache-repo={{ include "fizzy.builderCacheRepo" . }}"
-                {{- end }}
+              env:
+                - name: BUILDKITD_FLAGS
+                  value: "--oci-worker-no-process-sandbox"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -ex
+                  # Start buildkitd in the background
+                  buildkitd &
+                  # Wait for buildkitd to be ready
+                  while ! buildctl debug workers; do sleep 1; done
+                  # Build and push the image
+                  buildctl build \
+                    --frontend dockerfile.v0 \
+                    --local context={{ .Values.imageBuilder.gitRepo }} \
+                    --local dockerfile={{ .Values.imageBuilder.gitRepo }} \
+                    --opt context={{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }} \
+                    --output type=image,name={{ include "fizzy.builderDestination" . }},push=true{{ if .Values.imageBuilder.insecure }},registry.insecure=true{{ end }}
               {{- with .Values.imageBuilder.resources }}
               resources:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
               securityContext:
-                runAsNonRoot: false
-                runAsUser: 0
-                readOnlyRootFilesystem: false
-                allowPrivilegeEscalation: false
+                seccompProfile:
+                  type: Unconfined
+                runAsUser: 1000
+                runAsGroup: 1000
+              volumeMounts:
+                - name: buildkit-state
+                  mountPath: /home/user/.local/share/buildkit
+          volumes:
+            - name: buildkit-state
+              emptyDir: {}
 {{- end }}
 ---
 {{- if .Values.imageBuilder.initialBuild.enabled }}
@@ -69,26 +84,39 @@ spec:
     spec:
       restartPolicy: Never
       containers:
-        - name: kaniko
+        - name: buildkit
           image: {{ .Values.imageBuilder.image }}
-          args:
-            - "--context=git://{{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }}"
-            - "--destination={{ include "fizzy.builderDestination" . }}"
-            {{- if .Values.imageBuilder.insecure }}
-            - "--insecure"
-            {{- end }}
-            {{- if .Values.imageBuilder.cache }}
-            - "--cache=true"
-            - "--cache-repo={{ include "fizzy.builderCacheRepo" . }}"
-            {{- end }}
+          env:
+            - name: BUILDKITD_FLAGS
+              value: "--oci-worker-no-process-sandbox"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -ex
+              # Start buildkitd in the background
+              buildkitd &
+              # Wait for buildkitd to be ready
+              while ! buildctl debug workers; do sleep 1; done
+              # Build and push the image from git context
+              buildctl build \
+                --frontend dockerfile.v0 \
+                --opt context={{ .Values.imageBuilder.gitRepo }}#{{ .Values.imageBuilder.gitRef }} \
+                --output type=image,name={{ include "fizzy.builderDestination" . }},push=true{{ if .Values.imageBuilder.insecure }},registry.insecure=true{{ end }}
           {{- with .Values.imageBuilder.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
-            readOnlyRootFilesystem: false
-            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: Unconfined
+            runAsUser: 1000
+            runAsGroup: 1000
+          volumeMounts:
+            - name: buildkit-state
+              mountPath: /home/user/.local/share/buildkit
+      volumes:
+        - name: buildkit-state
+          emptyDir: {}
 {{- end }}
 {{- end }}
