@@ -5,6 +5,9 @@ metadata:
   labels:
     {{- include "fizzy.labels" . | nindent 4 }}
     app.kubernetes.io/component: server
+  annotations:
+    # Wait for initial build job to complete first
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:

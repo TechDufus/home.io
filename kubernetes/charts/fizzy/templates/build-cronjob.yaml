@@ -56,9 +56,8 @@ metadata:
     {{- include "fizzy.labels" . | nindent 4 }}
     app.kubernetes.io/component: builder
   annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation
+    # Use ArgoCD sync wave to run BEFORE deployment (not Helm hooks)
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 3600
