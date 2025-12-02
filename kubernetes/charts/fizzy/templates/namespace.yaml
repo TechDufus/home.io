@@ -1,0 +1,12 @@
+{{- if .Values.imageBuilder.enabled }}
+{{- /* BuildKit requires privileged PodSecurity for rootless builds */}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    {{- include "fizzy.labels" . | nindent 4 }}
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+{{- end }}
