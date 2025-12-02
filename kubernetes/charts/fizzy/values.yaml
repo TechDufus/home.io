@@ -152,8 +152,8 @@ imageBuilder:
     # -- Run initial build job on install
     enabled: true
 
-  # -- BuildKit image (rootless for security)
-  image: moby/buildkit:v0.18.2-rootless
+  # -- BuildKit image
+  image: moby/buildkit:v0.18.2
 
   # -- Resources for build jobs
   resources:

@@ -50,16 +50,7 @@ spec:
                 {{- toYaml . | nindent 16 }}
               {{- end }}
               securityContext:
-                seccompProfile:
-                  type: Unconfined
-                runAsUser: 1000
-                runAsGroup: 1000
-              volumeMounts:
-                - name: buildkit-state
-                  mountPath: /home/user/.local/share/buildkit
-          volumes:
-            - name: buildkit-state
-              emptyDir: {}
+                privileged: true
 {{- end }}
 ---
 {{- if .Values.imageBuilder.initialBuild.enabled }}
@@ -108,15 +99,6 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           securityContext:
-            seccompProfile:
-              type: Unconfined
-            runAsUser: 1000
-            runAsGroup: 1000
-          volumeMounts:
-            - name: buildkit-state
-              mountPath: /home/user/.local/share/buildkit
-      volumes:
-        - name: buildkit-state
-          emptyDir: {}
+            privileged: true
 {{- end }}
 {{- end }}
