@@ -7,6 +7,28 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
+  # Ignore CNPG operator defaults that cause drift
+  ignoreDifferences:
+    - group: postgresql.cnpg.io
+      kind: Cluster
+      jsonPointers:
+        - /spec/affinity
+        - /spec/enablePDB
+        - /spec/enableSuperuserAccess
+        - /spec/failoverDelay
+        - /spec/logLevel
+        - /spec/maxSyncReplicas
+        - /spec/minSyncReplicas
+        - /spec/monitoring
+        - /spec/postgresGID
+        - /spec/postgresUID
+        - /spec/primaryUpdateMethod
+        - /spec/primaryUpdateStrategy
+        - /spec/replicationSlots
+        - /spec/smartShutdownTimeout
+        - /spec/startDelay
+        - /spec/stopDelay
+        - /spec/switchoverDelay
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
