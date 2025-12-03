@@ -11,24 +11,28 @@ spec:
   ignoreDifferences:
     - group: postgresql.cnpg.io
       kind: Cluster
-      jsonPointers:
-        - /spec/affinity
-        - /spec/enablePDB
-        - /spec/enableSuperuserAccess
-        - /spec/failoverDelay
-        - /spec/logLevel
-        - /spec/maxSyncReplicas
-        - /spec/minSyncReplicas
-        - /spec/monitoring
-        - /spec/postgresGID
-        - /spec/postgresUID
-        - /spec/primaryUpdateMethod
-        - /spec/primaryUpdateStrategy
-        - /spec/replicationSlots
-        - /spec/smartShutdownTimeout
-        - /spec/startDelay
-        - /spec/stopDelay
-        - /spec/switchoverDelay
+      jqPathExpressions:
+        # Ignore all operator-managed spec fields we don't set
+        - .spec.affinity
+        - .spec.enablePDB
+        - .spec.enableSuperuserAccess
+        - .spec.failoverDelay
+        - .spec.logLevel
+        - .spec.maxSyncReplicas
+        - .spec.minSyncReplicas
+        - .spec.monitoring
+        - .spec.postgresGID
+        - .spec.postgresUID
+        - .spec.primaryUpdateMethod
+        - .spec.primaryUpdateStrategy
+        - .spec.replicationSlots
+        - .spec.smartShutdownTimeout
+        - .spec.startDelay
+        - .spec.stopDelay
+        - .spec.switchoverDelay
+        # Ignore nested postgresql parameters added by CNPG
+        - .spec.postgresql.parameters
+        - .spec.postgresql.syncReplicaElectionConstraint
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
