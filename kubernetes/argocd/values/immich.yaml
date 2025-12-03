@@ -29,10 +29,11 @@ server:
       cpu: 1000m
       memory: 1Gi
 
-machineLearning:
+machine-learning:
   persistence:
     cache:
       enabled: true
+      type: pvc
       existingClaim: "immich-ml-cache"
   resources:
     requests:
