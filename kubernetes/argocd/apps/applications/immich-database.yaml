@@ -31,9 +31,8 @@ spec:
         - .spec.startDelay
         - .spec.stopDelay
         - .spec.switchoverDelay
-        # Nested postgresql fields with CNPG defaults
-        - .spec.postgresql.parameters
-        - .spec.postgresql.syncReplicaElectionConstraint
+        # Ignore entire postgresql section - CNPG heavily modifies it
+        - .spec.postgresql
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
