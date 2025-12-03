@@ -7,12 +7,33 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  # Ignore CNPG operator defaults that cause drift
+  # Ignore CNPG webhook defaults that cause drift
+  # CNPG admission webhook sets many default values not in our manifest
   ignoreDifferences:
     - group: postgresql.cnpg.io
       kind: Cluster
-      managedFieldsManagers:
-        - manager  # CNPG operator manager
+      jqPathExpressions:
+        # Ignore entire spec except fields we explicitly set
+        - .spec.affinity
+        - .spec.enablePDB
+        - .spec.enableSuperuserAccess
+        - .spec.failoverDelay
+        - .spec.logLevel
+        - .spec.maxSyncReplicas
+        - .spec.minSyncReplicas
+        - .spec.monitoring
+        - .spec.postgresGID
+        - .spec.postgresUID
+        - .spec.primaryUpdateMethod
+        - .spec.primaryUpdateStrategy
+        - .spec.replicationSlots
+        - .spec.smartShutdownTimeout
+        - .spec.startDelay
+        - .spec.stopDelay
+        - .spec.switchoverDelay
+        # Nested postgresql fields with CNPG defaults
+        - .spec.postgresql.parameters
+        - .spec.postgresql.syncReplicaElectionConstraint
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
