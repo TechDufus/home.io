@@ -33,6 +33,9 @@ spec:
         - .spec.switchoverDelay
         # Ignore entire postgresql section - CNPG heavily modifies it
         - .spec.postgresql
+        # Resources and storage have normalization and defaults
+        - .spec.resources
+        - .spec.storage
   source:
     repoURL: https://github.com/TechDufus/home.io
     targetRevision: main
