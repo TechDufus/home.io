@@ -151,6 +151,7 @@ setup_tailscale_secrets() {
     fi
 
     local client_secret=$(op item get "tailscale-operator-oauth" --vault="$OP_VAULT" --fields="client_secret" --reveal 2>/dev/null || \
+                          op item get "tailscale-operator-oauth" --vault="$OP_VAULT" --fields="credential" --reveal 2>/dev/null || \
                           op item get "tailscale-operator-oauth" --vault="$OP_VAULT" --fields="password" --reveal 2>/dev/null || echo "")
 
     if [ -z "$client_secret" ]; then
