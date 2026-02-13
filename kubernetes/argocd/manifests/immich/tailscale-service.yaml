@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-tailscale
+  namespace: immich
+  annotations:
+    tailscale.com/hostname: "immich"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  ports:
+    - port: 80
+      targetPort: 2283
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: immich
+    app.kubernetes.io/instance: immich

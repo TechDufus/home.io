@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: immich-postgres-init
+  namespace: immich
+data:
+  init-extensions.sql: |
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "vector";
+    CREATE EXTENSION IF NOT EXISTS "cube";
+    CREATE EXTENSION IF NOT EXISTS "earthdistance" CASCADE;
