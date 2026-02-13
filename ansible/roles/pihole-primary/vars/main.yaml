@@ -1,5 +1,0 @@
-pihole_install_script: /tmp/pihole.sh
-gravity_ssh_private_key: ~/.ssh/gravity-sync
-gravity_ssh_public_key: ~/.ssh/gravity-sync.pub
-
-primary_ip: "10.0.0.5"

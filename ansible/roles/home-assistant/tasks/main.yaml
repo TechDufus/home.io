@@ -1,3 +1,0 @@
----
-- name: "Configure Docker"
-  import_tasks: docker.yml

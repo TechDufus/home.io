@@ -1,5 +1,0 @@
-{% if flux.nodes[inventory_hostname].upnp_port is defined %}
-fluxport={{ flux.nodes[inventory_hostname].upnp_port }}
-{% else %}
-fluxport=16127
-{% endif %}

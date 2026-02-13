@@ -1,9 +1,0 @@
----
-homeassistant_username: 'techdufus'
-docker_gpg_file: /tmp/docker.gpg
-docker_gpg_keyring: /etc/apt/trusted.gpg.d/docker.gpg
-homeassistant_docker_home: /opt/home-assistant
-
-homeassistant_docker_port_80: 8123
-homeassistant_host_port_80: 8123
-
