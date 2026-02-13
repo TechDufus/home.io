@@ -11,7 +11,6 @@ crash.*.log
 
 # local creds file
 terraform/proxmox/creds.auto.tfvars
-terraform/harvester/creds.auto.tfvars
 
 # Terraform variable files (except examples)
 *.tfvars
@@ -20,9 +19,8 @@ terraform/harvester/creds.auto.tfvars
 # ./Terraform backup files
 **.tfstate.backup
 
-# Kubernetes/Talos configs (contain credentials)
+# Kubernetes configs (contain credentials)
 **/kubeconfig*
-**/talosconfig*
 *.kubeconfig
 
 # Terraform plan files
@@ -34,7 +32,6 @@ terraform/harvester/creds.auto.tfvars
 *-credentials.yaml
 !*-credentials.yaml.example
 credentials.json
-cloudflare-credentials.json
 
 # Certificates
 *.crt
