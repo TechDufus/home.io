@@ -8,18 +8,22 @@ metadata:
 spec:
   project: default
   sources:
-    # Immich Helm chart from HTTPS repository
+    # Immich Helm chart
     - chart: immich
       repoURL: https://immich-app.github.io/immich-charts
-      targetRevision: "0.9.3"  # Latest chart version
+      targetRevision: "0.10.3"
       helm:
         releaseName: immich
         valueFiles:
           - $values/kubernetes/argocd/values/immich.yaml
-    # Values source from Git repository
+    # Values and manifests from Git
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
       ref: values
+    # Immich supporting manifests (postgres, PVCs, etc.)
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/immich
   destination:
     server: https://kubernetes.default.svc
     namespace: immich
@@ -27,15 +31,13 @@ spec:
     automated:
       prune: true
       selfHeal: true
-      allowEmpty: false
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - RespectIgnoreDifferences=true
     retry:
       limit: 5
       backoff:
-        duration: 10s  # Longer delay for database startup
+        duration: 10s
         factor: 2
         maxDuration: 5m
-  revisionHistoryLimit: 3  # Application (fewer revisions than infrastructure)
+  revisionHistoryLimit: 3

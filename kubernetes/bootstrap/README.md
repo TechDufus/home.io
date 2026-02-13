@@ -1,141 +1,48 @@
-# Kubernetes Bootstrap Scripts
+# k3s Cluster Bootstrap
 
-This directory contains bootstrap scripts for setting up the Kubernetes cluster and core components.
+## Prerequisites
+- 3 Ubuntu VMs provisioned via Terraform (k3s-cp-1, k3s-worker-1, k3s-worker-2)
+- Tailscale OAuth client created in admin console (Devices scope, Read+Write, tag:k8s-operator)
+- Tailscale OAuth credentials stored in 1Password as "tailscale-operator-oauth"
+- Immich Postgres password stored in 1Password as "immich-postgres-password"
+- NFS share on UNAS: /var/nfs/shared with RW access for 10.0.20.21-22
+- kubectl and helm installed locally
+- 1Password CLI (op) configured
 
-## Overview
+## 1. Install k3s
 
-The bootstrap process consists of two main scripts that should be run in order:
-
-1. **setup-secrets.sh** - Pulls secrets from 1Password and creates Kubernetes secrets
-2. **argocd.sh** - Installs ArgoCD and creates the bootstrap application
-
-## Setup Secrets
-
-The `setup-secrets.sh` script creates all necessary secrets from 1Password before deploying applications.
-
-### Usage
-
+### Control Plane (k3s-cp-1 — 10.0.20.20)
 ```bash
-# Setup secrets for dev environment (default)
-./kubernetes/bootstrap/setup-secrets.sh
-
-# Setup secrets for production
-./kubernetes/bootstrap/setup-secrets.sh prod
+ssh techdufus@10.0.20.20
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable traefik --disable servicelb --disable local-storage" sh -
+# Get join token
+sudo cat /var/lib/rancher/k3s/server/node-token
+# Get kubeconfig
+sudo cat /etc/rancher/k3s/k3s.yaml
 ```
 
-### What it does
-
-1. Connects to your 1Password vault
-2. Creates Cloudflare Tunnel credentials
-3. Creates application secrets (N8N, etc.)
-4. Shows status of all created secrets
-
-## ArgoCD Bootstrap
-
-The `argocd.sh` script provides a simple way to install ArgoCD and configure it for GitOps.
-
-### Prerequisites
-
-1. A running Kubernetes cluster
-2. Valid kubeconfig with cluster access
-3. `kubectl` installed and configured
-
-### Usage
-
+### Workers (k3s-worker-1, k3s-worker-2)
 ```bash
-# Bootstrap ArgoCD for dev environment (default)
-./kubernetes/bootstrap/argocd.sh
-
-# Bootstrap ArgoCD for production
-./kubernetes/bootstrap/argocd.sh prod
-
-# Show help
-./kubernetes/bootstrap/argocd.sh --help
+ssh techdufus@10.0.20.21  # or .22
+curl -sfL https://get.k3s.io | K3S_URL=https://10.0.20.20:6443 K3S_TOKEN=<token-from-above> sh -
 ```
 
-### What it does
+## 2. Configure Local Access
+Copy kubeconfig from control plane, update server URL to 10.0.20.20.
 
-1. **Installs ArgoCD**: Deploys all ArgoCD components
-2. **Configures for homelab**: Sets insecure mode (we use Cloudflare Tunnel for TLS)
-3. **Creates bootstrap app**: Sets up app-of-apps pattern
-4. **Shows credentials**: Displays initial admin password
-
-### Complete Workflow
-
+## 3. Bootstrap Secrets
 ```bash
-# 1. Deploy Kubernetes cluster
-cd terraform/proxmox/environments/dev
-terraform apply
-
-# 2. Setup secrets from 1Password
-cd ~/home.io
-./kubernetes/bootstrap/setup-secrets.sh dev
-
-# 3. Bootstrap ArgoCD
-./kubernetes/bootstrap/argocd.sh dev
-
-# 4. Access ArgoCD (temporarily)
-kubectl port-forward svc/argocd-server -n argocd 8080:80
-# Open http://localhost:8080
-
-# 5. Watch applications sync
-kubectl get apps -n argocd -w
+cd kubernetes/bootstrap
+./setup-secrets.sh
 ```
 
-### Post-Bootstrap
-
-After bootstrapping, ArgoCD will automatically:
-
-1. Deploy Cloudflare Tunnel
-2. Deploy N8N
-3. Deploy any other configured applications
-
-Once Cloudflare Tunnel is running, you can access ArgoCD at:
-- https://argocd.home.techdufus.com
-
-### Customization
-
-You can customize the bootstrap by setting environment variables:
-
+## 4. Bootstrap ArgoCD
 ```bash
-# Use a different ArgoCD version
-ARGOCD_VERSION=v2.10.0 ./kubernetes/bootstrap/argocd.sh
-
-# Track a different Git branch
-REPO_BRANCH=develop ./kubernetes/bootstrap/argocd.sh
+./argocd.sh
 ```
 
-### Troubleshooting
-
-**ArgoCD not starting:**
+## 5. Verify
 ```bash
-kubectl get pods -n argocd
-kubectl describe pod -n argocd <pod-name>
-```
-
-**Bootstrap app not syncing:**
-```bash
-kubectl get app bootstrap-dev -n argocd
-kubectl describe app bootstrap-dev -n argocd
-```
-
-**View ArgoCD logs:**
-```bash
-kubectl logs -n argocd deployment/argocd-server
-kubectl logs -n argocd deployment/argocd-application-controller
-```
-
-### Uninstall
-
-To remove ArgoCD (this will also remove all apps it manages):
-
-```bash
-# Delete the bootstrap app first
-kubectl delete app bootstrap-dev -n argocd
-
-# Delete ArgoCD
-kubectl delete -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.11.3/manifests/install.yaml
-
-# Delete namespace
-kubectl delete namespace argocd
+kubectl get applications -n argocd
+kubectl get nodes
 ```

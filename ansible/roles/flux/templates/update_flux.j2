@@ -1,5 +1,0 @@
-#!/bin/bash
-
-alias update-flux='pushd /home/{{ ansible_user }}/zelflux && git checkout . && git checkout master && git reset && git pull && popd'
-alias install-docker='export usernew="{{ ansible_user }}";echo "1" | multitoolbox'
-alias install-flux='echo "2" | multitoolbox && echo "14" | multitoolbox'

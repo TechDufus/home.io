@@ -1,7 +1,0 @@
----
-- name: "*** --- ___REBOOTING___ --- ***"
-  reboot:
-  throttle: 1
-  become: true
-  tags:
-    - reboot

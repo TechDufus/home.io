@@ -1,32 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homelab-apps
+  name: tailscale-operator
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
-    # Platform/Infrastructure services
+    - chart: tailscale-operator
+      repoURL: https://pkgs.tailscale.com/helmcharts
+      targetRevision: "1.82.0"
+      helm:
+        releaseName: tailscale-operator
+        valueFiles:
+          - $values/kubernetes/argocd/values/tailscale-operator.yaml
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
-      path: kubernetes/argocd/apps/platform
-    # User applications
-    - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: main
-      path: kubernetes/argocd/apps/applications
+      ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: tailscale
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
     retry:
       limit: 5
       backoff:

@@ -1,0 +1,8 @@
+# Longhorn Storage - Homelab Configuration
+defaultSettings:
+  defaultReplicaCount: 2
+  defaultDataLocality: best-effort
+  storageMinimalAvailablePercentage: 10
+
+preUpgradeChecker:
+  jobEnabled: false

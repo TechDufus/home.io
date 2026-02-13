@@ -1,0 +1,6 @@
+# Tailscale Operator - Homelab Configuration
+oauth:
+  clientId: ""
+  clientSecret: ""
+apiServerProxyConfig:
+  mode: "noauth"

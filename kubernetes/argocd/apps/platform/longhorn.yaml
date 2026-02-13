@@ -1,32 +1,32 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: homelab-apps
+  name: longhorn
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
-    # Platform/Infrastructure services
+    - chart: longhorn
+      repoURL: https://charts.longhorn.io
+      targetRevision: "1.10.2"
+      helm:
+        releaseName: longhorn
+        valueFiles:
+          - $values/kubernetes/argocd/values/longhorn.yaml
     - repoURL: https://github.com/TechDufus/home.io
       targetRevision: main
-      path: kubernetes/argocd/apps/platform
-    # User applications
-    - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: main
-      path: kubernetes/argocd/apps/applications
+      ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: longhorn-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
     retry:
       limit: 5
       backoff:

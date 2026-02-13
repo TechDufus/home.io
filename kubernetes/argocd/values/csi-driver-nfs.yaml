@@ -1,0 +1,14 @@
+# NFS CSI Driver - Homelab Configuration
+storageClass:
+  create: true
+  name: nfs-shared
+  parameters:
+    server: "10.0.0.254"
+    share: "/var/nfs/shared"
+    mountPermissions: "0775"
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+  mountOptions:
+    - nfsvers=4.1
+    - hard
+    - nconnect=8

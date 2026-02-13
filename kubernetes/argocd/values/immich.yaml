@@ -1,73 +1,58 @@
-# Immich Helm Chart Values - Only Essential Overrides
-# Default chart version: v1.119.0, server+ML enabled, postgresql+redis disabled
+# Immich - Homelab Configuration (chart 0.10.3)
 
-# Rollback to stable version - direct upgrade to v1.139.2 fails
-# Need to upgrade incrementally through major versions
-image:
-  tag: "v1.119.0"
+controllers:
+  main:
+    containers:
+      main:
+        env:
+          DB_HOSTNAME: "immich-postgres.immich.svc.cluster.local"
+          DB_PORT: "5432"
+          DB_DATABASE_NAME: "immich"
+          DB_USERNAME: "immich"
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: immich-postgres-secret
+                key: DB_PASSWORD
+          IMMICH_MACHINE_LEARNING_URL: '{{ printf "http://%s-machine-learning:3003" .Release.Name }}'
 
-# External database configuration (CloudNativePG)
-env:
-  DB_HOSTNAME: "immich-postgres-rw.immich.svc.cluster.local"
-  DB_DATABASE_NAME: "immich"
-  DB_USERNAME: "immich"
-  DB_PASSWORD:
-    valueFrom:
-      secretKeyRef:
-        name: immich-postgres-secret
-        key: password
-  DB_VECTOR_EXTENSION: "pgvector"
-  REDIS_HOSTNAME: "immich-redis-master.immich.svc.cluster.local"
+immich:
+  persistence:
+    library:
+      existingClaim: immich-library
 
-# Homelab resource limits
+valkey:
+  enabled: true
+  persistence:
+    data:
+      enabled: true
+      type: persistentVolumeClaim
+      size: 1Gi
+      storageClass: longhorn
+
 server:
   resources:
     requests:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 100m
+      memory: 256Mi
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      memory: 2Gi
 
 machine-learning:
   persistence:
     cache:
       enabled: true
-      type: pvc
-      existingClaim: "immich-ml-cache"
+      type: persistentVolumeClaim
+      existingClaim: immich-ml-cache
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 100m
+      memory: 256Mi
     limits:
-      cpu: 2000m
-      memory: 4Gi
+      memory: 2Gi
 
-# Library storage
-immich:
-  persistence:
-    library:
-      enabled: true
-      existingClaim: "immich-library"
-
-# Enable Redis subchart with minimal config
-redis:
-  enabled: true
-  auth:
-    enabled: false
-  master:
-    persistence:
-      enabled: true
-      size: 1Gi
-      storageClass: local-path
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi
-
-# Explicitly disable unused components
 postgresql:
+  enabled: false
+
+redis:
   enabled: false

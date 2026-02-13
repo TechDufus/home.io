@@ -1,9 +1,0 @@
----
-portainer_username: 'techdufus'
-docker_gpg_file: /tmp/docker.gpg
-docker_gpg_keyring: /etc/apt/trusted.gpg.d/docker.gpg
-portainer_docker_home: /opt/portainer
-
-portainer_docker_port: 9000
-portainer_host_port: 9000
-

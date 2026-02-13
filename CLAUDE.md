@@ -4,485 +4,296 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a comprehensive home lab infrastructure automation project that manages multi-tiered infrastructure using modern DevOps practices. The project orchestrates physical and virtual infrastructure, container platforms, home automation services, and network services through Infrastructure as Code (IaC) and configuration management.
+Home lab infrastructure automation project running a k3s Kubernetes cluster on Proxmox VE. The stack is intentionally simple: Terraform provisions Ubuntu VMs, k3s provides Kubernetes, and ArgoCD handles GitOps deployment of a small set of platform services and applications.
 
-### Project Statistics
-- Primary languages: HCL (Terraform), YAML (Ansible/Kubernetes)
-- Active since: 2023
-- Infrastructure scope: Proxmox VE, Harvester HCI, Kubernetes clusters
+- Primary languages: HCL (Terraform), YAML (Kubernetes)
+- Infrastructure: Proxmox VE → Ubuntu 24.04 VMs → k3s
+- GitOps: ArgoCD with app-of-apps pattern
 - Key maintainer: Matthew DeGarmo (@TechDufus)
 
 ## Quick Start
 
 ### Prerequisites
-- **Operating System**: Linux/macOS (Windows requires WSL)
-- **Required Tools**:
-  - [Terraform](https://terraform.io) >= 1.0
-  - [Ansible](https://ansible.com) >= 2.9
-  - [kubectl](https://kubernetes.io/docs/tasks/tools/) >= 1.28
-  - [talosctl](https://www.talos.dev/v1.7/introduction/getting-started/) >= 1.7.6
-  - [1Password CLI](https://developer.1password.com/docs/cli/) configured
-  - [gh CLI](https://cli.github.com/) for GitHub operations
-- **Accounts**:
-  - 1Password with vault access
-  - GitHub account (for SSH keys)
-  - Proxmox VE API access
+- [Terraform](https://terraform.io) >= 1.0
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) >= 1.28
+- [Helm](https://helm.sh/) >= 3.0
+- [1Password CLI](https://developer.1password.com/docs/cli/) configured
+- [gh CLI](https://cli.github.com/) for GitHub operations
+- Proxmox VE API access
 
 ### Initial Setup
 ```bash
-# Clone repository
 git clone https://github.com/TechDufus/home.io.git
 cd home.io
 
-# Configure 1Password CLI
+# Sign in to 1Password
 op signin
 
-# Set up Ansible
-pip install ansible
-ansible-galaxy install -r requirements.yml
+# Provision VMs with Terraform
+cd terraform/proxmox/environments/dev
+terraform init && terraform plan && terraform apply
 
-# Initialize Terraform (for Proxmox)
-cd terraform/proxmox
-terraform init
+# Install k3s on VMs (manual — see kubernetes/bootstrap/README.md)
+# Then bootstrap the cluster
+cd kubernetes/bootstrap
+./setup-secrets.sh
+./argocd.sh
 ```
 
 ## Essential Commands
 
-### Terraform Operations
+### Terraform
 ```bash
-# Initialize and apply Proxmox infrastructure
-cd terraform/proxmox
+cd terraform/proxmox/environments/dev
 terraform init
 terraform plan
 terraform apply
-
-# Deploy Talos Kubernetes cluster (dev environment)
-cd terraform/proxmox/environments/dev
-terraform init && terraform plan && terraform apply
-
-# Manage Harvester infrastructure  
-cd terraform/harvester
-terraform init && terraform plan && terraform apply
 ```
 
-### Ansible Operations
+### Kubernetes / k3s
 ```bash
-# Deploy container hosts and core services
-ansible-playbook ansible/playbooks/container-host.yaml
-ansible-playbook ansible/playbooks/pihole.yaml
-ansible-playbook ansible/playbooks/proxmox.yaml
+# Cluster health
+kubectl get nodes
+kubectl get pods -A
 
-# Deploy home automation and monitoring
-ansible-playbook ansible/playbooks/homeassistant.yaml
-ansible-playbook ansible/playbooks/flux.yaml
+# Resource usage
+kubectl top nodes
+kubectl top pods -A
 
-# Use tags for selective execution
-ansible-playbook ansible/playbooks/container-host.yaml --tags docker
-```
+# ArgoCD status
+kubectl get applications -n argocd
 
-### CAPI (Modern Kubernetes Management)
-```bash
-# Bootstrap management cluster (first time only)
-cd kubernetes/capi/bootstrap && ./install-capi.sh
+# Force sync an application
+kubectl patch application <app-name> -n argocd \
+  --type merge -p '{"operation": {"initiatedBy": {"username": "admin"}, "sync": {}}}'
 
-# Create workload clusters with addons
-./kubernetes/capi/scripts/create-cluster.sh --name dev --env dev --install-addons
-./kubernetes/capi/scripts/create-cluster.sh --name prod --env prod --install-addons
+# ArgoCD UI (port-forward)
+kubectl port-forward svc/argocd-server -n argocd 8080:80
 
-# Install GitOps
-./kubernetes/capi/scripts/install-argocd.sh --name dev
+# Longhorn UI (port-forward)
+kubectl port-forward svc/longhorn-frontend -n longhorn-system 9090:80
+
+# Tailscale operator status
+kubectl get pods -n tailscale
+
+# Immich status
+kubectl get pods -n immich
 ```
 
 ### 1Password Secret Management
 ```bash
-# Bootstrap secret management for clusters
-./scripts/1password-bootstrap.sh --name dev --env dev
-./scripts/1password-bootstrap.sh --name prod --env prod
-
-# Store kubeconfig in 1Password
-op item create --category=Document \
-  --title="homelab-dev-kubeconfig" \
-  --vault="Personal" \
-  kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
-
-# Retrieve kubeconfig on another machine
-op document get "homelab-dev-kubeconfig" --vault="Personal" > ~/.kube/config-homelab-dev
+# Bootstrap secrets for the cluster
+cd kubernetes/bootstrap
+./setup-secrets.sh
 ```
 
-### Common Tasks
-```bash
-# Check cluster health
-kubectl get nodes --kubeconfig ~/.kube/config-homelab-dev
-kubectl get pods -A --kubeconfig ~/.kube/config-homelab-dev
+## Architecture
 
-# Access Talos nodes
-talosctl -n 10.0.20.10 health
-talosctl -n 10.0.20.10 dashboard
-
-# Update Pi-hole configuration
-./scripts/download_config.sh
+### Stack
+```
+Proxmox VE (hypervisor)
+  └── Ubuntu 24.04 VMs (cloud-init, Terraform-provisioned)
+      └── k3s (--disable traefik,servicelb,local-storage)
+          └── ArgoCD (Helm-installed, annotation-based tracking)
+              ├── Platform: Longhorn, Tailscale Operator, NFS CSI Driver
+              └── Applications: Immich
 ```
 
-## Architecture and Key Concepts
+### Nodes
+| Node | Role | CPU | RAM | Disk | IP |
+|------|------|-----|-----|------|----|
+| k3s-cp-1 | Control plane | 4 | 8GB | 40GB | 10.0.20.20 |
+| k3s-worker-1 | Worker | 4 | 16GB | 100GB | 10.0.20.21 |
+| k3s-worker-2 | Worker | 4 | 16GB | 100GB | 10.0.20.22 |
 
-### System Architecture
+### Networking
+- **Service exposure**: Tailscale Operator (`loadBalancerClass: tailscale`)
+- **No public endpoints**: All access via Tailscale MagicDNS
+- **DNS**: Pi-hole primary (10.0.0.99), fallback 1.1.1.1 / 1.0.0.1
+- **Gateway**: 10.0.20.1, subnet /24
 
-The project implements a **dual-approach architecture**:
+### Storage
+- **Longhorn**: Distributed block storage (2 replicas) for stateful workloads
+- **NFS CSI Driver**: Mounts from UNAS NAS at 10.0.0.254
 
-1. **Traditional Infrastructure**: 
-   - Terraform provisions VMs/LXCs on Proxmox
-   - Ansible configures services and applications
-   - Direct management of individual nodes
+### Platform Services (ArgoCD-managed)
+| Service | Purpose |
+|---------|---------|
+| Longhorn | Block storage with replication |
+| Tailscale Operator | Service exposure via Tailscale |
+| NFS CSI Driver | NFS volume provisioning |
 
-2. **Modern Cloud-Native**:
-   - Cluster API (CAPI) manages Kubernetes lifecycle
-   - ArgoCD provides GitOps continuous deployment
-   - Gateway API handles modern traffic routing
-
-### Core Infrastructure Components
-
-#### 1. **Hypervisor Layer**
-- **Proxmox VE**: Primary virtualization platform
-  - Location: `terraform/proxmox/`
-  - Modules: `proxmox_vm`, `proxmox_lxc`, `talos-node`, `talos-template`
-- **Harvester HCI**: Hyper-converged infrastructure
-  - Location: `terraform/harvester/`
-  - Purpose: Alternative Kubernetes-native virtualization
-
-#### 2. **Compute Tiers**
-Three standardized node types for resource allocation:
-- **Cumulus** (Small): 2 CPU, 4GB RAM, 60GB disk
-- **Nimbus** (Medium): 4 CPU, 8GB RAM, 100GB disk  
-- **Stratus** (Large): 8 CPU, 16GB RAM, 250GB disk
-
-#### 3. **Networking Architecture**
-- **Dual-domain strategy**: 
-  - Internal: `*.home.io` for local network access
-  - External: `*.lab.techdufus.com` via Cloudflare tunnels
-- **IP Allocations**:
-  - Management: 10.0.20.1-10.0.20.9
-  - Kubernetes: 10.0.20.10-10.0.20.199
-  - Services: 10.0.20.200-10.0.20.230
-- **Load Balancing**: MetalLB with dedicated IP pools
-- **DNS**: Pi-hole primary (10.0.0.99) and secondary
-
-#### 4. **Kubernetes Platform**
-- **Talos Linux**: Immutable Kubernetes OS
-- **Cluster API**: Declarative cluster management
-- **Gateway API**: Modern ingress (replacing traditional Ingress)
-- **ArgoCD**: GitOps deployment operator
-
-### Data Flow
-1. Infrastructure provisioned via Terraform
-2. Base configuration applied via Ansible
-3. Kubernetes workloads deployed via ArgoCD
-4. Services exposed via Gateway API
-5. External access through Cloudflare tunnels
+### Applications (ArgoCD-managed)
+| App | Purpose |
+|-----|---------|
+| Immich | Photo management with standalone Postgres + Valkey |
 
 ## Project Structure
 
 ```
 home.io/
-├── terraform/                    # Infrastructure as Code
-│   ├── proxmox/                 # Proxmox VE provisioning
-│   │   ├── main.tf             # Main configuration
-│   │   ├── variables.tf        # Input variables
-│   │   ├── modules/            # Reusable Terraform modules
-│   │   │   ├── proxmox_vm/     # Generic VM provisioning
-│   │   │   ├── proxmox_lxc/    # LXC container provisioning
-│   │   │   ├── talos-node/     # Talos K8s node module
-│   │   │   └── talos-template/ # Talos template creation
-│   │   └── environments/       # Environment configurations
-│   │       └── dev/           # Development environment
-│   └── harvester/              # Harvester HCI provisioning
-├── ansible/                     # Configuration Management
-│   ├── playbooks/              # Ansible playbooks
-│   ├── roles/                  # Ansible roles library
-│   │   ├── common/            # Base server configuration
-│   │   ├── docker/            # Container runtime
-│   │   ├── pihole-primary/    # Primary DNS server
-│   │   └── [other services]   # Service-specific roles
-│   └── inventory/              # Environment inventories
-├── kubernetes/                  # Kubernetes configurations
-│   ├── argocd/                # GitOps manifests
-│   ├── capi/                  # Cluster API configs
-│   └── metallb-ipaddresses.yaml
-├── scripts/                    # Utility scripts
-├── docs/                      # Documentation (planned)
-└── CLAUDE.md                  # This file
+├── terraform/
+│   └── proxmox/
+│       ├── modules/
+│       │   ├── proxmox_vm/          # VM provisioning module
+│       │   └── proxmox_lxc/         # LXC container module
+│       └── environments/
+│           └── dev/                 # k3s cluster + standalone VMs
+│               ├── vms.tf           # VM definitions
+│               ├── providers.tf     # bpg/proxmox provider
+│               └── terraform.tfvars # Node sizing and IPs
+├── kubernetes/
+│   ├── bootstrap/
+│   │   ├── argocd.sh              # Helm-install ArgoCD + app-of-apps
+│   │   ├── setup-secrets.sh       # 1Password → K8s secrets
+│   │   └── README.md              # k3s install instructions
+│   └── argocd/
+│       ├── app-of-apps.yaml       # Root ArgoCD application
+│       ├── apps/
+│       │   ├── platform/          # Longhorn, Tailscale, NFS CSI
+│       │   └── applications/      # Immich
+│       ├── manifests/
+│       │   ├── immich/            # Postgres StatefulSet, PVCs, Tailscale svc
+│       │   └── tailscale/         # Namespace
+│       └── values/                # Helm values for all charts
+│           ├── argocd.yaml
+│           ├── longhorn.yaml
+│           ├── tailscale-operator.yaml
+│           ├── csi-driver-nfs.yaml
+│           └── immich.yaml
+├── scripts/                       # Utility scripts
+└── CLAUDE.md
 ```
 
 ## Important Patterns
 
-### Infrastructure Provisioning Pattern
-When adding new infrastructure:
-1. Define resources in appropriate Terraform module
-2. Use standardized node sizing (Cumulus/Nimbus/Stratus)
-3. Add MAC address to vars after initial creation (prevents regeneration)
-4. Configure appropriate tags and metadata
-5. Run `terraform plan` before applying
+### Adding a VM (Terraform)
+VMs are defined in `terraform/proxmox/environments/dev/vms.tf` using the `standalone_vms` pattern:
+1. Add VM definition to the locals or module block
+2. Specify CPU, memory, disk, IP, and cloud-init template
+3. Run `terraform plan` then `terraform apply`
+4. After first apply, pin the MAC address in tfvars to prevent regeneration
 
-Example for new VM:
-```hcl
-module "new_service" {
-  source = "./modules/proxmox_vm"
-  
-  name        = "service-name"
-  node_type   = "nimbus"
-  node_count  = 1
-  proxmox_node = "proxmox"
-  network_bridge = "vmbr0"
-  vlan_tag    = 20
-  # Add macaddr after first apply to prevent changes
-  # macaddr = ["BC:24:11:XX:XX:XX"]
-}
+### Adding a Kubernetes Application
+1. Create ArgoCD Application in `kubernetes/argocd/apps/platform/` or `apps/applications/`
+2. Add Helm values in `kubernetes/argocd/values/`
+3. Add supporting manifests (namespace, PVCs, etc.) in `kubernetes/argocd/manifests/<app>/`
+4. To expose via Tailscale, create a LoadBalancer service with `loadBalancerClass: tailscale`
+5. Commit — ArgoCD auto-syncs from the repository
+
+### Exposing a Service via Tailscale
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-tailscale
+  namespace: my-service
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: my-service
+  ports:
+    - port: 80
+      targetPort: 8080
 ```
 
-### Service Deployment Pattern
-For new services via Ansible:
-1. Create role under `ansible/roles/service-name/`
-2. Follow standard role structure (tasks/, vars/, templates/)
-3. Create playbook in `ansible/playbooks/`
-4. Use tags for granular control
-5. Integrate with common role for base configuration
-
-### Kubernetes Workload Pattern
-For K8s deployments:
-1. Create namespace-specific directory
-2. Define manifests following Gateway API patterns
-3. Configure ArgoCD application for GitOps
-4. Use 1Password operator for secrets
-5. Apply via `kubectl` or ArgoCD sync
-
-### Secret Management Pattern
-Never commit secrets. Always use:
-- 1Password for credentials and sensitive configs
-- Ansible Vault for encrypted playbook variables
-- Terraform `creds.auto.tfvars` (gitignored)
-- Environment variables for runtime secrets
+### Secret Management
+- 1Password CLI (`op`) for all credentials
+- Bootstrap script (`kubernetes/bootstrap/setup-secrets.sh`) creates K8s secrets from 1Password
+- Terraform uses `creds.auto.tfvars` (gitignored)
+- Never commit secrets to the repository
 
 ## Code Style
 
-### Terraform Conventions
-- **Files**: Lowercase with underscores (e.g., `main.tf`, `variables.tf`)
-- **Resources**: Lowercase with underscores
-- **Variables**: Lowercase with underscores, descriptive names
-- **Modules**: Hyphenated names matching purpose
-- **Comments**: Explain "why" not "what"
+### Terraform
+- Files: lowercase with underscores (`main.tf`, `variables.tf`)
+- Provider: `bpg/proxmox`
+- Comments: explain "why" not "what"
 
-### Ansible Conventions
-- **Playbooks**: Kebab-case YAML files
-- **Roles**: Lowercase with underscores
-- **Variables**: Lowercase with underscores
-- **Tags**: Lowercase, descriptive, consistent
-- **Tasks**: Use `name:` with clear descriptions
+### Kubernetes YAML
+- Indentation: 2 spaces
+- Resource naming: kebab-case (`my-service`)
+- Labels: include `app` at minimum
 
-### Kubernetes Conventions
-- **Resources**: Follow K8s naming conventions
-- **Labels**: Include environment, app, version
-- **Namespaces**: Environment-prefixed
-- **Files**: Resource-type naming (e.g., `deployment.yaml`)
-
-### Commit Conventions
-- Use conventional commits: `feat:`, `fix:`, `docs:`, `chore:`
-- Keep commits atomic and focused
-- Reference issues when applicable
-- No emojis or personal attribution
+### Commits
+- Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`
+- Atomic and focused
+- No emojis or attribution
 
 ## Hidden Context
 
-### MAC Address Regeneration Issue
-Terraform regenerates MAC addresses on VM updates, breaking static DHCP leases and SSH known_hosts. **Solution**: After initial VM creation, add the generated MAC address to your `.tfvars`:
-```hcl
-macaddr = ["BC:24:11:XX:XX:XX"]
-```
+### MAC Address Regeneration
+Terraform regenerates MAC addresses on VM updates, breaking DHCP leases. Pin MAC addresses in tfvars after initial creation.
 
-### Proxmox Provider Quirks
-- Using `telmate/proxmox v3.0.1-rc1` for specific features
-- Dev environment uses newer `bpg/proxmox` provider
-- Both providers have different authentication methods
+### ArgoCD Tracking Method
+Must use annotation-based resource tracking (not label-based). Label tracking causes issues with certain controllers. Configured in `argocd-cm` ConfigMap via `application.resourceTrackingMethod: annotation`.
 
-### Talos Linux Constraints
-- No SSH access - use `talosctl` exclusively
-- Configuration is immutable - changes require node reboot
-- Upgrades are in-place with automatic rollback
+### k3s Disabled Components
+k3s is installed with `--disable traefik --disable servicelb --disable local-storage` because:
+- Traefik replaced by Tailscale Operator for service exposure
+- ServiceLB replaced by Tailscale's loadBalancerClass
+- Local-storage replaced by Longhorn
 
-### FluxNode Manual Steps
-The Ansible role installs prerequisites, but FluxOS requires manual installation via their script. This is intentional to ensure you accept their terms.
-
-### Network Architecture Decisions
-- Dual DNS servers for redundancy
-- Separate VLANs planned but not yet implemented
-- Gateway API chosen over traditional Ingress for future-proofing
-
-### Historical Context
-The project evolved from traditional VM management to Kubernetes-native:
-1. Started with basic Proxmox + Ansible
-2. Added Kubernetes clusters manually
-3. Migrated to Cluster API for K8s lifecycle
-4. Implementing GitOps with ArgoCD
-5. Moving from Ingress to Gateway API
-
-### Known Technical Debt
-- No automated testing infrastructure
-- CI/CD pipeline not implemented
-- Some services still require manual configuration
-- Documentation scattered across multiple READMEs
-- Mixed provider versions in Terraform
+### Standalone VMs
+Besides k3s nodes, the Terraform config also provisions standalone VMs (n8n-server, openclaw) that are not part of the k3s cluster.
 
 ## Debugging Guide
 
-### Common Issues
+### 1Password CLI
+- Symptom: Terraform or bootstrap fails with auth errors
+- Fix: `op signin` and verify with `op vault list`
 
-1. **1Password CLI Authentication**
-   - Symptoms: Terraform fails with authentication errors
-   - Solution: Run `op signin` and ensure session is active
-   - Check: `op vault list` should show your vaults
+### Terraform State
+- Symptom: "resource already exists" errors
+- Fix: `terraform state list` to inspect, `terraform import` if needed
 
-2. **Terraform State Conflicts**
-   - Symptoms: Resource already exists errors
-   - Solution: Check state with `terraform state list`
-   - Import existing: `terraform import module.name.resource_type.name resource_id`
+### ArgoCD Sync Issues
+- Symptom: Application stuck in "Progressing"
+- Check: `kubectl describe application <app> -n argocd`
+- Logs: `kubectl logs -n argocd deployment/argocd-application-controller`
 
-3. **Ansible Connection Issues**
-   - Symptoms: SSH connection refused
-   - Solution: Verify inventory IPs and SSH keys
-   - Debug: `ansible -i inventory/prod all -m ping`
+### Longhorn Volume Issues
+- Check: `kubectl get volumes -n longhorn-system`
+- UI: `kubectl port-forward svc/longhorn-frontend -n longhorn-system 9090:80`
 
-4. **Kubernetes Context Problems**
-   - Symptoms: Cannot connect to cluster
-   - Solution: Check `kubectl config get-contexts`
-   - Fix: Re-merge kubeconfig from 1Password
+### Tailscale Service Not Accessible
+- Check: `kubectl get svc -A | grep tailscale`
+- Pods: `kubectl get pods -n tailscale`
+- Logs: `kubectl logs -n tailscale -l app=tailscale-operator`
 
-5. **Talos Node Issues**
-   - Symptoms: Node not ready
-   - Check: `talosctl -n <IP> service`
-   - Logs: `talosctl -n <IP> logs kubelet`
+### k3s Node Issues
+- SSH into node: `ssh ubuntu@10.0.20.2X`
+- Service status: `sudo systemctl status k3s` (or `k3s-agent` on workers)
+- Logs: `sudo journalctl -u k3s -f`
 
-### Debugging Tools
+### General Kubernetes
 ```bash
-# Terraform debugging
-TF_LOG=DEBUG terraform plan
-
-# Ansible verbose mode
-ansible-playbook playbook.yaml -vvv
-
-# Kubernetes diagnostics
 kubectl describe node <node-name>
 kubectl logs -n <namespace> <pod-name>
-
-# Talos debugging
-talosctl -n <IP> dashboard
-talosctl -n <IP> logs controller-runtime
+kubectl get events -n <namespace> --sort-by='.lastTimestamp'
 ```
 
-## Development Workflows
+## Development Workflow
 
-### Adding New Infrastructure
-1. Create feature branch: `feat/service-name`
-2. Develop Terraform module or update configuration
-3. Test in dev environment first
-4. Document any new variables or patterns
-5. Create PR with descriptive title
-6. Apply to production after validation
+1. Create feature branch: `feat/description`
+2. Make changes to Terraform or Kubernetes manifests
+3. For Terraform: `terraform plan` → `terraform apply`
+4. For Kubernetes: commit and push — ArgoCD auto-syncs
+5. Verify in ArgoCD UI or via `kubectl get applications -n argocd`
+6. Create PR against `main`
 
-### Updating Services
-1. Test Ansible changes with `--check` flag
-2. Use `--limit` to target specific hosts
-3. Verify service health after deployment
-4. Update documentation if behavior changes
+## Security
 
-### GitOps Workflow
-1. Make changes to K8s manifests
-2. Commit to repository
-3. ArgoCD detects and syncs changes
-4. Monitor deployment in ArgoCD UI
-5. Rollback via Git if issues arise
-
-## Security Notes
-
-### Access Control
-- All infrastructure access via 1Password
-- No hardcoded credentials in code
-- SSH keys pulled from GitHub
+- All credentials via 1Password — never hardcoded
+- No public endpoints — Tailscale-only access
+- SSH keys pulled from GitHub for VM provisioning
 - Kubernetes RBAC enforced
-
-### Network Security
-- Internal services not exposed directly
-- Cloudflare tunnels for external access
-- Pi-hole for DNS filtering
-- VPN for administrative access
-
-### Secret Management
-- 1Password for all credentials
-- Ansible Vault for playbook secrets
-- Kubernetes secrets via 1Password operator
-- Regular secret rotation recommended
-
-## Monitoring and Observability
-
-### Current Monitoring
-- Glances for system metrics
-- Portainer for container management
-- Kubernetes metrics via `kubectl top`
-- Talos dashboard for node health
-
-### Planned Improvements
-- Prometheus/Grafana stack
-- Centralized logging with Loki
-- Alertmanager for notifications
-- Service mesh observability
 
 ## Resources
 
-### Internal Documentation
-- [Development Environment README](terraform/proxmox/environments/dev/README.md)
-- Individual Ansible role READMEs
-- Inline Terraform documentation
-
-### External Resources
-- [Proxmox VE Documentation](https://pve.proxmox.com/pve-docs/)
-- [Talos Linux Docs](https://www.talos.dev/latest/)
-- [Cluster API Book](https://cluster-api.sigs.k8s.io/)
-- [Gateway API Documentation](https://gateway-api.sigs.k8s.io/)
-
-### Community
-- GitHub Issues for bug reports
-- Project maintainer: @TechDufus
-
-## Maintenance Tasks
-
-### Regular Maintenance
-- **Weekly**: Check for security updates
-- **Monthly**: Review resource utilization
-- **Quarterly**: Update dependencies
-- **Yearly**: Review and update documentation
-
-### Update Procedures
-```bash
-# Update Terraform providers
-terraform init -upgrade
-
-# Update Ansible roles
-ansible-galaxy install -r requirements.yml --force
-
-# Update Kubernetes components
-# Via ArgoCD or manual kubectl apply
-```
-
-## Contributing Guidelines
-
-### Code Submission Process
-1. Fork repository (if external contributor)
-2. Create feature branch
-3. Follow existing patterns and conventions
-4. Test thoroughly in dev environment
-5. Submit PR with clear description
-6. Respond to review feedback
-
-### Quality Standards
-- Code must follow established patterns
-- Changes must be tested
-- Documentation must be updated
-- No hardcoded values or secrets
-- Consider backward compatibility
+- [Proxmox VE Docs](https://pve.proxmox.com/pve-docs/)
+- [k3s Docs](https://docs.k3s.io/)
+- [ArgoCD Docs](https://argo-cd.readthedocs.io/)
+- [Longhorn Docs](https://longhorn.io/docs/)
+- [Tailscale Operator Docs](https://tailscale.com/kb/1236/kubernetes-operator)

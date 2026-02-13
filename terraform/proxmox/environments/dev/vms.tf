@@ -18,6 +18,8 @@ resource "proxmox_virtual_environment_file" "cloud_init_qemu_agent" {
     package_update: true
     packages:
       - qemu-guest-agent
+      - open-iscsi
+      - nfs-common
     users:
       - name: techdufus
         groups: [adm, sudo]
@@ -29,6 +31,7 @@ resource "proxmox_virtual_environment_file" "cloud_init_qemu_agent" {
     runcmd:
       - systemctl enable qemu-guest-agent
       - systemctl start qemu-guest-agent
+      - systemctl enable --now iscsid
     EOF
     
     file_name = "cloud-init-qemu-agent-${each.key}.yaml"
@@ -79,7 +82,7 @@ resource "proxmox_virtual_environment_vm" "standalone" {
   initialization {
     ip_config {
       ipv4 {
-        address = "${each.value.ip_address}/${var.cluster.subnet_mask}"
+        address = "${each.value.ip_address}/${var.subnet_mask}"
         gateway = var.gateway
       }
     }
