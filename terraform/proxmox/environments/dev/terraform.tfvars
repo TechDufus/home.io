@@ -1,43 +1,8 @@
-
 # Development Environment Configuration
 # Proxmox node configuration
 proxmox_node = "proxmox"
 
-# Cluster configuration using the new cluster object
-# cluster = {
-#   name          = "homelab-dev"
-#   talos_version = "1.7.6"
-#   template_vm_id = 9200
-#
-#   control_plane = {
-#     count       = 1
-#     vm_id_start = 300
-#     ip_address  = "10.0.20.20"
-#     cpu         = 2
-#     memory      = 2048
-#     disk_gb     = 20
-#   }
-#
-#   worker = {
-#     count       = 1
-#     vm_id_start = 310
-#     cpu         = 2
-#     memory      = 2048
-#     disk_gb     = 20
-#   }
-#
-#   subnet_mask = 24
-#
-#   cni_plugin     = "flannel"
-#   pod_subnet     = "10.244.0.0/16"
-#   service_subnet = "10.96.0.0/12"
-#   cluster_dns    = "10.96.0.10"
-#
-#   full_clone = false
-#   storage_pool = "VM-SSD-0"
-# }
-
-# Standalone VMs (not part of the cluster)
+# Standalone VMs
 standalone_vms = {
   # claude-code = {
   #   vm_id       = 150
