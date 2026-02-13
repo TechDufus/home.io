@@ -4,7 +4,7 @@ storageClass:
   name: nfs-shared
   parameters:
     server: "10.0.0.254"
-    share: "/var/nfs/shared"
+    share: "/var/nfs/shared/homelab"
     mountPermissions: "0775"
   reclaimPolicy: Retain
   volumeBindingMode: Immediate
