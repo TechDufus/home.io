@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tailscale-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: tailscale-operator
+      repoURL: https://pkgs.tailscale.com/helmcharts
+      targetRevision: "1.82.0"
+      helm:
+        releaseName: tailscale-operator
+        valueFiles:
+          - $values/kubernetes/argocd/values/tailscale-operator.yaml
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: feat/k3s-migration
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tailscale
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  revisionHistoryLimit: 10
