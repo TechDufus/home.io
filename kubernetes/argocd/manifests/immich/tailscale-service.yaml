@@ -14,5 +14,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: immich
+    app.kubernetes.io/name: server
     app.kubernetes.io/instance: immich
