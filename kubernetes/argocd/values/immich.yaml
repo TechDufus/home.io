@@ -50,9 +50,3 @@ machine-learning:
       memory: 256Mi
     limits:
       memory: 2Gi
-
-postgresql:
-  enabled: false
-
-redis:
-  enabled: false
