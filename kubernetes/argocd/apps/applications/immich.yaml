@@ -11,7 +11,7 @@ spec:
     # Immich Helm chart
     - chart: immich
       repoURL: https://immich-app.github.io/immich-charts
-      targetRevision: "0.10.3"
+      targetRevision: "*"
       helm:
         releaseName: immich
         valueFiles:
