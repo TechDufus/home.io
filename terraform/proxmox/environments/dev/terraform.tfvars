@@ -67,7 +67,55 @@ standalone_vms = {
       This VM runs n8n for workflow automation and integrations.
       Configured with sufficient resources for moderate workloads.
       EOF
-    template    = "ubuntu-24.04-template"
+    template     = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
+  }
+
+  openclaw = {
+    vm_id        = 151
+    cpu          = 3
+    cpu_sockets  = 2
+    memory       = 16384
+    disk_gb      = 50
+    ip_address   = "10.0.20.151"
+    description  = "OpenClaw AI assistant"
+    template     = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
+  }
+
+  k3s-cp-1 = {
+    vm_id        = 200
+    cpu          = 4
+    cpu_sockets  = 2
+    memory       = 8192
+    disk_gb      = 40
+    ip_address   = "10.0.20.20"
+    description  = "k3s control plane node"
+    template     = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
+  }
+
+  k3s-worker-1 = {
+    vm_id        = 201
+    cpu          = 4
+    cpu_sockets  = 2
+    memory       = 16384
+    disk_gb      = 100
+    ip_address   = "10.0.20.21"
+    description  = "k3s worker node 1"
+    template     = "ubuntu-24.04-template"
+    storage_pool = "VM-SSD-1"
+  }
+
+  k3s-worker-2 = {
+    vm_id        = 202
+    cpu          = 4
+    cpu_sockets  = 2
+    memory       = 16384
+    disk_gb      = 100
+    ip_address   = "10.0.20.22"
+    description  = "k3s worker node 2"
+    template     = "ubuntu-24.04-template"
     storage_pool = "VM-SSD-1"
   }
 }
