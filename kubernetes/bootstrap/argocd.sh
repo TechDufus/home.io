@@ -1,138 +1,84 @@
 #!/bin/bash
-# Bootstrap ArgoCD for homelab
-# Simple script to install ArgoCD and create the app-of-apps
+# Bootstrap ArgoCD for k3s homelab cluster
+# Installs ArgoCD via Helm and deploys the app-of-apps
 
 set -euo pipefail
 
-# Configuration
-ARGOCD_VERSION="${ARGOCD_VERSION:-v2.11.3}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARGOCD_NAMESPACE="argocd"
-REPO_URL="https://github.com/TechDufus/home.io"
-REPO_BRANCH="${REPO_BRANCH:-main}"
-# No environment needed - single cluster setup
 
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Show banner
-echo -e "${BLUE}🚀 ArgoCD Bootstrap for Homelab${NC}"
+echo -e "${BLUE}ArgoCD Bootstrap for k3s Homelab${NC}"
 echo -e "${BLUE}================================${NC}"
 echo ""
 
 # Check prerequisites
 check_prerequisites() {
     log_info "Checking prerequisites..."
-    
+
     if ! command -v kubectl &> /dev/null; then
         log_error "kubectl not found. Please install kubectl."
         exit 1
     fi
-    
+
+    if ! command -v helm &> /dev/null; then
+        log_error "helm not found. Please install helm."
+        exit 1
+    fi
+
     if ! kubectl cluster-info &> /dev/null; then
         log_error "Cannot connect to Kubernetes cluster. Check your kubeconfig."
         exit 1
     fi
-    
+
     log_info "Prerequisites satisfied"
 }
 
-# Create namespace
-create_namespace() {
-    log_info "Creating ArgoCD namespace..."
-    kubectl create namespace ${ARGOCD_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-}
-
-# Install ArgoCD
+# Install ArgoCD via Helm
 install_argocd() {
-    log_info "Installing ArgoCD ${ARGOCD_VERSION}..."
-    kubectl apply -n ${ARGOCD_NAMESPACE} -f https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml
-    
-    log_info "Waiting for ArgoCD to be ready..."
-    kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n ${ARGOCD_NAMESPACE}
-    kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n ${ARGOCD_NAMESPACE}
-    kubectl wait --for=condition=available --timeout=300s deployment/argocd-redis -n ${ARGOCD_NAMESPACE}
-    kubectl wait --for=condition=available --timeout=300s deployment/argocd-applicationset-controller -n ${ARGOCD_NAMESPACE}
-    
+    log_info "Adding ArgoCD Helm repository..."
+    helm repo add argo https://argoproj.github.io/argo-helm
+    helm repo update argo
+
+    log_info "Installing ArgoCD via Helm..."
+    helm upgrade --install argocd argo/argo-cd \
+        --namespace ${ARGOCD_NAMESPACE} \
+        --create-namespace \
+        -f "${SCRIPT_DIR}/../argocd/values/argocd.yaml" \
+        --wait
+
     log_info "ArgoCD installed successfully"
 }
 
-# Configure ArgoCD for insecure mode (since we're using Cloudflare Tunnel)
-configure_argocd() {
-    log_info "Configuring ArgoCD..."
-    
-    # Patch ArgoCD to run in insecure mode
-    kubectl patch configmap argocd-cmd-params-cm -n ${ARGOCD_NAMESPACE} --type merge -p '{"data":{"server.insecure":"true"}}'
-    
-    # Restart ArgoCD server to apply changes
-    kubectl rollout restart deployment argocd-server -n ${ARGOCD_NAMESPACE}
-    kubectl rollout status deployment argocd-server -n ${ARGOCD_NAMESPACE}
-    
-    log_info "ArgoCD configured"
-}
-
-# Create the bootstrap application
-create_bootstrap_app() {
-    log_info "Creating app-of-apps for homelab..."
-    
-    cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: homelab-apps
-  namespace: ${ARGOCD_NAMESPACE}
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: ${REPO_URL}
-    targetRevision: ${REPO_BRANCH}
-    path: kubernetes/argocd/apps
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: ${ARGOCD_NAMESPACE}
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: false
-    syncOptions:
-      - CreateNamespace=true
-      - PrunePropagationPolicy=foreground
-      - PruneLast=true
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m
-  revisionHistoryLimit: 10
-EOF
-    
-    log_info "App-of-apps created"
+# Deploy the app-of-apps
+deploy_app_of_apps() {
+    log_info "Deploying app-of-apps..."
+    kubectl apply -f "${SCRIPT_DIR}/../argocd/app-of-apps.yaml"
+    log_info "App-of-apps deployed"
 }
 
 # Get admin password
 get_admin_password() {
     log_info "Retrieving admin password..."
-    
-    # Wait for secret to be created
+
     while ! kubectl get secret argocd-initial-admin-secret -n ${ARGOCD_NAMESPACE} &> /dev/null; do
         echo -n "."
         sleep 2
     done
     echo ""
-    
+
     ADMIN_PASSWORD=$(kubectl -n ${ARGOCD_NAMESPACE} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-    
+
     echo ""
     echo -e "${GREEN}========================================${NC}"
     echo -e "${GREEN}ArgoCD Admin Credentials:${NC}"
@@ -144,37 +90,35 @@ get_admin_password() {
 
 # Print access instructions
 print_access_info() {
-    echo -e "${BLUE}📋 Access Instructions${NC}"
-    echo -e "${BLUE}=====================${NC}"
+    echo -e "${BLUE}Access Instructions${NC}"
+    echo -e "${BLUE}===================${NC}"
     echo ""
     echo "1. Port Forward (temporary access):"
     echo "   kubectl port-forward svc/argocd-server -n ${ARGOCD_NAMESPACE} 8080:80"
     echo "   Open: http://localhost:8080"
     echo ""
-    echo "2. Via Cloudflare Tunnel (after cloudflared is deployed):"
-    echo "   https://argocd.home.techdufus.com"
+    echo "2. Via Tailscale (after tailscale-operator is deployed):"
+    echo "   Access via Tailscale-exposed service once configured"
     echo ""
     echo "3. Check application status:"
     echo "   kubectl get applications -n ${ARGOCD_NAMESPACE}"
     echo ""
-    echo "4. View logs:"
-    echo "   kubectl logs -n ${ARGOCD_NAMESPACE} deployment/argocd-server"
+    echo "4. Retrieve password later:"
+    echo "   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d"
     echo ""
 }
 
 # Main execution
 main() {
     check_prerequisites
-    create_namespace
     install_argocd
-    configure_argocd
-    create_bootstrap_app
+    deploy_app_of_apps
     get_admin_password
     print_access_info
-    
-    echo -e "${GREEN}✅ ArgoCD bootstrap completed!${NC}"
+
+    echo -e "${GREEN}ArgoCD bootstrap completed!${NC}"
     echo ""
-    echo -e "${YELLOW}⏳ Apps will start syncing automatically...${NC}"
+    echo -e "${YELLOW}Apps will start syncing automatically...${NC}"
     echo "   Watch progress: kubectl get apps -n ${ARGOCD_NAMESPACE} -w"
 }
 
@@ -182,14 +126,12 @@ main() {
 show_help() {
     echo "Usage: $0"
     echo ""
-    echo "Bootstrap ArgoCD in your Kubernetes cluster"
+    echo "Bootstrap ArgoCD in your k3s cluster via Helm"
     echo ""
-    echo "Environment variables:"
-    echo "  ARGOCD_VERSION    ArgoCD version to install (default: v2.11.3)"
-    echo "  REPO_BRANCH       Git branch to track (default: main)"
-    echo ""
-    echo "Example:"
-    echo "  $0              # Install ArgoCD and app-of-apps"
+    echo "This script:"
+    echo "  - Installs ArgoCD via Helm chart with custom values"
+    echo "  - Deploys the app-of-apps for GitOps management"
+    echo "  - Prints admin credentials and access instructions"
 }
 
 # Handle command line arguments

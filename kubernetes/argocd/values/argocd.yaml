@@ -1,0 +1,6 @@
+# ArgoCD Helm Values - Homelab Configuration
+configs:
+  cm:
+    application.resourceTrackingMethod: annotation
+  params:
+    server.insecure: true
