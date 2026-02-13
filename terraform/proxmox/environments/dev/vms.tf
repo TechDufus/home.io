@@ -79,7 +79,7 @@ resource "proxmox_virtual_environment_vm" "standalone" {
   initialization {
     ip_config {
       ipv4 {
-        address = "${each.value.ip_address}/${var.cluster.subnet_mask}"
+        address = "${each.value.ip_address}/${var.subnet_mask}"
         gateway = var.gateway
       }
     }

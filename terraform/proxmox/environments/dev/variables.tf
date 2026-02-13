@@ -47,6 +47,12 @@ variable "gateway" {
   default     = "10.0.20.1"
 }
 
+variable "subnet_mask" {
+  description = "Subnet mask bits for IP address configuration"
+  type        = number
+  default     = 24
+}
+
 variable "dns_servers" {
   description = "DNS servers for the environment"
   type        = list(string)
