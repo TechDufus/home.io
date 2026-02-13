@@ -10,11 +10,11 @@ spec:
   sources:
     # Platform/Infrastructure services
     - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: main
+      targetRevision: feat/k3s-migration
       path: kubernetes/argocd/apps/platform
-    # User applications 
+    # User applications
     - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: main
+      targetRevision: feat/k3s-migration
       path: kubernetes/argocd/apps/applications
   destination:
     server: https://kubernetes.default.svc
