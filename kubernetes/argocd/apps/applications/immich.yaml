@@ -18,11 +18,11 @@ spec:
           - $values/kubernetes/argocd/values/immich.yaml
     # Values and manifests from Git
     - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: feat/k3s-migration
+      targetRevision: main
       ref: values
     # Immich supporting manifests (postgres, PVCs, etc.)
     - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: feat/k3s-migration
+      targetRevision: main
       path: kubernetes/argocd/manifests/immich
   destination:
     server: https://kubernetes.default.svc

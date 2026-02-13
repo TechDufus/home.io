@@ -16,7 +16,7 @@ spec:
         valueFiles:
           - $values/kubernetes/argocd/values/tailscale-operator.yaml
     - repoURL: https://github.com/TechDufus/home.io
-      targetRevision: feat/k3s-migration
+      targetRevision: main
       ref: values
   destination:
     server: https://kubernetes.default.svc
