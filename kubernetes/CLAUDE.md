@@ -277,6 +277,16 @@ ArgoCD server runs with `server.insecure: "true"` — TLS is handled by Tailscal
 ### Immich Multi-Source Application
 The Immich ArgoCD Application uses multiple sources: Helm chart from the official repo + local manifests for Postgres, PVCs, and the Tailscale service. Uses `ServerSideApply=true` for complex resources.
 
+### NFS CSI Driver vs Native NFS Volumes
+The NFS CSI driver (`csi-driver-nfs`) concatenates `share` + `subdir` into a single NFS mount path. After a UNAS firmware update, the CSI driver's mount operations started hanging indefinitely while native Kubernetes NFS volumes (`spec.nfs`) mount the same paths without issue. The `hard` mount option causes hung mounts to never timeout, leaving stale mounts on worker nodes that block all subsequent mount attempts for that volume.
+
+**The immich-library PV uses a static native NFS volume (not CSI) for this reason.** Do not convert it back to a CSI-provisioned volume. If adding new NFS PVCs for other apps, prefer static PVs with native NFS over dynamic CSI provisioning.
+
+The `nfs-shared` StorageClass still uses the CSI driver for dynamic provisioning. Any dynamically-provisioned PVCs may hit the same issue if the NAS firmware changes NFS behavior.
+
+### Immich Helm Chart Value Nesting (bjw-s common library)
+The Immich Helm chart uses the bjw-s common library. Resource limits, probes, and other container-level settings must be nested under `controllers.main.containers.main`, not at the component root. For example, `server.resources` is silently ignored — use `server.controllers.main.containers.main.resources`.
+
 ### Bootstrap Order
 1. k3s must be running on all nodes
 2. `setup-secrets.sh` creates required secrets
@@ -301,10 +311,20 @@ The Immich ArgoCD Application uses multiple sources: Helm chart from the officia
 - Check Tailscale admin console for the device
 - Logs: `kubectl logs -n tailscale -l app=tailscale-operator`
 
+### NFS Mount Hanging / Stale Mounts
+- Symptom: pods stuck in `ContainerCreating`, events show `MountVolume.SetUp failed ... time out`
+- Check CSI driver logs: `kubectl logs -n kube-system -l app.kubernetes.io/name=csi-driver-nfs -c nfs --tail=20`
+- Check for stale mounts on the node: `ssh techdufus@<node-ip> 'mount | grep nfs'`
+- Clear stale mounts: `ssh techdufus@<node-ip> 'sudo umount -l <mount-path>'`
+- If stale mounts won't clear, restart the k3s agent: `ssh techdufus@<node-ip> 'sudo systemctl restart k3s-agent'`
+- Nuclear option: drain the node and let pods reschedule to a clean worker
+- **Root cause**: NFS CSI driver mount hangs + `hard` mount option = indefinite hang. See Hidden Context section.
+
 ### Immich Issues
 - Postgres not ready: `kubectl describe statefulset postgres -n immich`
-- Library not mounting: check NFS connectivity to 10.0.0.254
+- Library not mounting: check NFS connectivity to 10.0.0.254 (see NFS Mount Hanging above)
 - ML cache: verify Longhorn PVC is bound (`kubectl get pvc -n immich`)
+- Server not ready but running: likely saturated with background jobs (face detection, transcoding) — probe timeouts, not a crash
 
 ### General
 ```bash

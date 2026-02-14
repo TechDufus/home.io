@@ -235,6 +235,9 @@ k3s is installed with `--disable traefik --disable servicelb --disable local-sto
 - ServiceLB replaced by Tailscale's loadBalancerClass
 - Local-storage replaced by Longhorn
 
+### NFS CSI Driver Limitations
+The NFS CSI driver hangs on mount operations after UNAS firmware updates. The immich-library PV uses a static native NFS volume (`spec.nfs`) instead of CSI to avoid this. Do not convert it back to CSI. See `kubernetes/CLAUDE.md` for full details and debugging steps.
+
 ### Standalone VMs
 Besides k3s nodes, the Terraform config also provisions standalone VMs (n8n-server, openclaw) that are not part of the k3s cluster.
 
