@@ -188,6 +188,40 @@ setup_immich_secrets() {
         "DB_PASSWORD" "$password"
 }
 
+# Setup Homepage widget secrets
+setup_homepage_secrets() {
+    echo ""
+    echo -e "${BLUE}Setting up Homepage dashboard secrets...${NC}"
+
+    kubectl create namespace homepage --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1
+
+    local proxmox_url=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="proxmox-url" --reveal 2>/dev/null || echo "")
+    local proxmox_token_id=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="proxmox-token-id" --reveal 2>/dev/null || echo "")
+    local proxmox_token_secret=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="proxmox-token-secret" --reveal 2>/dev/null || echo "")
+    local argocd_key=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="argocd-key" --reveal 2>/dev/null || echo "")
+    local ha_url=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="ha-url" --reveal 2>/dev/null || echo "")
+    local ha_token=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="ha-token" --reveal 2>/dev/null || echo "")
+    local immich_key=$(op item get "homepage-secrets" --vault="$OP_VAULT" --fields="immich-key" --reveal 2>/dev/null || echo "")
+
+    if [ -z "$proxmox_url" ]; then
+        echo -e "${RED}Homepage secrets not found in 1Password${NC}"
+        echo -e "${YELLOW}  Create item 'homepage-secrets' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}  with fields: proxmox-url, proxmox-token-id, proxmox-token-secret,${NC}"
+        echo -e "${YELLOW}               argocd-key, ha-url, ha-token, immich-key${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}Found Homepage secrets in 1Password${NC}"
+    create_k8s_secret "homepage" "homepage-secrets" \
+        "HOMEPAGE_VAR_PROXMOX_URL" "$proxmox_url" \
+        "HOMEPAGE_VAR_PROXMOX_TOKEN_ID" "$proxmox_token_id" \
+        "HOMEPAGE_VAR_PROXMOX_TOKEN_SECRET" "$proxmox_token_secret" \
+        "HOMEPAGE_VAR_ARGOCD_KEY" "$argocd_key" \
+        "HOMEPAGE_VAR_HA_URL" "$ha_url" \
+        "HOMEPAGE_VAR_HA_TOKEN" "$ha_token" \
+        "HOMEPAGE_VAR_IMMICH_KEY" "$immich_key"
+}
+
 # Show secret status
 show_secret_status() {
     echo ""
@@ -201,6 +235,10 @@ show_secret_status() {
     echo ""
     echo -e "${YELLOW}Immich:${NC}"
     kubectl get secrets -n immich 2>/dev/null | grep -E "immich-postgres-secret" || echo "  No Immich secrets found"
+
+    echo ""
+    echo -e "${YELLOW}Homepage:${NC}"
+    kubectl get secrets -n homepage 2>/dev/null | grep -E "homepage-secrets" || echo "  No Homepage secrets found"
 }
 
 # Main execution
@@ -210,6 +248,7 @@ main() {
 
     setup_tailscale_secrets
     setup_immich_secrets
+    setup_homepage_secrets
 
     show_secret_status
 
@@ -231,6 +270,8 @@ case "${1:-}" in
         echo "Required 1Password items:"
         echo "  - 'tailscale-operator-oauth' with fields 'client_id' and 'client_secret'"
         echo "  - 'immich-postgres-password' with field 'password'"
+        echo "  - 'homepage-secrets' with fields: proxmox-url, proxmox-token-id,"
+        echo "    proxmox-token-secret, argocd-key, ha-url, ha-token, immich-key"
         echo ""
         echo "Both items should be in the '$OP_VAULT' vault."
         exit 0

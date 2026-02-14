@@ -2,5 +2,9 @@
 configs:
   cm:
     application.resourceTrackingMethod: annotation
+    # Homepage dashboard readonly account
+    accounts.homepage: apiKey
+  rbac:
+    policy.csv: "g, homepage, role:readonly"
   params:
     server.insecure: true

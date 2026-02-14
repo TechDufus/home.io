@@ -1,0 +1,219 @@
+# Homepage Dashboard - Homelab Configuration
+# Chart: https://github.com/jameswynn/helm-charts/tree/main/charts/homepage
+
+image:
+  repository: ghcr.io/gethomepage/homepage
+  tag: latest
+
+# Enable Kubernetes service discovery
+enableRbac: true
+serviceAccount:
+  create: true
+  name: homepage
+
+# Pull widget credentials from secret
+envFrom:
+  - secretRef:
+      name: homepage-secrets
+
+# Resource limits
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+config:
+  # Kubernetes cluster integration
+  kubernetes:
+    mode: cluster
+
+  # Global settings
+  settings:
+    title: TechDufus HomeLab
+    favicon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/kubernetes.svg
+    theme: dark
+    color: slate
+    headerStyle: clean
+    layout:
+      Infrastructure:
+        style: row
+        columns: 3
+      Applications:
+        style: row
+        columns: 3
+      Bookmarks:
+        style: row
+        columns: 3
+
+  # Top bar widgets
+  widgets:
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: "k3s-homelab"
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - search:
+        provider: google
+        target: _blank
+    - datetime:
+        text_size: xl
+        format:
+          dateStyle: long
+          timeStyle: short
+          hour12: true
+        locale: en-US
+
+  # Service groups
+  services:
+    - Infrastructure:
+        - Proxmox:
+            icon: proxmox
+            href: https://proxmox.local:8006
+            description: Dell PowerEdge R720xd
+            widget:
+              type: proxmox
+              url: "{{HOMEPAGE_VAR_PROXMOX_URL}}"
+              username: "{{HOMEPAGE_VAR_PROXMOX_TOKEN_ID}}"
+              password: "{{HOMEPAGE_VAR_PROXMOX_TOKEN_SECRET}}"
+              node: proxmox
+        - ArgoCD:
+            icon: argocd
+            href: http://argocd.taile67c31.ts.net
+            description: GitOps deployments
+            widget:
+              type: argocd
+              url: http://argocd-server.argocd.svc.cluster.local
+              key: "{{HOMEPAGE_VAR_ARGOCD_KEY}}"
+        - Longhorn:
+            icon: longhorn
+            href: https://longhorn.local
+            description: Distributed storage
+            widget:
+              type: longhorn
+              url: http://longhorn-frontend.longhorn-system.svc.cluster.local
+        - Home Assistant:
+            icon: home-assistant
+            href: http://homeassistant.taile67c31.ts.net:8123
+            description: Smart home control
+            widget:
+              type: homeassistant
+              url: "{{HOMEPAGE_VAR_HA_URL}}"
+              key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
+              custom:
+                - state: weather.forecast_home
+                  label: Weather
+                - state: person.techdufus
+                  label: Dufus
+                - state: sensor.pixel_8_pro_battery_level
+                  label: Phone
+                  value: "{state}%"
+
+    - Applications:
+        - Immich:
+            icon: immich
+            href: https://immich.tail*.ts.net
+            description: Photo management
+            widget:
+              type: immich
+              url: http://immich-server.immich.svc.cluster.local:2283
+              key: "{{HOMEPAGE_VAR_IMMICH_KEY}}"
+              version: 2
+        - n8n:
+            icon: n8n
+            href: https://n8n.local
+            description: Workflow automation
+        - OpenClaw:
+            icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/bot.svg
+            href: "#"
+            description: AI Agent (Igris)
+            widget:
+              type: customapi
+              url: http://dev-openclaw.taile67c31.ts.net:3000/health
+              mappings:
+                - field: status
+                  label: Status
+
+    - GitHub:
+        - home.io:
+            icon: github
+            href: https://github.com/techdufus/home.io
+            description: Homelab IaC
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/techdufus/home.io
+              headers:
+                Accept: application/vnd.github.v3+json
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+                - field: open_issues_count
+                  label: Issues
+        - dotfiles:
+            icon: github
+            href: https://github.com/techdufus/dotfiles
+            description: Terminal config
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/techdufus/dotfiles
+              headers:
+                Accept: application/vnd.github.v3+json
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+        - oh-my-claude:
+            icon: github
+            href: https://github.com/techdufus/oh-my-claude
+            description: Claude Code superpowers
+            widget:
+              type: customapi
+              url: https://api.github.com/repos/techdufus/oh-my-claude
+              headers:
+                Accept: application/vnd.github.v3+json
+              mappings:
+                - field: stargazers_count
+                  label: Stars
+
+  # Quick access bookmarks
+  bookmarks:
+    - Dev:
+        - GitHub:
+            - icon: github
+              href: https://github.com/techdufus
+        - Claude:
+            - icon: https://www.anthropic.com/favicon.ico
+              href: https://claude.ai
+        - ClaWHub:
+            - icon: https://clawhub.com/favicon.ico
+              href: https://clawhub.com
+    - Cloud:
+        - Tailscale:
+            - icon: tailscale
+              href: https://login.tailscale.com/admin
+        - Cloudflare:
+            - icon: cloudflare
+              href: https://dash.cloudflare.com
+        - 1Password:
+            - icon: 1password
+              href: https://my.1password.com
+    - Personal:
+        - TechDufus Blog:
+            - icon: https://techdufus.com/favicon.ico
+              href: https://techdufus.com
+        - Gmail:
+            - icon: gmail
+              href: https://mail.google.com
+        - Google Calendar:
+            - icon: google-calendar
+              href: https://calendar.google.com
+
+  # No Docker integration needed
+  docker: {}

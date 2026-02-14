@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: homepage
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Homepage Helm chart (unofficial but well-maintained)
+    - chart: homepage
+      repoURL: https://jameswynn.github.io/helm-charts
+      targetRevision: "*"
+      helm:
+        releaseName: homepage
+        valueFiles:
+          - $values/kubernetes/argocd/values/homepage.yaml
+    # Values from Git
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
+    # Supporting manifests (tailscale service)
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/homepage
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: homepage
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  revisionHistoryLimit: 3
