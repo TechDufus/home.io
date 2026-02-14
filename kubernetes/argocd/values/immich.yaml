@@ -31,12 +31,16 @@ valkey:
       storageClass: longhorn
 
 server:
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      memory: 4Gi
+  controllers:
+    main:
+      containers:
+        main:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 4Gi
 
 machine-learning:
   persistence:
@@ -44,9 +48,13 @@ machine-learning:
       enabled: true
       type: persistentVolumeClaim
       existingClaim: immich-ml-cache
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      memory: 2Gi
+  controllers:
+    main:
+      containers:
+        main:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
