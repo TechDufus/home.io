@@ -138,9 +138,7 @@ config:
             icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/bot.svg
             href: "#"
             description: AI Agent (Igris)
-            widget:
-              type: ping
-              url: http://100.65.3.23:18789
+            ping: http://100.65.3.23:18789
 
     - GitHub:
         - home.io:
