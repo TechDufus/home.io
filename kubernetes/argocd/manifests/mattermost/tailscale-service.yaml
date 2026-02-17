@@ -14,4 +14,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: mattermost-app
+    app.kubernetes.io/name: mattermost
