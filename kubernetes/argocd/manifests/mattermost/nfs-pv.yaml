@@ -1,4 +1,22 @@
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mattermost-data
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-shared
+  mountOptions:
+    - nfsvers=3
+    - hard
+  nfs:
+    server: 10.0.0.254
+    path: /var/nfs/shared/Homelab/mattermost-data
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mattermost-data
@@ -10,3 +28,4 @@ spec:
   resources:
     requests:
       storage: 50Gi
+  volumeName: mattermost-data
