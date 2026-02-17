@@ -12,6 +12,9 @@ serviceAccount:
   name: homepage
 
 # Pull widget credentials from secret
+env:
+  HOMEPAGE_ALLOWED_HOSTS: "dashboard.taile67c31.ts.net"
+
 envFrom:
   - secretRef:
       name: homepage-secrets
