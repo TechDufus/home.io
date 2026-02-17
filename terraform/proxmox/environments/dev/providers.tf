@@ -3,14 +3,15 @@
 
 # Configure providers
 provider "onepassword" {
-  # Uses 1Password CLI authentication
-  account = "my.1password.com"
+  # Service account token (env var) and account are mutually exclusive.
+  # Set to null when using OP_SERVICE_ACCOUNT_TOKEN, otherwise use CLI auth.
+  account = var.op_account
 }
 
 provider "proxmox" {
-  endpoint = data.onepassword_item.proxmox_terraform_user.url
-  username = data.onepassword_item.proxmox_terraform_user.username
-  password = data.onepassword_item.proxmox_terraform_user.password
+  endpoint = data.onepassword_item.proxmox_credentials.url
+  username = data.onepassword_item.proxmox_credentials.username
+  password = data.onepassword_item.proxmox_credentials.password
   insecure = true
 
   ssh {

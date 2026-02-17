@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mattermost-tailscale
+  namespace: mattermost
+  annotations:
+    tailscale.com/hostname: "mattermost"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  ports:
+    - port: 80
+      targetPort: 8065
+      protocol: TCP
+      name: http
+  selector:
+    app: mattermost-app

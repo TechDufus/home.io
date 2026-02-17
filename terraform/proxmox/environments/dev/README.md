@@ -20,9 +20,9 @@ This environment creates a production-grade Kubernetes cluster using:
 
 ### Proxmox Setup
 - Proxmox VE node with API access
-- 1Password item named "Proxmox Terraform User" in "Personal" vault containing:
+- 1Password item named "Proxmox" in "HomeLab" vault containing:
   - URL: Proxmox API endpoint (e.g., `https://proxmox.home.io:8006/api2/json`)
-  - Username: Terraform user with VM creation privileges
+  - Username: Proxmox user with VM creation privileges
   - Password: User password
 
 ## Quick Start
@@ -105,7 +105,7 @@ cd terraform/proxmox/environments/dev
 ### Configuration
 
 The script uses these defaults (override with environment variables):
-- Vault: `cicd` (set `KUBECONFIG_VAULT` to change)
+- Vault: `HomeLab` (set `KUBECONFIG_VAULT` to change)
 - Item prefix: `kubeconfig` (set `KUBECONFIG_PREFIX` to change)
 - Auto-detected environment from directory
 
@@ -116,11 +116,11 @@ If you prefer manual operations:
 # Save to 1Password
 op item create --category=Document \
   --title="kubeconfig-dev" \
-  --vault="cicd" \
+  --vault="HomeLab" \
   kubeconfig=@terraform/proxmox/environments/dev/kubeconfig
 
 # Download and merge manually
-op document get "kubeconfig-dev" --vault="cicd" > ~/.kube/config-homelab-dev
+op document get "kubeconfig-dev" --vault="HomeLab" > ~/.kube/config-homelab-dev
 KUBECONFIG=~/.kube/config:~/.kube/config-homelab-dev kubectl config view --flatten > ~/.kube/config.tmp
 mv ~/.kube/config.tmp ~/.kube/config
 kubectl config use-context homelab-dev

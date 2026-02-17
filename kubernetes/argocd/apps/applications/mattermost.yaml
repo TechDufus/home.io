@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mattermost
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    # Mattermost Helm chart (official, v2.7.0 / appVersion 11.1.1)
+    - chart: mattermost
+      repoURL: https://helm.mattermost.com
+      targetRevision: "2.7.0"
+      helm:
+        releaseName: mattermost
+        valueFiles:
+          - $values/kubernetes/argocd/values/mattermost.yaml
+    # Values from Git
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      ref: values
+    # Supporting manifests (postgres, namespace, tailscale)
+    - repoURL: https://github.com/TechDufus/home.io
+      targetRevision: main
+      path: kubernetes/argocd/manifests/mattermost
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mattermost
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  revisionHistoryLimit: 3

@@ -1,0 +1,57 @@
+# Mattermost - Homelab Configuration (chart 2.7.0 / appVersion 11.1.1)
+
+global:
+  siteUrl: "http://mattermost"
+
+  features:
+    database:
+      driver: postgres
+      # Uses secret reference instead of inline credentials
+      existingDatabaseSecret:
+        name: mattermost-postgres-secret
+        key: DATABASE_URL
+
+    fileStore:
+      # Local driver with NFS-backed PVC mounted at the data dir
+      driver: local
+
+    jobserver:
+      enabled: false
+
+mattermostApp:
+  replicaCount: 1
+  image:
+    repository: mattermost/mattermost-enterprise-edition
+    tag: 11.1.1
+    pullPolicy: IfNotPresent
+
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  revisionHistoryLimit: 3
+
+  service:
+    name: mattermost-app
+    type: ClusterIP
+    externalPort: 8065
+    internalPort: 8065
+
+  ingress:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # Mount NFS PVC for file uploads (persists across pod restarts)
+  extraVolumes:
+    - name: mattermost-data
+      persistentVolumeClaim:
+        claimName: mattermost-data
+  extraVolumeMounts:
+    - name: mattermost-data
+      mountPath: /mattermost/data

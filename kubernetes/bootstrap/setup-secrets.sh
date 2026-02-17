@@ -16,7 +16,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 1Password configuration
-OP_VAULT="Personal"
+OP_VAULT="HomeLab"
 
 echo -e "${BLUE}Homelab Secrets Setup${NC}"
 echo -e "${BLUE}=====================${NC}"
@@ -188,6 +188,32 @@ setup_immich_secrets() {
         "DB_PASSWORD" "$password"
 }
 
+# Setup Mattermost Postgres secret
+setup_mattermost_secrets() {
+    echo ""
+    echo -e "${BLUE}Setting up Mattermost Postgres secrets...${NC}"
+
+    kubectl create namespace mattermost --dry-run=client -o yaml | kubectl apply -f - > /dev/null 2>&1
+
+    local password=$(op item get "mattermost-postgres-password" --vault="$OP_VAULT" --fields="password" --reveal 2>/dev/null || echo "")
+
+    if [ -z "$password" ]; then
+        echo -e "${RED}Mattermost Postgres password not found in 1Password${NC}"
+        echo -e "${YELLOW}  Create item 'mattermost-postgres-password' in vault '$OP_VAULT'${NC}"
+        echo -e "${YELLOW}  with field 'password'${NC}"
+        return 1
+    fi
+
+    echo -e "${GREEN}Found Mattermost Postgres password in 1Password${NC}"
+
+    # DATABASE_URL is the connection string the Mattermost chart expects via existingDatabaseSecret
+    local db_url="postgres://mattermost:${password}@mattermost-postgres.mattermost.svc.cluster.local:5432/mattermost?sslmode=disable&connect_timeout=10"
+
+    create_k8s_secret "mattermost" "mattermost-postgres-secret" \
+        "POSTGRES_PASSWORD" "$password" \
+        "DATABASE_URL" "$db_url"
+}
+
 # Setup Homepage widget secrets
 setup_homepage_secrets() {
     echo ""
@@ -237,6 +263,10 @@ show_secret_status() {
     kubectl get secrets -n immich 2>/dev/null | grep -E "immich-postgres-secret" || echo "  No Immich secrets found"
 
     echo ""
+    echo -e "${YELLOW}Mattermost:${NC}"
+    kubectl get secrets -n mattermost 2>/dev/null | grep -E "mattermost-postgres-secret" || echo "  No Mattermost secrets found"
+
+    echo ""
     echo -e "${YELLOW}Homepage:${NC}"
     kubectl get secrets -n homepage 2>/dev/null | grep -E "homepage-secrets" || echo "  No Homepage secrets found"
 }
@@ -248,6 +278,7 @@ main() {
 
     setup_tailscale_secrets
     setup_immich_secrets
+    setup_mattermost_secrets
     setup_homepage_secrets
 
     show_secret_status
@@ -270,6 +301,7 @@ case "${1:-}" in
         echo "Required 1Password items:"
         echo "  - 'tailscale-operator-oauth' with fields 'client_id' and 'client_secret'"
         echo "  - 'immich-postgres-password' with field 'password'"
+        echo "  - 'mattermost-postgres-password' with field 'password'"
         echo "  - 'homepage-secrets' with fields: proxmox-url, proxmox-token-id,"
         echo "    proxmox-token-secret, argocd-key, ha-url, ha-token, immich-key"
         echo ""

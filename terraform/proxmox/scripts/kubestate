@@ -86,7 +86,7 @@ TERRAFORM_ROOT="$(dirname "$SCRIPT_DIR")"
 ENVIRONMENTS_DIR="$TERRAFORM_ROOT/environments"
 
 # Configuration
-VAULT="${KUBECONFIG_VAULT:-cicd}"
+VAULT="${KUBECONFIG_VAULT:-HomeLab}"
 ITEM_PREFIX="${KUBECONFIG_PREFIX:-kubeconfig}"
 KUBECONFIG_FILE="kubeconfig"
 LOCAL_KUBE_DIR="${HOME}/.kube"
