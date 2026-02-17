@@ -146,6 +146,7 @@ config:
               url: https://api.github.com/repos/techdufus/home.io
               headers:
                 Accept: application/vnd.github.v3+json
+                User-Agent: homepage-dashboard
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -160,6 +161,7 @@ config:
               url: https://api.github.com/repos/techdufus/dotfiles
               headers:
                 Accept: application/vnd.github.v3+json
+                User-Agent: homepage-dashboard
               mappings:
                 - field: stargazers_count
                   label: Stars
@@ -172,6 +174,7 @@ config:
               url: https://api.github.com/repos/techdufus/oh-my-claude
               headers:
                 Accept: application/vnd.github.v3+json
+                User-Agent: homepage-dashboard
               mappings:
                 - field: stargazers_count
                   label: Stars
