@@ -10,7 +10,6 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs-shared
   mountOptions:
-    - nfsvers=3
     - hard
   nfs:
     server: 10.0.0.254
