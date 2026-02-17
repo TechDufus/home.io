@@ -1,6 +1,13 @@
 # Development Environment Variables
 # Configuration variables for homelab development environment
 
+# 1Password Configuration
+variable "op_account" {
+  description = "1Password account for CLI auth. Set to null when using OP_SERVICE_ACCOUNT_TOKEN."
+  type        = string
+  default     = "my.1password.com"
+}
+
 # Basic Configuration
 variable "environment" {
   description = "Environment name"

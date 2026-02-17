@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mattermost-postgres-init
+  namespace: mattermost
+data:
+  init-db.sql: |
+    -- Mattermost doesn't require special extensions
+    -- but we create the database with proper encoding
+    SELECT 'Mattermost database initialized';

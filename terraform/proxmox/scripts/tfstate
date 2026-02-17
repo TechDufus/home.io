@@ -86,7 +86,7 @@ TERRAFORM_ROOT="$(dirname "$SCRIPT_DIR")"
 ENVIRONMENTS_DIR="$TERRAFORM_ROOT/environments"
 
 # Configuration
-VAULT="${TFSTATE_VAULT:-cicd}"
+VAULT="${TFSTATE_VAULT:-HomeLab}"
 ITEM_PREFIX="${TFSTATE_PREFIX:-tfstate}"
 STATE_FILE="terraform.tfstate"
 STATE_BACKUP_FILE="terraform.tfstate.backup"
