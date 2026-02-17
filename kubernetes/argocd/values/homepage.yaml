@@ -106,7 +106,7 @@ config:
             description: Smart home control
             widget:
               type: homeassistant
-              url: http://10.0.0.99:8123
+              url: http://homeassistant.taile67c31.ts.net:8123
               key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
               custom:
                 - state: weather.forecast_home
@@ -135,6 +135,12 @@ config:
             icon: mdi-robot-outline
             href: "#"
             description: AI Agent (Igris)
+            ping: http://dev-openclaw.taile67c31.ts.net:18789
+        - Forgejo:
+            icon: forgejo
+            href: http://dev-openclaw.taile67c31.ts.net:3000
+            description: Git hosting
+            ping: http://dev-openclaw.taile67c31.ts.net:3000
 
     - GitHub:
         - home.io:

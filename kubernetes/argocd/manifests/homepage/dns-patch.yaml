@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  template:
+    spec:
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 100.100.100.100  # Tailscale MagicDNS
+          - 10.43.0.10       # CoreDNS (cluster services)
+        searches:
+          - homepage.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
+          - taile67c31.ts.net
