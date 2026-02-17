@@ -132,7 +132,7 @@ config:
             href: https://n8n.local
             description: Workflow automation
         - OpenClaw:
-            icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/bot.svg
+            icon: mdi-robot-outline
             href: "#"
             description: AI Agent (Igris)
 
