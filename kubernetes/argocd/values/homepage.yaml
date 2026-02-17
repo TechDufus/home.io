@@ -139,11 +139,8 @@ config:
             href: "#"
             description: AI Agent (Igris)
             widget:
-              type: customapi
-              url: http://dev-openclaw.taile67c31.ts.net:3000/health
-              mappings:
-                - field: status
-                  label: Status
+              type: ping
+              url: http://100.65.3.23:18789
 
     - GitHub:
         - home.io:
