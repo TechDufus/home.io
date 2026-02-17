@@ -100,16 +100,13 @@ config:
             icon: longhorn
             href: https://longhorn.local
             description: Distributed storage
-            widget:
-              type: longhorn
-              url: http://longhorn-frontend.longhorn-system.svc.cluster.local
         - Home Assistant:
             icon: home-assistant
             href: http://homeassistant.taile67c31.ts.net:8123
             description: Smart home control
             widget:
               type: homeassistant
-              url: "{{HOMEPAGE_VAR_HA_URL}}"
+              url: http://10.0.0.99:8123
               key: "{{HOMEPAGE_VAR_HA_TOKEN}}"
               custom:
                 - state: weather.forecast_home
@@ -138,7 +135,6 @@ config:
             icon: https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/bot.svg
             href: "#"
             description: AI Agent (Igris)
-            ping: http://100.65.3.23:18789
 
     - GitHub:
         - home.io:
