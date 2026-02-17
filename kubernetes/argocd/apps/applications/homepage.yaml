@@ -34,7 +34,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-      - ServerSideForceConflicts=true
     retry:
       limit: 5
       backoff:
