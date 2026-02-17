@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mattermost-data
+  namespace: mattermost
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-shared
+  resources:
+    requests:
+      storage: 50Gi
