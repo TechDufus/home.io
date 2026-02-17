@@ -81,9 +81,14 @@ Resource limits, probes, container settings nest under `controllers.main.contain
 ### NFS CSI Driver vs Native NFS Volumes
 The NFS CSI driver concatenates `share` + `subdir` into a single mount path. After UNAS firmware updates, CSI mount operations hang indefinitely while native K8s NFS volumes (`spec.nfs`) work fine. The `hard` mount option means hung mounts never timeout, leaving stale mounts on workers that block subsequent mounts.
 
-**The immich-library PV uses a static native NFS volume for this reason. Do not convert back to CSI.**
+**The immich-library PV uses a static native NFS volume for this reason.**
 
-For new NFS PVCs: prefer static PVs with native NFS over dynamic CSI provisioning. The `nfs-shared` StorageClass still uses CSI and may hit the same issue.
+### Static vs Dynamic NFS: When to Use Each
+
+- **Dynamic CSI** (`nfs-shared` StorageClass): Works for most cases. CSI handles directory creation and NFS auth negotiation. Used by Mattermost.
+- **Static native NFS** (`spec.nfs`): Needed when CSI mounts hang (post-firmware update issue). Used by Immich as a workaround. **Caveat:** static PVs with sub-paths may get "access denied" if NAS export ACLs don't allow direct sub-mount from cluster node IPs.
+
+**Default to dynamic CSI for new services.** Only switch to static native NFS if you hit the CSI mount hang issue. If static PVs get "access denied", the NAS export config needs updating (IP allowlist for cluster nodes).
 
 ## Debugging
 
