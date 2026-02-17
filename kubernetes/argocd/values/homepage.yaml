@@ -89,7 +89,7 @@ config:
               password: "{{HOMEPAGE_VAR_PROXMOX_TOKEN_SECRET}}"
               node: proxmox
         - ArgoCD:
-            icon: argocd
+            icon: argo-cd
             href: http://argocd.taile67c31.ts.net
             description: GitOps deployments
             widget:
