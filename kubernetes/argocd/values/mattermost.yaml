@@ -1,7 +1,7 @@
 # Mattermost - Homelab Configuration (chart 2.7.0 / appVersion 11.1.1)
 
 global:
-  siteUrl: "http://mattermost"
+  siteUrl: "https://mattermost.taile67c31.ts.net"
 
   features:
     database:
@@ -20,6 +20,13 @@ global:
 
 mattermostApp:
   replicaCount: 1
+
+  ## Push notifications via Mattermost's free HPNS
+  extraEnv:
+    - name: MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS
+      value: "true"
+    - name: MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER
+      value: "https://push-test.mattermost.com"
   image:
     repository: mattermost/mattermost-enterprise-edition
     tag: 11.1.1
