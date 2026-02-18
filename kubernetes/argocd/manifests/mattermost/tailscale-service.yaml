@@ -1,18 +1,17 @@
-apiVersion: v1
-kind: Service
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: mattermost-tailscale
+  name: mattermost-ingress
   namespace: mattermost
   annotations:
-    tailscale.com/hostname: "mattermost"
     tailscale.com/funnel: "true"
 spec:
-  type: LoadBalancer
-  loadBalancerClass: tailscale
-  ports:
-    - port: 80
-      targetPort: 8065
-      protocol: TCP
-      name: http
-  selector:
-    app.kubernetes.io/name: mattermost
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: mattermost
+      port:
+        number: 8065
+  tls:
+    - hosts:
+        - mattermost
