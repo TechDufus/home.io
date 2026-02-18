@@ -5,6 +5,7 @@ metadata:
   namespace: mattermost
   annotations:
     tailscale.com/hostname: "mattermost"
+    tailscale.com/funnel: "true"
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
