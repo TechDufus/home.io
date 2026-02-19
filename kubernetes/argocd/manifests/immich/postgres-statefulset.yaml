@@ -28,9 +28,11 @@ spec:
       containers:
         - name: postgres
           image: pgvector/pgvector:pg16
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
               name: postgres
+              protocol: TCP
           env:
             - name: POSTGRES_DB
               value: immich
@@ -55,16 +57,27 @@ spec:
             limits:
               cpu: "1"
               memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: init-scripts
           configMap:
             name: immich-postgres-init
+            defaultMode: 420
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
         storageClassName: longhorn
+        volumeMode: Filesystem
         resources:
           requests:
             storage: 10Gi
