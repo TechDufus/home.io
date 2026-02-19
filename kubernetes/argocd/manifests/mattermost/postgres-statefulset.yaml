@@ -8,6 +8,15 @@ metadata:
 spec:
   serviceName: mattermost-postgres
   replicas: 1
+  podManagementPolicy: OrderedReady
+  revisionHistoryLimit: 10
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
   selector:
     matchLabels:
       app: mattermost-postgres
@@ -19,9 +28,11 @@ spec:
       containers:
         - name: postgres
           image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
               name: postgres
+              protocol: TCP
           env:
             - name: POSTGRES_DB
               value: mattermost
@@ -46,16 +57,27 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: init-scripts
           configMap:
             name: mattermost-postgres-init
+            defaultMode: 420
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
         storageClassName: longhorn
+        volumeMode: Filesystem
         resources:
           requests:
             storage: 5Gi
